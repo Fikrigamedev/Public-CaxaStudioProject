@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>pykizAi-Neo1.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        /* --- Variabel Warna Dark Glass --- */
+        :root {
+            /* Warna Dasar */
+            --glass-bg-primary: rgba(30, 30, 30, 0.6); 
+            --glass-bg-secondary: rgba(45, 45, 45, 0.7); 
+            --dark-bg-color: #1a1a1a; 
+            --light-text-color: #ffffff; 
+            --secondary-text-color: #bbbbbb; 
+            --main-accent: #007bff; /* Biru Neon */
+            --main-accent-hover: #0056b3;
+            --code-mode-accent: #ffb800; /* Kuning/Emas untuk mode coding */
+            --stop-btn-color: #ff4444; /* Merah untuk tombol stop */
+            --border-color: rgba(255, 255, 255, 0.1); 
+            
+            /* Animasi */
+            --transition-duration: 0.2s;
+
+            /* Warna Chat Bubble */
+            --bubble-ai-bg: rgba(0, 0, 0, 0.2); 
+            --bubble-user-bg: var(--main-accent); 
+        }
+
+        /* --- Base Layout & Glass Effect --- */
+        html, body {
+            height: 100%; margin: 0; 
+            font-family: 'Roboto', Arial, sans-serif; 
+            background-color: var(--dark-bg-color); 
+            color: var(--light-text-color);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow: hidden; 
+            
+            background-image: radial-gradient(circle at top left, #333333 0%, transparent 50%), 
+                              radial-gradient(circle at bottom right, #333333 0%, transparent 50%);
+            background-size: 100% 100%;
+        }
+        .chat-interface-container {
+            display: flex; flex-direction: column; height: 100vh; max-width: 900px; 
+            margin: 0 auto; 
+            background-color: transparent; 
+            position: relative;
+        }
+
+        /* --- Chat Header --- */
+        .chat-header {
+             display: flex; justify-content: space-between; align-items: center;
+             padding: 15px 24px;
+             background: var(--glass-bg-primary);
+             backdrop-filter: blur(10px);
+             -webkit-backdrop-filter: blur(10px);
+             border-bottom: 1px solid var(--border-color);
+             z-index: 10;
+        }
+        .header-title {
+             font-weight: 500; font-size: 1.2em;
+             display: flex; align-items: center;
+        }
+        .mode-indicator {
+            font-size: 0.75em;
+            font-weight: 700;
+            color: var(--code-mode-accent);
+            border: 1px solid var(--code-mode-accent);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 10px;
+            display: none; 
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .mode-indicator.active {
+            display: inline-block;
+            opacity: 1;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .profile-btn, .mode-toggle-btn { 
+             background: none; border: none; color: var(--light-text-color);
+             cursor: pointer; padding: 5px;
+             transition: color 0.2s;
+        }
+        .profile-btn:hover, .mode-toggle-btn:hover {
+             color: var(--main-accent);
+        }
+        .mode-toggle-btn.active {
+            color: var(--code-mode-accent);
+            box-shadow: 0 0 5px var(--code-mode-accent);
+            border-radius: 50%;
+        }
+
+
+        /* --- Chat History & Bubble --- */
+        .chat-history {
+            flex-grow: 1; 
+            /* UPDATE: Padding bottom dinaikkan agar input area terlihat lebih tinggi */
+            padding: 30px 24px 145px 24px; 
+            overflow-y: auto; 
+            display: flex; flex-direction: column; gap: 15px; 
+            scroll-behavior: smooth;
+        }
+        
+        /* Avatar Styling */
+        .message.ai .avatar, .message.user .avatar {
+            min-width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 500;
+            flex-shrink: 0; 
+            position: relative;
+            font-size: 18px;
+            background-size: cover;
+            background-position: center;
+        }
+        .message.ai .avatar {
+             background-color: var(--main-accent); 
+             color: var(--light-text-color);
+             box-shadow: 0 0 8px rgba(0, 123, 255, 0.5); 
+        }
+        .message.user .avatar {
+             background-color: #333;
+             color: var(--secondary-text-color);
+        }
+
+        .message { 
+            display: flex; gap: 10px; 
+            opacity: 0; 
+            transform: translateY(15px);
+            transition: opacity var(--transition-duration) ease-out, transform var(--transition-duration) ease-out;
+            max-width: 85%; 
+        }
+        .message.show { opacity: 1; transform: translateY(0); }
+        
+        /* USER CHAT: Avatar di Kanan (flex-direction: row-reverse) & Aligned Right */
+        .message.user { 
+            align-self: flex-end; 
+            flex-direction: row-reverse; /* Memastikan Avatar di kanan Wrapper */
+        } 
+        .message.ai { 
+            align-self: flex-start; 
+        }
+        
+        .message.user .message-content-wrapper {
+             display: flex; flex-direction: column; 
+             align-items: flex-end; 
+             max-width: 100%;
+        }
+
+        .message-bubble { 
+            padding: 10px 14px; 
+            border-radius: 10px; 
+            max-width: 90%; 
+            line-height: 1.5; 
+            font-size: 15px;
+            color: var(--light-text-color);
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .message.ai .message-bubble { 
+            background-color: var(--bubble-ai-bg); 
+            border-bottom-left-radius: 2px; 
+        }
+        .message.user .message-bubble { 
+            background-color: var(--bubble-user-bg); 
+            border-bottom-right-radius: 2px; 
+            align-self: flex-end; 
+        }
+
+        /* --- Tampilan Kode --- */
+        .message-bubble p { margin-top: 0; margin-bottom: 0; }
+
+        .code-block-wrapper {
+            background-color: rgba(0, 0, 0, 0.8); border-radius: 8px; margin-top: 10px; margin-bottom: 10px;
+            overflow: hidden; position: relative; border: 1px solid rgba(255, 255, 255, 0.1); 
+        }
+        /* ... (Styling kode lainnya sama) ... */
+        .code-block-wrapper pre {
+            padding: 15px; margin: 0; font-size: 14px; overflow-x: auto; padding-top: 30px; 
+        }
+        .code-block-wrapper pre code {
+            color: #e0e0e0; display: block; white-space: pre; 
+        }
+        .code-header {
+            position: absolute; top: 0; right: 0; left: 0; background-color: rgba(255, 255, 255, 0.05); 
+            color: var(--secondary-text-color); padding: 5px 10px; font-size: 0.8em;
+            display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .copy-btn {
+            background: none; border: none; color: var(--secondary-text-color); cursor: pointer;
+            padding: 3px 8px; border-radius: 4px; display: flex; align-items: center; gap: 5px;
+            font-size: 0.9em; transition: background-color 0.2s, color 0.2s;
+        }
+        .copy-btn:hover { background-color: rgba(255, 255, 255, 0.2); color: var(--light-text-color); }
+        .copy-btn span.material-icons-outlined { font-size: 16px; }
+
+        /* --- Input Area (Higher Position & Dark Glass) --- */
+        .input-area { 
+            position: absolute; bottom: 0; left: 0; right: 0;
+            display: flex; flex-direction: column; align-items: center; 
+            /* UPDATE: Padding bottom dinaikkan menjadi 55px untuk posisi yang lebih tinggi */
+            padding: 15px 0 55px 0; 
+            background: linear-gradient(to top, var(--dark-bg-color) 70%, rgba(26, 26, 26, 0.8) 100%); 
+            backdrop-filter: blur(5px); 
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 10;
+        }
+
+        /* UPDATE: Desain Tombol Stop Modern */
+        #stopButton {
+            display: none; 
+            align-items: center;
+            justify-content: center;
+            
+            background-color: var(--stop-btn-color); 
+            color: var(--light-text-color);
+            
+            border: none;
+            border-radius: 20px; /* Pill shape */
+            padding: 8px 18px;
+            margin-bottom: 15px; /* Jarak antara tombol stop dan input form */
+            
+            font-weight: 500;
+            cursor: pointer;
+            
+            /* Red Neon Glow */
+            box-shadow: 0 0 10px rgba(255, 68, 68, 0.6); 
+            transition: all 0.2s ease-in-out;
+            z-index: 11; 
+        }
+        #stopButton:hover {
+            background-color: #e63939; 
+            box-shadow: 0 0 15px rgba(255, 68, 68, 0.8);
+            transform: translateY(-2px);
+        }
+        #stopButton:active {
+            transform: scale(0.98);
+        }
+
+        .input-form { 
+            display: flex; align-items: center; 
+            width: 95%; max-width: 768px; 
+            padding: 8px 12px; 
+            background: var(--glass-bg-secondary);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 18px; 
+            border: 1px solid var(--border-color);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(0, 123, 255, 0.1); 
+            transition: all var(--transition-duration);
+        }
+        .input-form:focus-within {
+             border-color: rgba(255, 255, 255, 0.3); 
+             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(255, 255, 255, 0.1); 
+        }
+
+        .input-form textarea { 
+            flex-grow: 1; border: none; outline: none; resize: none; 
+            padding: 10px 8px; 
+            margin-right: 5px; 
+            font-size: 16px; 
+            max-height: 200px; 
+            background-color: transparent; 
+            color: var(--light-text-color);
+            line-height: 1.5; 
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .input-form textarea::-webkit-scrollbar {
+            display: none;
+        }
+
+        .icon-btn {
+             background: none; border: none; cursor: pointer; 
+             padding: 8px; 
+             border-radius: 12px; 
+             margin: 0 4px; 
+             transition: background-color 0.2s;
+             align-self: center; 
+             color: var(--secondary-text-color);
+        }
+        .icon-btn:hover {
+             background-color: rgba(255, 255, 255, 0.1); 
+        }
+
+        .input-form button.send-btn { 
+            color: var(--main-accent); 
+            background: none; 
+            border: none; 
+            cursor: pointer; 
+            padding: 8px; 
+            border-radius: 12px;
+            margin-right: 4px;
+            transition: all 0.2s;
+        }
+        .input-form button.send-btn:not(:disabled):hover {
+            background-color: rgba(0, 123, 255, 0.1); 
+        }
+        .input-form button.send-btn:disabled { 
+            color: var(--border-color); 
+            background: none; 
+            cursor: default; 
+        }
+
+        /* --- Modal Umum (Untuk Auth & Profile) --- */
+        .modal { 
+            display: flex; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; 
+            height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; 
+        }
+        .modal-content { 
+            padding: 40px; border-radius: 20px; width: 90%; max-width: 480px; text-align: center; 
+            background: var(--glass-bg-primary); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 123, 255, 0.3);
+            animation: modal-in 0.3s ease-out;
+        }
+        @keyframes modal-in {
+             from { opacity: 0; transform: scale(0.95); }
+             to { opacity: 1; transform: scale(1); }
+        }
+        .modal-content h2 { color: var(--main-accent); margin-top: 0; font-weight: 500; }
+        .modal-content p { color: var(--secondary-text-color); }
+        .modal-content input { 
+            width: 100%; padding: 14px; margin: 5px 0 15px 0; 
+            border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; 
+            font-size: 16px; background-color: var(--glass-bg-secondary); color: var(--light-text-color);
+            transition: border-color 0.2s;
+        }
+        .modal-content input:focus { border-color: var(--main-accent); box-shadow: 0 0 0 1px var(--main-accent); }
+        .modal-content button { 
+            background-color: var(--main-accent); color: white; 
+            padding: 12px 25px; border: none; border-radius: 20px; cursor: pointer; 
+            font-weight: 500; box-shadow: 0 0 10px rgba(0, 123, 255, 0.4);
+            transition: background-color 0.3s, transform 0.1s, box-shadow 0.3s;
+            margin-top: 10px; 
+        }
+        .modal-content button:hover { background-color: var(--main-accent-hover); box-shadow: 0 0 15px rgba(0, 123, 255, 0.6); }
+        .modal-content button:active { transform: scale(0.98); }
+        
+        /* Gaya spesifik untuk tombol switch Login/Register */
+        .modal-content button.switch-btn {
+            background: none;
+            color: var(--secondary-text-color);
+            border: 1px solid var(--secondary-text-color);
+            padding: 8px 15px;
+            margin-top: 20px;
+            font-size: 0.9em;
+            box-shadow: none;
+        }
+        .modal-content button.switch-btn:hover {
+            color: var(--light-text-color);
+            border-color: var(--light-text-color);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        #authError, #registerError { color: #ff4444; margin-bottom: 15px; font-weight: 500; display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            
+            <div id="loginForm">
+                <h2>Masuk ke PykizAi</h2>
+                <p>Silakan masukkan Username dan Password Anda.</p>
+                <div id="authError"></div>
+
+                <label for="loginUsername">Username:</label>
+                <input type="text" id="loginUsername" placeholder="Masukkan Username" required>
+                
+                <label for="loginPassword">Password:</label>
+                <input type="password" id="loginPassword" placeholder="Masukkan Password" required>
+
+                <button onclick="attemptLogin()">Login</button>
+                
+                <button class="switch-btn" onclick="switchAuthMode('register')">Belum punya akun? Daftar Sekarang</button>
+            </div>
+
+            <div id="registerForm" style="display: none;">
+                <h2>Daftar Akun Baru</h2>
+                <p>Buat Username dan Password yang Anda inginkan.</p>
+                <div id="registerError" style="color: #ffb800; margin-bottom: 15px; font-weight: 500; display: none;"></div>
+                
+                <label for="registerUsername">Username Baru:</label>
+                <input type="text" id="registerUsername" placeholder="Buat Username" required>
+                
+                <label for="registerPassword">Password Baru:</label>
+                <input type="password" id="registerPassword" placeholder="Buat Password" required>
+
+                <button onclick="registerUser()">Daftar Akun</button>
+                
+                <button class="switch-btn" onclick="switchAuthMode('login')">Sudah punya akun? Masuk di sini</button>
+            </div>
+
+        </div>
+    </div>
+    <div id="profileModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Pengaturan Profil</h2>
+            <div class="profile-container">
+                <div class="profile-photo" id="userPhotoPreview" onclick="document.getElementById('fileInput').click()" title="Klik untuk mengunggah foto">A</div>
+                <p id="currentUsernameDisplay"></p>
+            </div>
+            
+            <input type="file" id="fileInput" class="hidden-input" accept="image/*" onchange="handleImageUpload(event)">
+            
+            <label for="usernameInput">Nama Pengguna:</label>
+            <input type="text" id="usernameInput" placeholder="Masukkan nama Anda">
+            
+            <button onclick="saveProfileSettings()">Simpan Perubahan</button>
+        </div>
+    </div>
+
+    <div class="chat-interface-container" id="chatContainer" style="display: none;">
+        
+        <div class="chat-header">
+            <div class="header-title">
+                PykizAi (Gemini 2.5 Flash)
+                <span id="codingModeIndicator" class="mode-indicator">CODING MODE</span>
+            </div>
+            <div class="header-actions">
+                <button class="mode-toggle-btn" id="modeToggleButton" onclick="toggleCodingMode()" title="Toggle Coding Mode">
+                    <span class="material-icons-outlined">code</span>
+                </button>
+                <button class="profile-btn" onclick="openProfileModal()" title="Pengaturan Profil">
+                    <span class="material-icons-outlined">account_circle</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="chat-history" id="chatHistory">
+             </div>
+
+        <div class="input-area">
+             <button id="stopButton" onclick="stopChat()">
+                <span class="material-icons-outlined" style="font-size: 18px; margin-right: 5px;">stop</span> Hentikan Chat
+            </button>
+            <form class="input-form" onsubmit="sendMessage(event)">
+                <input type="file" id="imageInput" class="hidden-input" accept="image/*" onchange="previewImage(event)" style="display: none;">
+                
+                <button type="button" class="icon-btn" onclick="document.getElementById('imageInput').click()" title="Unggah Gambar">
+                    <span class="material-icons-outlined" id="imageUploadIcon">attach_file</span>
+                </button>
+                
+                <textarea id="userInput" placeholder="Tanya PykizAi..." rows="1" required></textarea>
+                
+                <button type="submit" class="icon-btn send-btn" id="sendButton" title="Kirim" disabled><span class="material-icons-outlined">send</span></button>
+            </form>
+            <div id="imagePreviewContainer" style="display: none;">
+                <img id="imagePreview" src="" style="max-height: 100px; border-radius: 8px; margin-right: 10px;">
+                <span style="color: var(--secondary-text-color); font-size: 0.9em;" id="imageFileName"></span>
+                <button type="button" onclick="clearImage()" style="background: none; border: none; color: var(--stop-btn-color); cursor: pointer; margin-left: 10px;">
+                    <span class="material-icons-outlined" style="font-size: 18px;">close</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- KONFIGURASI APLIKASI ---
+        const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+        const MODEL_ID = 'google/gemini-2.5-flash';
+        const FIXED_API_KEY = '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';
+        
+        let apiKey = FIXED_API_KEY; 
+        let messages = []; 
+        let isCodingMode = false; 
+        let currentAbortController = null; 
+        let imageBase64 = null; 
+
+        let userProfile = {
+            username: "Anda",
+            photoDataUrl: "" 
+        };
+        
+        const CODING_SYSTEM_PROMPT = {
+            role: "system",
+            content: "Saya adalah Code Generation Assistant yang ahli. Jawab semua permintaan pengguna dengan memberikan kode yang LENGKAP, SIAP PAKAI, dan BERSIH. Pastikan setiap kode diapit dalam blok kode Markdown (```language) dan dilengkapi dengan komentar yang jelas serta penjelasan singkat tentang cara menggunakannya. Fokus pada hasil kode yang spesifik dan terperinci. JANGAN pernah menyertakan HTML, CSS, atau JavaScript ke dalam elemen chat history secara langsung; selalu gunakan blok kode Markdown."
+        };
+        const DEFAULT_SYSTEM_PROMPT = {
+            role: "system",
+            content: "Saya adalah asisten AI profesional dan serba bisa yang didukung oleh Gemini 2.5 Flash. Jawab dengan jelas dan ringkas. Saya memiliki kemampuan untuk menganalisis gambar yang diberikan oleh fikri sebagai developer."
+        };
+
+        // --- MANAJEMEN AKUN LOKAL (localStorage) ---
+
+        /** Mengambil daftar pengguna dari localStorage. */
+        function getUsers() {
+            const users = localStorage.getItem('chatUsers');
+            return users ? JSON.parse(users) : [];
+        }
+
+        /** Menyimpan daftar pengguna ke localStorage. */
+        function saveUsers(users) {
+            localStorage.setItem('chatUsers', JSON.stringify(users));
+        }
+
+        /** Mengubah tampilan modal antara Login dan Register. */
+        function switchAuthMode(mode) {
+            document.getElementById('loginForm').style.display = mode === 'login' ? 'block' : 'none';
+            document.getElementById('registerForm').style.display = mode === 'register' ? 'block' : 'none';
+            document.getElementById('authError').style.display = 'none';
+            document.getElementById('registerError').style.display = 'none';
+        }
+
+        /** Menangani proses Registrasi pengguna baru. */
+        function registerUser() {
+            const usernameInput = document.getElementById('registerUsername');
+            const passwordInput = document.getElementById('registerPassword');
+            const errorDiv = document.getElementById('registerError');
+            
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            errorDiv.style.display = 'none';
+
+            if (username.length < 3 || password.length < 6) {
+                errorDiv.textContent = "Username minimal 3 karakter, Password minimal 6 karakter.";
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            let users = getUsers();
+            if (users.find(u => u.username === username)) {
+                errorDiv.textContent = "Username sudah digunakan. Silakan pilih yang lain.";
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            users.push({ username, password });
+            saveUsers(users);
+            
+            alert(`Registrasi berhasil! Username: ${username}`);
+            
+            // Pindahkan ke form login
+            document.getElementById('loginUsername').value = username;
+            document.getElementById('loginPassword').value = '';
+            switchAuthMode('login');
+        }
+
+        /** Menangani proses Login. */
+        function attemptLogin() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const errorDiv = document.getElementById('authError');
+
+            const users = getUsers();
+            const user = users.find(u => u.username === username && u.password === password);
+
+            errorDiv.style.display = 'none';
+            
+            if (user) {
+                // Login Berhasil
+                sessionStorage.setItem('isLoggedIn', 'true');
+                sessionStorage.setItem('activeUser', username);
+                initializeChatInterface(username);
+            } else {
+                // Login Gagal
+                errorDiv.textContent = "Username atau Password salah!";
+                errorDiv.style.display = 'block';
+                document.getElementById('loginPassword').value = ''; 
+            }
+        }
+        
+        // --- MANAJEMEN MODE CODING ---
+        function toggleCodingMode() {
+            isCodingMode = !isCodingMode;
+            const button = document.getElementById('modeToggleButton');
+            const indicator = document.getElementById('codingModeIndicator');
+            
+            if (isCodingMode) {
+                button.classList.add('active');
+                indicator.classList.add('active');
+                alert("Mode Coding Diaktifkan! PykizAi sekarang akan fokus menghasilkan kode yang lengkap dan terperinci.");
+            } else {
+                button.classList.remove('active');
+                indicator.classList.remove('active');
+                alert("Mode Coding Dinonaktifkan. PykizAi kembali ke mode percakapan umum.");
+            }
+        }
+
+        // --- FUNGSI HENTIKAN CHAT (Stop Chat) ---
+        function stopChat() {
+            if (currentAbortController) {
+                currentAbortController.abort();
+                
+                const placeholder = document.querySelector('.message.ai.loading');
+                if (placeholder) {
+                     placeholder.classList.remove('loading');
+                     placeholder.classList.add('error');
+                     const bubble = placeholder.querySelector('.message-bubble');
+                     // Menghilangkan indikator typing
+                     const typingIndicator = bubble.querySelector('.typing-indicator-container');
+                     if (typingIndicator) typingIndicator.remove();
+                     
+                     bubble.classList.remove('typing');
+                     bubble.innerHTML = `<p>⚠ **Chat Dibatalkan.** Respons dihentikan oleh pengguna.</p>`;
+                     messages.push({ role: 'assistant', content: "⚠ Chat Dibatalkan. Respons dihentikan oleh pengguna." });
+                }
+            }
+            document.getElementById('userInput').disabled = false;
+            document.getElementById('sendButton').disabled = false;
+            document.getElementById('stopButton').style.display = 'none';
+            currentAbortController = null;
+        }
+
+        // --- FUNGSI Copy Code ---
+        function copyCode(button, codeElementId) {
+            const codeElement = document.getElementById(codeElementId);
+            if (!codeElement) return;
+
+            const codeToCopy = codeElement.textContent;
+
+            navigator.clipboard.writeText(codeToCopy).then(() => {
+                const icon = button.querySelector('.material-icons-outlined');
+                const text = document.createElement('span');
+                text.textContent = ' Disalin';
+                button.appendChild(text); 
+                
+                const originalIcon = icon.textContent;
+                icon.textContent = 'done';
+                
+                setTimeout(() => {
+                    icon.textContent = originalIcon;
+                    if(button.contains(text)) {
+                         button.removeChild(text);
+                    }
+                }, 2000);
+            }).catch(err => {
+                console.error('Gagal menyalin:', err);
+                alert('Gagal menyalin kode. Browser Anda mungkin tidak mendukung fitur ini.');
+            });
+        }
+        
+        // --- FUNGSI BARU UNTUK GAMBAR (Multimodal) ---
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function previewImage(event) {
+            const file = event.target.files[0];
+            const previewContainer = document.getElementById('imagePreviewContainer');
+            const previewImg = document.getElementById('imagePreview');
+            const fileNameSpan = document.getElementById('imageFileName');
+            const uploadIcon = document.getElementById('imageUploadIcon');
+            
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) { 
+                    alert("Ukuran file terlalu besar. Maksimum 5MB.");
+                    clearImage();
+                    return;
+                }
+                
+                try {
+                    imageBase64 = await fileToBase64(file);
+                    
+                    previewImg.src = imageBase64;
+                    fileNameSpan.textContent = file.name;
+                    previewContainer.style.display = 'flex';
+                    uploadIcon.style.color = 'var(--light-text-color)'; 
+                    document.getElementById('sendButton').disabled = false;
+                } catch (error) {
+                    console.error("Error converting file to Base64:", error);
+                    alert("Gagal memproses file gambar.");
+                    clearImage();
+                }
+                
+            } else {
+                clearImage();
+            }
+        }
+        
+        function clearImage() {
+            const previewContainer = document.getElementById('imagePreviewContainer');
+            const input = document.getElementById('imageInput');
+            const uploadIcon = document.getElementById('imageUploadIcon');
+
+            imageBase64 = null;
+            input.value = ''; 
+            previewContainer.style.display = 'none';
+            uploadIcon.style.color = 'var(--secondary-text-color)';
+            
+            const userInput = document.getElementById('userInput');
+            document.getElementById('sendButton').disabled = userInput.value.trim() === '';
+        }
+        
+        // --- UI UTILITY: Chat Rendering ---
+        
+        function formatContent(text) {
+            let html = text; 
+            let codeBlockCounter = 0;
+
+            // 1. Proses Blok Kode
+            html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, lang, content) {
+                const codeContent = content.trim(); 
+                const language = lang ? lang.toUpperCase() : 'CODE'; 
+                const codeId = `code-block-${codeBlockCounter++}`;
+                
+                const copyButtonHtml = `
+                    <div class="code-header">
+                        <span style="font-weight: 500; color: var(--secondary-text-color);">${language}</span>
+                        <button class="copy-btn" onclick="copyCode(this, '${codeId}')" title="Salin Kode">
+                            <span class="material-icons-outlined">content_copy</span>
+                        </button>
+                    </div>
+                `;
+                
+                return `
+                    <div class="code-block-wrapper">
+                        ${copyButtonHtml}
+                        <pre><code id="${codeId}" class="language-${language}">${codeContent}</code></pre>
+                    </div>
+                `;
+            });
+
+            // 2. Sekarang proses sisa teks (di luar blok kode)
+            html = html.replace(/\n/g, '<br>');
+            
+            // 3. Proses format inline
+            html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // 4. Wrap dalam paragraf
+            html = `<p>${html}</p>`;
+            
+            // 5. Cleanup
+            html = html.replace(/<br><br><br>/g, ' <br><br>');
+            html = html.replace(/<p><br><\/p>/g, '');
+            
+            return html;
+        }
+
+        
+        function addMessageToUI(text, sender, id = null, isLoading = false, isError = false, image = null) {
+            const chatHistory = document.getElementById('chatHistory');
+            const messageDiv = document.createElement('div');
+            const messageId = id || Date.now().toString();
+            const isUser = sender === 'user';
+            
+            messageDiv.className = `message ${sender} ${isLoading ? 'loading' : ''} ${isError ? 'error' : ''}`;
+            messageDiv.id = messageId;
+
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'avatar';
+            
+            if (isUser) {
+                 if (userProfile.photoDataUrl) {
+                    avatarDiv.style.backgroundImage = `url('${userProfile.photoDataUrl}')`;
+                    avatarDiv.textContent = '';
+                } else {
+                    avatarDiv.textContent = userProfile.username.charAt(0).toUpperCase();
+                }
+            } else {
+                avatarDiv.textContent = 'Py'; 
+            }
+            
+            const contentWrapper = document.createElement('div');
+            contentWrapper.className = 'message-content-wrapper';
+            
+            if (isUser && image) {
+                const imgElement = document.createElement('img');
+                imgElement.src = image;
+                imgElement.style.maxWidth = '100%';
+                imgElement.style.maxHeight = '200px';
+                imgElement.style.borderRadius = '8px';
+                imgElement.style.marginBottom = '10px';
+                contentWrapper.appendChild(imgElement);
+            }
+
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            
+            const contentToShow = isLoading 
+                ? `<div class="typing-indicator-container"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`
+                : isUser 
+                    ? text.replace(/\n/g, '<br>')
+                    : formatContent(text); 
+
+            bubbleDiv.innerHTML = contentToShow;
+
+
+            contentWrapper.appendChild(bubbleDiv);
+
+            // User messages: Content Wrapper then Avatar. CSS uses flex-direction: row-reverse to put avatar on the right.
+            if (!isUser) {
+                messageDiv.appendChild(avatarDiv);
+                messageDiv.appendChild(contentWrapper);
+            } else {
+                messageDiv.appendChild(contentWrapper);
+                messageDiv.appendChild(avatarDiv);
+            }
+
+            chatHistory.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.classList.add('show');
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            }, 50); 
+
+            if (!isLoading && !isError) {
+                 const contentArray = [];
+                 if (image) {
+                     const mimeMatch = image.match(/^data:(.+?);base64,/);
+                     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+                     
+                     contentArray.push({ type: "image", image: { url: image, mime_type: mimeType } });
+                 }
+                 if (text) {
+                     contentArray.push({ type: "text", text: text });
+                 }
+                 
+                 if (contentArray.length > 0) {
+                     messages.push({ role: isUser ? 'user' : 'assistant', content: contentArray });
+                 }
+            }
+        }
+        
+        function typeMessage(element, text) {
+            return new Promise(resolve => {
+                let i = 0;
+                const speed = 20; 
+                const bubble = element.querySelector('.message-bubble');
+                let typedText = ''; 
+
+                bubble.innerHTML = '';
+                bubble.classList.add('typing'); 
+
+                function typeWriter() {
+                    if (i < text.length) {
+                        if (currentAbortController && currentAbortController.signal.aborted) {
+                            bubble.classList.remove('typing');
+                            bubble.innerHTML = `<p>⚠ **Chat Dibatalkan.** Respons dihentikan oleh pengguna.</p>`;
+                            return resolve(); 
+                        }
+                        
+                        typedText += text.charAt(i); 
+                        
+                        bubble.textContent = typedText; 
+
+                        i++;
+                        
+                        const chatHistory = document.getElementById('chatHistory');
+                        chatHistory.scrollTop = chatHistory.scrollHeight;
+
+                        setTimeout(typeWriter, speed);
+                    } else {
+                        bubble.classList.remove('typing');
+                        bubble.innerHTML = formatContent(text); 
+                        resolve();
+                    }
+                }
+                typeWriter();
+            });
+        }
+
+        // --- API Call & Placeholder Update ---
+        async function updatePlaceholder(id, response, isError = false, isAborted = false) { 
+            const placeholderDiv = document.getElementById(id);
+            if (!placeholderDiv) return;
+
+            currentAbortController = null;
+            document.getElementById('userInput').disabled = false;
+            const userInput = document.getElementById('userInput');
+            document.getElementById('sendButton').disabled = userInput.value.trim() === '' && !imageBase64;
+            document.getElementById('stopButton').style.display = 'none';
+
+            placeholderDiv.classList.remove('loading');
+            
+            const finalResponseText = isError 
+                ? ` Error: ${response}`
+                : response;
+            
+            if (isError || isAborted) {
+                placeholderDiv.classList.add('error');
+                const bubble = placeholderDiv.querySelector('.message-bubble');
+                bubble.innerHTML = `<p>${finalResponseText.replace(/\n/g, '<br>')}</p>`;
+            } else {
+                placeholderDiv.classList.add('success');
+                await typeMessage(placeholderDiv, response);
+                
+                messages.push({ role: 'assistant', content: response });
+            }
+        }
+
+        async function callOpenRouterAPI(prompt, placeholderId) {
+             currentAbortController = new AbortController(); 
+             const signal = currentAbortController.signal;
+             
+             document.getElementById('stopButton').style.display = 'block'; 
+
+             const systemPrompt = isCodingMode ? CODING_SYSTEM_PROMPT : DEFAULT_SYSTEM_PROMPT;
+             
+             const userContent = [];
+             if (imageBase64) {
+                 const mimeMatch = imageBase64.match(/^data:(.+?);base64,/);
+                 const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+                 
+                 userContent.push({
+                     type: "image_url", 
+                     image_url: {
+                         url: imageBase64,
+                     }
+                 });
+             }
+             if (prompt) {
+                 userContent.push({ type: "text", text: prompt });
+             }
+             
+             const messagesToSend = [systemPrompt, ...messages];
+             
+             if (userContent.length > 0) {
+                 messagesToSend.push({ role: "user", content: userContent });
+             } else {
+                updatePlaceholder(placeholderId, "Tidak ada pesan teks atau gambar untuk dikirim.", true);
+                return;
+             }
+             
+             clearImage(); 
+
+             try {
+                 const response = await fetch(OPENROUTER_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json',
+                        'HTTP-Referer': window.location.href, 
+                        'X-Title': 'PykizAi Neon-1.0'
+                    },
+                    body: JSON.stringify({
+                        model: MODEL_ID,
+                        messages: messagesToSend,
+                        temperature: 0.7,
+                        max_tokens: 2000,
+                    }),
+                    signal: signal 
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    const errorMessage = data.error ? data.error.message : `Gagal memanggil API. Status: ${response.status}`;
+                    throw new Error(errorMessage);
+                }
+                
+                if (data.choices && data.choices.length > 0) {
+                    updatePlaceholder(placeholderId, data.choices[0].message.content, false);
+                } else {
+                    throw new Error('Konten balasan kosong atau tidak ada pilihan balasan.');
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    updatePlaceholder(placeholderId, "Permintaan API dibatalkan oleh pengguna.", true, true);
+                } else {
+                    updatePlaceholder(placeholderId, error.message, true);
+                }
+            }
+        }
+
+
+        // --- Message Handler & Inisialisasi ---
+        function sendMessage(event) {
+            event.preventDefault();
+            const input = document.getElementById('userInput');
+            const sendButton = document.getElementById('sendButton');
+            const prompt = input.value.trim();
+            
+            if (prompt === "" && !imageBase64) return;
+
+            if (sessionStorage.getItem('isLoggedIn') !== 'true') {
+                 document.getElementById('authModal').style.display = 'flex';
+                 return;
+            }
+            
+            const placeholderId = 'ai-placeholder-' + Date.now();
+            
+            addMessageToUI(prompt, 'user', null, false, false, imageBase64); 
+
+            addMessageToUI('', 'ai', placeholderId, true);
+            
+            input.value = '';
+            input.style.height = 'auto'; 
+            
+            input.disabled = true; 
+            sendButton.disabled = true;
+
+            callOpenRouterAPI(prompt, placeholderId); 
+        }
+
+        document.getElementById('userInput').addEventListener('input', function() {
+            const sendButton = document.getElementById('sendButton');
+
+            this.style.height = 'auto';
+            const newHeight = this.scrollHeight;
+            const maxHeight = 200; 
+
+            if (newHeight > maxHeight) {
+                this.style.height = maxHeight + 'px';
+                this.style.overflowY = 'scroll'; 
+            } else {
+                this.style.height = newHeight + 'px';
+                this.style.overflowY = 'hidden';
+            }
+            
+            sendButton.disabled = (this.value.trim() === '' && !imageBase64) && !currentAbortController;
+        });
+        
+        function initializeChatInterface(username = 'Anda') {
+            userProfile.username = username;
+            loadProfile(username); 
+            updateProfileDisplay(); 
+
+            document.getElementById('authModal').style.display = 'none';
+            document.getElementById('chatContainer').style.display = 'flex';
+            
+            const initialMessage = `Selamat datang, **${username}** di PykizAi. Saya adalah asisten AI profesional yang didukung oleh model canggih **Gemini 2.5 Flash**.\n\nAnda dapat mengirim **gambar** melalui tombol pojok kiri bawah di input area untuk saya analisis. Gunakan tombol </> untuk **Coding Mode**🗿☕.`;
+            
+            const welcomeMessage = document.getElementById('welcome-message');
+            if(welcomeMessage) welcomeMessage.remove();
+            
+            addMessageToUI(initialMessage, 'ai', 'welcome-message', false, false);
+            
+            document.getElementById('sendButton').disabled = true;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('isLoggedIn') === 'true') {
+                const activeUser = sessionStorage.getItem('activeUser') || 'Anda';
+                initializeChatInterface(activeUser);
+            } else {
+                document.getElementById('authModal').style.display = 'flex';
+                switchAuthMode('login');
+            }
+        });
+        
+        // --- Fungsi Profil ---
+        function loadProfile(activeUsername) {
+            const savedProfile = localStorage.getItem(`userProfile_${activeUsername}`);
+            if (savedProfile) {
+                userProfile = JSON.parse(savedProfile);
+            } else {
+                userProfile = {
+                    username: activeUsername,
+                    photoDataUrl: ""
+                };
+            }
+        }
+        function updateProfileDisplay() {
+            document.getElementById('currentUsernameDisplay').textContent = userProfile.username;
+            document.getElementById('usernameInput').value = userProfile.username;
+            
+            const userAvatars = document.querySelectorAll('.message.user .avatar');
+            const photoPreview = document.getElementById('userPhotoPreview');
+            const applyPhotoStyle = (element) => {
+                if (userProfile.photoDataUrl) {
+                    element.style.backgroundImage = `url('${userProfile.photoDataUrl}')`;
+                    element.textContent = ''; 
+                } else {
+                    element.style.backgroundImage = 'none';
+                    element.textContent = userProfile.username.charAt(0).toUpperCase();
+                }
+            };
+            userAvatars.forEach(applyPhotoStyle);
+            applyPhotoStyle(photoPreview);
+        }
+        function openProfileModal() {
+            document.getElementById('profileModal').style.display = 'flex';
+            document.getElementById('usernameInput').value = userProfile.username;
+            updateProfileDisplay(); 
+        }
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const MAX_SIZE = 1024 * 1024; 
+            if (file.size > MAX_SIZE) {
+                alert("Ukuran file terlalu besar. Maksimum 1MB.");
+                event.target.value = '';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                userProfile.photoDataUrl = e.target.result; 
+                document.getElementById('userPhotoPreview').style.backgroundImage = `url('${userProfile.photoDataUrl}')`;
+                document.getElementById('userPhotoPreview').textContent = '';
+                saveProfileSettings(false); 
+            };
+            reader.readAsDataURL(file);
+        }
+        function saveProfileSettings(closeModal = true) {
+            const usernameInput = document.getElementById('usernameInput').value.trim();
+            if (usernameInput && usernameInput !== userProfile.username) {
+                alert("Perubahan Username tidak diperbolehkan setelah login.");
+                document.getElementById('usernameInput').value = userProfile.username;
+                return;
+            }
+            
+            localStorage.setItem(`userProfile_${userProfile.username}`, JSON.stringify(userProfile));
+            updateProfileDisplay();
+            if (closeModal) {
+                document.getElementById('profileModal').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
