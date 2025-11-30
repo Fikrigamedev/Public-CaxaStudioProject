@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PykizAi - Gemini 2.5 Flash Dark Glass UI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        /* --- Variabel Warna Dark Glass (Disimpan untuk konsistensi) --- */
+        :root {
+            /* Warna Dasar */
+            --glass-bg-primary: rgba(30, 30, 30, 0.6); 
+            --glass-bg-secondary: rgba(45, 45, 45, 0.7); 
+            --dark-bg-color: #1a1a1a; 
+            --light-text-color: #ffffff; 
+            --secondary-text-color: #bbbbbb; 
+            --main-accent: #007bff; /* Biru Neon (Digunakan untuk highlight, bukan tombol kirim) */
+            --main-accent-hover: #0056b3;
+            --code-mode-accent: #ffb800; 
+            --stop-btn-color: #ff4444; 
+            --border-color: rgba(255, 255, 255, 0.1); 
+            
+            /* Animasi */
+            --transition-duration: 0.2s;
+            
+            /* Warna Chat Bubble */
+            --bubble-ai-bg: rgba(0, 0, 0, 0.2); 
+            --bubble-user-bg: var(--main-accent); 
+        }
+
+        /* --- Base Layout & Glass Effect --- */
+        html, body {
+            height: 100%; margin: 0; 
+            font-family: 'Roboto', Arial, sans-serif; 
+            background-color: var(--dark-bg-color); 
+            color: var(--light-text-color);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow: hidden; 
+            
+            background-image: radial-gradient(circle at top left, #333333 0%, transparent 50%), 
+                              radial-gradient(circle at bottom right, #333333 0%, transparent 50%);
+            background-size: 100% 100%;
+        }
+        .chat-interface-container {
+            display: flex; flex-direction: column; height: 100vh; max-width: 900px; 
+            margin: 0 auto; 
+            background-color: transparent; 
+            position: relative;
+        }
+
+        /* --- Chat Header (Tidak ada perubahan) --- */
+        .chat-header {
+             display: flex; justify-content: space-between; align-items: center;
+             padding: 15px 24px;
+             background: var(--glass-bg-primary);
+             backdrop-filter: blur(10px);
+             -webkit-backdrop-filter: blur(10px);
+             border-bottom: 1px solid var(--border-color);
+             z-index: 10;
+        }
+        .header-title {
+             font-weight: 500; font-size: 1.2em;
+             display: flex; align-items: center;
+        }
+        .mode-indicator {
+            font-size: 0.75em;
+            font-weight: 700;
+            color: var(--code-mode-accent);
+            border: 1px solid var(--code-mode-accent);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 10px;
+            display: none; 
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .mode-indicator.active {
+            display: inline-block;
+            opacity: 1;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .profile-btn, .mode-toggle-btn { 
+             background: none; border: none; color: var(--light-text-color);
+             cursor: pointer; padding: 5px;
+             transition: color 0.2s;
+        }
+        .profile-btn:hover, .mode-toggle-btn:hover {
+             color: var(--main-accent);
+        }
+        .mode-toggle-btn.active {
+            color: var(--code-mode-accent);
+            box-shadow: 0 0 5px var(--code-mode-accent);
+            border-radius: 50%;
+        }
+
+
+        /* --- Chat History & Bubble (Hanya Padding Bawah yang diubah) --- */
+        .chat-history {
+            flex-grow: 1; 
+            /* Mengurangi padding bawah dari 110px menjadi 80px agar konten scroll berakhir lebih tinggi */
+            padding: 30px 24px 80px 24px; 
+            overflow-y: auto; 
+            display: flex; flex-direction: column; gap: 15px; 
+            scroll-behavior: smooth;
+        }
+        
+        /* Avatar Styling (Tidak ada perubahan) */
+        .message.ai .avatar, .message.user .avatar {
+            min-width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 500;
+            flex-shrink: 0; 
+            position: relative;
+            font-size: 18px;
+            background-size: cover;
+            background-position: center;
+        }
+        .message.ai .avatar {
+             background-color: var(--main-accent); 
+             color: var(--light-text-color);
+             box-shadow: 0 0 8px rgba(0, 123, 255, 0.5); 
+        }
+        .message.user .avatar {
+             background-color: #333;
+             color: var(--secondary-text-color);
+        }
+
+        .message { 
+            display: flex; gap: 10px; 
+            opacity: 0; 
+            transform: translateY(15px);
+            transition: opacity var(--transition-duration) ease-out, transform var(--transition-duration) ease-out;
+            max-width: 85%; 
+        }
+        .message.show { opacity: 1; transform: translateY(0); }
+        .message.user { align-self: flex-end; flex-direction: row-reverse; } 
+        .message.ai { align-self: flex-start; }
+        
+        .message.user .message-content-wrapper {
+             display: flex; flex-direction: column; 
+             align-items: flex-end; 
+             max-width: 100%;
+        }
+
+        .message-bubble { 
+            padding: 10px 14px; 
+            border-radius: 10px; 
+            max-width: 90%; 
+            line-height: 1.5; 
+            font-size: 15px;
+            color: var(--light-text-color);
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .message.ai .message-bubble { 
+            background-color: var(--bubble-ai-bg); 
+            border-bottom-left-radius: 2px; 
+        }
+        .message.user .message-bubble { 
+            background-color: var(--bubble-user-bg); 
+            border-bottom-right-radius: 2px; 
+            align-self: flex-end; 
+        }
+        
+        /* --- Tampilan Kode (Tidak ada perubahan) --- */
+
+        .message-bubble p {
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+
+        .code-block-wrapper {
+            background-color: rgba(0, 0, 0, 0.8); 
+            border-radius: 8px;
+            margin-top: 10px; 
+            margin-bottom: 10px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+        }
+        .code-block-wrapper pre {
+            padding: 15px; 
+            margin: 0;
+            font-size: 14px; 
+            overflow-x: auto; 
+            padding-top: 30px; 
+        }
+        .code-block-wrapper pre code {
+            color: #e0e0e0; 
+            display: block;
+            white-space: pre; 
+        }
+
+        /* Header Tombol Salin */
+        .code-header {
+            position: absolute;
+            top: 0; right: 0; left: 0;
+            background-color: rgba(255, 255, 255, 0.05); 
+            color: var(--secondary-text-color);
+            padding: 5px 10px;
+            font-size: 0.8em;
+            display: flex;
+            justify-content: space-between; 
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1; 
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--secondary-text-color);
+            cursor: pointer;
+            padding: 3px 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9em;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .copy-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2); 
+            color: var(--light-text-color);
+        }
+        .copy-btn span.material-icons-outlined {
+            font-size: 16px;
+        }
+
+        /* --- Animasi Mengetik (Tidak ada perubahan) --- */
+        .typing-indicator-container {
+            display: flex; align-items: center; height: 1.5em; padding: 0 10px;
+        }
+        .typing-indicator span {
+            display: inline-block; width: 6px; height: 6px; margin: 0 2px;
+            background-color: var(--secondary-text-color); border-radius: 50%;
+            opacity: 0; animation: typing-dot 1.5s infinite ease-in-out;
+        }
+        .typing-indicator span:nth-child(1) { animation-delay: 0s; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing-dot {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.4; }
+            40% { transform: scale(1.2); opacity: 1; }
+        }
+        .message-bubble.typing::after {
+            content: '|';
+            animation: blink 0.7s step-start infinite;
+            margin-left: 2px;
+            font-weight: 300;
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        /* --- MODIFIKASI GPT STYLE START --- */
+        
+        /* 1. Area Input (Floating higher) */
+        .input-area { 
+            position: absolute; bottom: 0; left: 0; right: 0;
+            display: flex; flex-direction: column; align-items: center; 
+            /* Menambah padding bawah untuk membuat bar "mengambang" lebih tinggi */
+            padding: 15px 0 35px 0; 
+            /* Mengganti latar belakang dengan warna yang lebih solid dan bersih */
+            background: linear-gradient(to top, var(--dark-bg-color) 70%, rgba(26, 26, 26, 0.8) 100%);
+            backdrop-filter: blur(5px); 
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 10;
+        }
+
+        /* 2. Form Input (The box itself) */
+        .input-form { 
+            display: flex; align-items: center; 
+            width: 95%; max-width: 768px; /* Sedikit lebih lebar */
+            padding: 4px 8px; /* Padding minimal */
+            background: #404040; /* Latar belakang abu-abu yang lebih terang (GPT Dark Theme) */
+            border-radius: 12px; /* Radius sudut standar GPT */
+            border: 1px solid transparent; /* Border awal transparan */
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 5px 20px rgba(0, 0, 0, 0.5); 
+            transition: all 0.2s;
+        }
+        .input-form:focus-within {
+             /* Ring fokus yang lembut */
+             border-color: rgba(255, 255, 255, 0.2); 
+             box-shadow: 0 0 0 2px #555555, 0 5px 20px rgba(0, 0, 0, 0.5); 
+        }
+
+        /* 3. Textarea */
+        .input-form textarea { 
+            flex-grow: 1; border: none; outline: none; resize: none; 
+            padding: 12px 0; /* Padding vertikal untuk menyejajarkan teks */
+            margin: 0 5px; 
+            font-size: 16px; 
+            max-height: 200px; 
+            background-color: transparent; 
+            color: var(--light-text-color);
+            line-height: 1.5; 
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .input-form textarea::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* 4. Tombol Ikon (Attachment) */
+        .icon-btn {
+             background: none; border: none; cursor: pointer; 
+             padding: 8px; 
+             border-radius: 6px; 
+             margin: 0 4px; 
+             transition: background-color 0.2s;
+             align-self: center; 
+             color: var(--secondary-text-color);
+        }
+        .icon-btn:hover {
+             background-color: rgba(255, 255, 255, 0.1); 
+        }
+
+        /* 5. Tombol Kirim (Send Button - Solid Look) */
+        .input-form button.send-btn { 
+            color: #1a1a1a; /* Ikon hitam */
+            background-color: #666666; /* Grey saat disabled */
+            border: none; 
+            cursor: pointer; 
+            padding: 8px; 
+            border-radius: 8px; /* Sedikit square */
+            margin-right: 4px;
+            transition: all 0.2s;
+        }
+        .input-form button.send-btn:not(:disabled) {
+            background-color: #ffffff; /* Putih solid saat aktif */
+            color: var(--dark-bg-color); /* Ikon hitam */
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+        }
+        .input-form button.send-btn:disabled { 
+            color: #1a1a1a;
+            background-color: #666666; 
+            cursor: default; 
+        }
+
+        /* Tombol Stop Chat */
+        #stopButton {
+            width: 95%; max-width: 150px; 
+            background-color: var(--stop-btn-color); 
+            color: white; 
+            padding: 8px 15px; 
+            border: none; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-weight: 500; 
+            margin-bottom: 10px; 
+            display: none; 
+            transition: background-color 0.2s;
+        }
+        #stopButton:hover {
+            background-color: #cc3333;
+        }
+        
+        /* Kontainer Pratinjau Gambar */
+        #imagePreviewContainer {
+            display: flex; align-items: center; justify-content: flex-start;
+            padding: 10px 20px;
+            background: #404040; /* Sama dengan form */
+            border-radius: 12px;
+            width: 95%; 
+            max-width: 768px;
+            margin-top: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        /* --- MODIFIKASI GPT STYLE END --- */
+
+        /* --- Modal Umum (Tidak ada perubahan) --- */
+        .modal { display: flex; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
+        .modal-content { 
+            padding: 40px; border-radius: 20px; width: 90%; max-width: 480px; text-align: center; 
+            background: var(--glass-bg-primary); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 123, 255, 0.3);
+            animation: modal-in 0.3s ease-out;
+        }
+        @keyframes modal-in {
+             from { opacity: 0; transform: scale(0.95); }
+             to { opacity: 1; transform: scale(1); }
+        }
+        .modal-content h2 { color: var(--main-accent); margin-top: 0; font-weight: 500; }
+        .modal-content p { color: var(--secondary-text-color); }
+        .modal-content input { 
+            width: 100%; padding: 14px; margin: 5px 0 15px 0; 
+            border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; 
+            font-size: 16px; background-color: var(--glass-bg-secondary); color: var(--light-text-color);
+            transition: border-color 0.2s;
+        }
+        .modal-content button { 
+            background-color: var(--main-accent); color: white; 
+            padding: 12px 25px; border: none; border-radius: 20px; cursor: pointer; 
+            font-weight: 500; box-shadow: 0 0 10px rgba(0, 123, 255, 0.4);
+            transition: background-color 0.3s, transform 0.1s, box-shadow 0.3s;
+        }
+        .modal-content input:focus { border-color: var(--main-accent); box-shadow: 0 0 0 1px var(--main-accent); }
+        .modal-content button:hover { background-color: var(--main-accent-hover); box-shadow: 0 0 15px rgba(0, 123, 255, 0.6); }
+        .modal-content button:active { transform: scale(0.98); }
+
+        #loginError { color: #ff4444; margin-bottom: 15px; font-weight: 500; display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <h2>Masuk ke PykizAi</h2>
+            <p>Silakan masukkan kredensial untuk mengakses aplikasi.</p>
+            <div id="loginError">Username atau Password salah!</div>
+
+            <label for="loginUsername">Username:</label>
+            <input type="text" id="loginUsername" placeholder="pykizai">
+            
+            <label for="loginPassword">Password:</label>
+            <input type="password" id="loginPassword" placeholder="123456">
+
+            <button onclick="attemptLogin()">Login</button>
+        </div>
+    </div>
+
+    <div id="profileModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Pengaturan Profil</h2>
+            <div class="profile-container">
+                <div class="profile-photo" id="userPhotoPreview" onclick="document.getElementById('fileInput').click()" title="Klik untuk mengunggah foto">A</div>
+                <p id="currentUsernameDisplay"></p>
+            </div>
+            
+            <input type="file" id="fileInput" class="hidden-input" accept="image/*" onchange="handleImageUpload(event)">
+            
+            <label for="usernameInput">Nama Pengguna:</label>
+            <input type="text" id="usernameInput" placeholder="Masukkan nama Anda">
+            
+            <button onclick="saveProfileSettings()">Simpan Perubahan</button>
+        </div>
+    </div>
+
+    <div class="chat-interface-container" id="chatContainer" style="display: none;">
+        
+        <div class="chat-header">
+            <div class="header-title">
+                PykizAi (Gemini 2.5 Flash)
+                <span id="codingModeIndicator" class="mode-indicator">CODING MODE</span>
+            </div>
+            <div class="header-actions">
+                <button class="mode-toggle-btn" id="modeToggleButton" onclick="toggleCodingMode()" title="Toggle Coding Mode">
+                    <span class="material-icons-outlined">code</span>
+                </button>
+                <button class="profile-btn" onclick="openProfileModal()" title="Pengaturan Profil">
+                    <span class="material-icons-outlined">account_circle</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="chat-history" id="chatHistory">
+             </div>
+
+        <div class="input-area">
+             <button id="stopButton" onclick="stopChat()">
+                <span class="material-icons-outlined" style="font-size: 18px; margin-right: 5px;">stop</span> Hentikan Chat
+            </button>
+            <form class="input-form" onsubmit="sendMessage(event)">
+                <input type="file" id="imageInput" class="hidden-input" accept="image/*" onchange="previewImage(event)" style="display: none;">
+                
+                <button type="button" class="icon-btn" onclick="document.getElementById('imageInput').click()" title="Unggah Gambar">
+                    <span class="material-icons-outlined" id="imageUploadIcon">attach_file</span>
+                </button>
+                
+                <textarea id="userInput" placeholder="Tulis pesan ke PykizAi..." rows="1" required></textarea>
+                
+                <button type="submit" class="icon-btn send-btn" id="sendButton" title="Kirim" disabled><span class="material-icons-outlined">send</span></button>
+            </form>
+            <div id="imagePreviewContainer" style="display: none;">
+                <img id="imagePreview" src="" style="max-height: 100px; border-radius: 8px; margin-right: 10px;">
+                <span style="color: var(--secondary-text-color); font-size: 0.9em;" id="imageFileName"></span>
+                <button type="button" onclick="clearImage()" style="background: none; border: none; color: var(--stop-btn-color); cursor: pointer; margin-left: 10px;">
+                    <span class="material-icons-outlined" style="font-size: 18px;">close</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- KONFIGURASI APLIKASI ---
+        const OPENROUTER_API
