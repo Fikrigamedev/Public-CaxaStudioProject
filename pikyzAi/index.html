@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini 2.5 Flash - KONEKSI API MURNI</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        :root {
+            --gemini-blue: #007bff;
+            --gemini-light-bg: #f8f9fa;
+            --gemini-paper-bg: #ffffff;
+            --gemini-text-color: #343a40;
+        }
+
+        /* --- Base Layout --- */
+        html, body {
+            height: 100%; margin: 0; font-family: sans-serif; background-color: var(--gemini-light-bg);
+        }
+        .chat-interface-container {
+            display: flex; flex-direction: column; height: 100vh; max-width: 800px; margin: 0 auto; background-color: var(--gemini-paper-bg);
+        }
+
+        /* --- Chat History --- */
+        .chat-history {
+            flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
+        }
+        .message { display: flex; gap: 10px; }
+        .message.user { justify-content: flex-end; }
+        .message.ai .avatar { background-color: var(--gemini-blue); color: white; min-width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .message-bubble { padding: 12px 18px; border-radius: 18px; max-width: 80%; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; }
+        .message.ai .message-bubble { background-color: var(--gemini-light-bg); border-bottom-left-radius: 4px; }
+        .message.user .message-bubble { background-color: var(--gemini-blue); color: white; border-bottom-right-radius: 4px; }
+        
+        /* Error Styling */
+        .message.ai.error .message-bubble {
+            background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; font-weight: 500;
+        }
+
+        /* Typing Indicator */
+        .typing-indicator span { display: inline-block; width: 8px; height: 8px; margin: 0 2px; background-color: #6c757d; border-radius: 50%; opacity: 0; animation: bounce 1.4s infinite ease-in-out; }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); opacity: 0; } 40% { transform: scale(1); opacity: 1; } }
+        .message.ai.loading .message-bubble { display: flex; align-items: center; min-width: 50px; }
+
+
+        /* --- Input Area --- */
+        .input-area { padding: 15px 20px; border-top: 1px solid #e9ecef; background-color: var(--gemini-paper-bg); }
+        .input-form { display: flex; align-items: center; padding: 10px 15px; border: 1px solid #e9ecef; border-radius: 25px; }
+        .input-form textarea { flex-grow: 1; border: none; outline: none; resize: none; padding: 5px 0; font-size: 16px; max-height: 100px; }
+        .input-form button.send-btn { color: var(--gemini-blue); background: none; border: none; cursor: pointer; }
+
+        /* --- Modal API Key --- */
+        .modal { display: flex; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center; }
+        .modal-content { background-color: #fefefe; padding: 30px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; }
+        .modal-content input { width: 100%; padding: 10px; margin: 15px 0 20px 0; border: 1px solid #e9ecef; border-radius: 4px; box-sizing: border-box; }
+        .modal-content button { background-color: var(--gemini-blue); color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div id="apiKeyModal" class="modal">
+        <div class="modal-content">
+            <h2>Masukkan API Key OpenRouter</h2>
+            <p>Model: **Gemini 2.5 Flash**. Kunci ini hanya disimpan sementara (session).</p>
+            <input type="password" id="apiKeyValue" placeholder="Masukkan API Key (sk-...)">
+            <button onclick="saveApiKey()">Simpan & Mulai Chat</button>
+        </div>
+    </div>
+
+    <div class="chat-interface-container" id="chatContainer" style="display: none;">
+        <div class="chat-history" id="chatHistory">
+             <div class="message ai">
+                <div class="avatar">AI</div>
+                <div class="message-bubble">Halo! Saya **Gemini 2.5 Flash**. Masukkan API Key dan mulai percakapan.</div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <form class="input-form" onsubmit="sendMessage(event)">
+                <textarea id="userInput" placeholder="Tulis pesan..." rows="1" required></textarea>
+                <button type="submit" class="icon-btn send-btn" title="Kirim"><span class="material-icons-outlined">send</span></button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+        const MODEL_ID = 'google/gemini-2.5-flash';
+        const MODEL_NAME = 'Gemini 2.5 Flash';
+
+        let apiKey = null;
+        let messages = []; // Riwayat pesan sementara (untuk sesi ini saja)
+
+        // --- API Key Management (Minimalis - Hanya Session) ---
+        function loadApiKey() {
+             // Coba ambil dari localStorage (jika sebelumnya sudah disimpan)
+            return localStorage.getItem('openrouterApiKey') || sessionStorage.getItem('tempApiKey');
+        }
+
+        function saveApiKey() {
+            const input = document.getElementById('apiKeyValue');
+            const newKey = input.value.trim();
+
+            if (newKey === "") {
+                alert("API Key tidak boleh kosong!");
+                return;
+            }
+            
+            // Simpan sementara di sessionStorage (paling aman dari masalah file://)
+            sessionStorage.setItem('tempApiKey', newKey); 
+            apiKey = newKey;
+            document.getElementById('apiKeyModal').style.display = 'none';
+            document.getElementById('chatContainer').style.display = 'flex';
+        }
+
+        // --- UI UTILITY ---
+        function createTypingIndicator() {
+            return `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
+        }
+        
+        function addMessageToUI(text, sender, id = null, isLoading = false, isError = false) {
+            const chatHistory = document.getElementById('chatHistory');
+            const messageDiv = document.createElement('div');
+            const messageId = id || Date.now().toString();
+            
+            messageDiv.className = `message ${sender} ${isLoading ? 'loading' : ''} ${isError ? 'error' : ''}`;
+            messageDiv.id = messageId;
+
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'avatar';
+            avatarDiv.textContent = sender === 'ai' ? 'AI' : 'A';
+            
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            bubbleDiv.innerHTML = text.replace(/\n/g, '<br>');
+
+            if (sender === 'ai') {
+                messageDiv.appendChild(avatarDiv);
+                messageDiv.appendChild(bubbleDiv);
+            } else {
+                messageDiv.appendChild(bubbleDiv);
+                messageDiv.appendChild(avatarDiv);
+            }
+
+            chatHistory.appendChild(messageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            // Simpan ke riwayat pesan (messages array)
+            if (!isLoading && !isError) {
+                 messages.push({ role: sender === 'user' ? 'user' : 'assistant', content: text });
+            }
+        }
+        
+        function updatePlaceholder(id, response, isError = false) {
+            const placeholderDiv = document.getElementById(id);
+            if (placeholderDiv) {
+                placeholderDiv.classList.remove('loading');
+                placeholderDiv.classList.add(isError ? 'error' : 'success');
+                
+                const finalResponse = isError 
+                    ? `❌ **API Error:** ${response}`.replace(/\n/g, '<br>')
+                    : response.replace(/\n/g, '<br>');
+                
+                placeholderDiv.querySelector('.message-bubble').innerHTML = finalResponse;
+                
+                // Jika sukses, tambahkan ke riwayat pesan
+                if (!isError) {
+                    messages.push({ role: 'assistant', content: response });
+                }
+            }
+        }
+
+        // --- REAL API CALL FUNCTION ---
+        async function callOpenRouterAPI(prompt) {
+             const placeholderId = 'ai-placeholder-' + Date.now();
+             addMessageToUI(createTypingIndicator(), 'ai', placeholderId, true);
+
+             // Buat salinan riwayat pesan saat ini
+             const messagesToSend = [...messages, { role: "user", content: prompt }];
+
+             try {
+                 const response = await fetch(OPENROUTER_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json',
+                        'HTTP-Referer': window.location.href, 
+                        'X-Title': 'Gemini 2.5 Flash Simple Chat'
+                    },
+                    body: JSON.stringify({
+                        model: MODEL_ID,
+                        messages: messagesToSend,
+                        temperature: 0.7,
+                        max_tokens: 2000,
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    const errorMessage = data.error ? data.error.message : `Gagal memanggil API. Status: ${response.status}`;
+                    
+                    if (response.status === 401) throw new Error(`401 Unauthorized: API Key salah atau saldo habis.`);
+                    if (response.status === 429) throw new Error(`429 Rate Limit: Terlalu banyak permintaan. Coba lagi sebentar.`);
+                    throw new Error(errorMessage);
+                }
+                
+                if (data.choices && data.choices.length > 0) {
+                    updatePlaceholder(placeholderId, data.choices[0].message.content, false);
+                } else {
+                    throw new Error('Respons API sukses, tapi konten balasan kosong.');
+                }
+            } catch (error) {
+                // Tangani error, dan tampilkan di UI
+                updatePlaceholder(placeholderId, error.message, true);
+            }
+            document.getElementById('userInput').disabled = false;
+        }
+
+
+        // --- Message Handler ---
+        function sendMessage(event) {
+            event.preventDefault();
+            const input = document.getElementById('userInput');
+            const prompt = input.value.trim();
+            if (prompt === "") return;
+
+            if (!apiKey) {
+                 alert("API Key belum dimasukkan!");
+                 document.getElementById('apiKeyModal').style.display = 'flex';
+                 return;
+            }
+
+            addMessageToUI(prompt, 'user');
+            
+            input.value = '';
+            input.style.height = 'auto';
+            input.disabled = true; // Disable input saat menunggu respons
+
+            callOpenRouterAPI(prompt); 
+        }
+
+        // Auto-Resize Textarea
+        document.getElementById('userInput').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            apiKey = loadApiKey();
+            if (apiKey) {
+                document.getElementById('apiKeyModal').style.display = 'none';
+                document.getElementById('chatContainer').style.display = 'flex';
+            } else {
+                document.getElementById('apiKeyModal').style.display = 'flex';
+            }
+        });
+    </script>
+</body>
+</html>
