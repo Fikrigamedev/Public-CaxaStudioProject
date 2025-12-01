@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PykizAi Neon-1.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        /* --- Variabel Warna Dark Glass --- */
+        :root {
+            --glass-bg-primary: rgba(30, 30, 30, 0.6); 
+            --glass-bg-secondary: rgba(45, 45, 45, 0.7); 
+            --dark-bg-color: #1a1a1a; 
+            --light-text-color: #ffffff; 
+            --secondary-text-color: #bbbbbb; 
+            --main-accent: #007bff; /* Biru Neon */
+            --main-accent-hover: #0056b3;
+            --code-mode-accent: #ffb800; /* Kuning/Emas */
+            --stop-btn-color: #ff4444; /* Merah */
+            --border-color: rgba(255, 255, 255, 0.1); 
+            --transition-duration: 0.2s;
+            --bubble-ai-bg: rgba(0, 0, 0, 0.2); 
+            --bubble-user-bg: var(--main-accent); 
+        }
+
+        /* --- Base Layout & Glass Effect --- */
+        html, body {
+            height: 100%; margin: 0; 
+            font-family: 'Roboto', Arial, sans-serif; 
+            background-color: var(--dark-bg-color); 
+            color: var(--light-text-color);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow: hidden; 
+            background-image: radial-gradient(circle at top left, #333333 0%, transparent 50%), 
+                              radial-gradient(circle at bottom right, #333333 0%, transparent 50%);
+            background-size: 100% 100%;
+        }
+        .chat-interface-container {
+            display: flex; flex-direction: column; height: 100vh; max-width: 900px; 
+            margin: 0 auto; 
+            background-color: transparent; 
+            position: relative;
+        }
+
+        /* --- Chat Header --- */
+        .chat-header {
+             display: flex; justify-content: space-between; align-items: center;
+             padding: 15px 24px;
+             background: var(--glass-bg-primary);
+             backdrop-filter: blur(10px);
+             -webkit-backdrop-filter: blur(10px);
+             border-bottom: 1px solid var(--border-color);
+             z-index: 10;
+        }
+        .header-title {
+             font-weight: 500; font-size: 1.2em;
+             display: flex; align-items: center;
+        }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .profile-btn, .mode-toggle-btn, .menu-toggle-btn { 
+             background: none; border: none; color: var(--light-text-color);
+             cursor: pointer; padding: 5px;
+             transition: color 0.2s;
+        }
+        .profile-btn:hover, .mode-toggle-btn:hover, .menu-toggle-btn:hover {
+             color: var(--main-accent);
+        }
+        .menu-group {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .mode-indicator {
+            font-size: 0.75em; font-weight: 700; color: var(--code-mode-accent);
+            border: 1px solid var(--code-mode-accent); padding: 2px 6px;
+            border-radius: 4px; margin-left: 10px; display: none; 
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .mode-indicator.active { display: inline-block; opacity: 1; }
+        .mode-toggle-btn.active {
+            color: var(--code-mode-accent);
+            box-shadow: 0 0 5px var(--code-mode-accent);
+            border-radius: 50%;
+        }
+
+        /* --- Chat History & Bubble --- */
+        .chat-history {
+            flex-grow: 1; 
+            padding: 30px 24px 145px 24px; 
+            overflow-y: auto; 
+            display: flex; flex-direction: column; gap: 15px; 
+            scroll-behavior: smooth;
+        }
+        .message { 
+            display: flex; gap: 10px; 
+            opacity: 0; 
+            transform: translateY(15px);
+            transition: opacity var(--transition-duration) ease-out, transform var(--transition-duration) ease-out;
+            max-width: 85%; 
+        }
+        .message.show { opacity: 1; transform: translateY(0); }
+        .message.user { align-self: flex-end; flex-direction: row-reverse; } 
+        .message.ai { align-self: flex-start; }
+        .message.user .message-content-wrapper { display: flex; flex-direction: column; align-items: flex-end; max-width: 100%; }
+        .message-bubble { 
+            padding: 10px 14px; border-radius: 10px; max-width: 90%; 
+            line-height: 1.5; font-size: 15px; color: var(--light-text-color);
+            word-wrap: break-word; white-space: pre-wrap; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        .message.ai .message-bubble { background-color: var(--bubble-ai-bg); border-bottom-left-radius: 2px; }
+        .message.user .message-bubble { background-color: var(--bubble-user-bg); border-bottom-right-radius: 2px; align-self: flex-end; }
+        
+        .message-bubble p { margin-top: 0; margin-bottom: 0; }
+
+        /* Code Block Styling */
+        .code-block-wrapper {
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            margin-top: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--secondary-text-color);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s, color 0.2s;
+            display: flex;
+            align-items: center;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        .copy-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--light-text-color);
+        }
+        .copy-btn .material-icons-outlined {
+            font-size: 16px;
+            margin-right: 5px;
+        }
+        .code-block-wrapper pre {
+            margin: 0;
+            padding: 12px;
+            overflow-x: auto;
+            max-height: 400px;
+        }
+        .code-block-wrapper pre code {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+            white-space: pre; 
+            display: block; 
+            background: none; 
+            color: #dcdcdc;
+        }
+
+        /* --- Input Area & Stop Button --- */
+        .input-area { 
+            position: absolute; bottom: 0; left: 0; right: 0;
+            display: flex; flex-direction: column; align-items: center; 
+            padding: 15px 0 55px 0; 
+            background: linear-gradient(to top, var(--dark-bg-color) 70%, rgba(26, 26, 26, 0.8) 100%); 
+            backdrop-filter: blur(5px); 
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 10;
+        }
+
+        #stopButton {
+            display: none; align-items: center; justify-content: center;
+            background-color: var(--stop-btn-color); color: var(--light-text-color);
+            border: none; border-radius: 20px; 
+            padding: 8px 18px; margin-bottom: 15px; 
+            font-weight: 500; cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 68, 68, 0.6); 
+            transition: all 0.2s ease-in-out; z-index: 11; 
+        }
+        #stopButton:hover { background-color: #e63939; box-shadow: 0 0 15px rgba(255, 68, 68, 0.8); transform: translateY(-2px); }
+        #stopButton:active { transform: scale(0.98); }
+
+        .input-form { 
+            display: flex; align-items: center; 
+            width: 95%; max-width: 768px; 
+            padding: 8px 12px; 
+            background: var(--glass-bg-secondary);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 18px; 
+            border: 1px solid var(--border-color);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(0, 123, 255, 0.1); 
+            transition: all var(--transition-duration);
+            position: relative; 
+        }
+        .input-form:focus-within { border-color: rgba(255, 255, 255, 0.3); box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(255, 255, 255, 0.1); }
+        .input-form textarea { 
+            flex-grow: 1; border: none; outline: none; resize: none; 
+            padding: 10px 8px; margin-right: 5px; font-size: 16px; 
+            max-height: 200px; background-color: transparent; 
+            color: var(--light-text-color); line-height: 1.5; 
+            -ms-overflow-style: none; scrollbar-width: none;
+        }
+        .input-form textarea::-webkit-scrollbar { display: none; }
+        .icon-btn {
+             background: none; border: none; cursor: pointer; 
+             padding: 8px; border-radius: 12px; margin: 0 4px; 
+             transition: background-color 0.2s;
+             align-self: center; color: var(--secondary-text-color);
+        }
+        .icon-btn:hover { background-color: rgba(255, 255, 255, 0.1); }
+        .input-form button.send-btn { color: var(--main-accent); background: none; border: none; cursor: pointer; padding: 8px; border-radius: 12px; margin-right: 4px; transition: all 0.2s; }
+        .input-form button.send-btn:not(:disabled):hover { background-color: rgba(0, 123, 255, 0.1); }
+        .input-form button.send-btn:disabled { color: var(--border-color); background: none; cursor: default; }
+
+        /* Attachment Pop-up */
+        #attachmentMenu {
+            position: absolute; bottom: 100%; left: 10px; 
+            width: 220px; padding: 10px; border-radius: 12px;
+            background: var(--glass-bg-secondary);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            
+            /* Animasi */
+            transform: translateY(10px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease-out;
+            z-index: 10;
+        }
+        #attachmentMenu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .attachment-item {
+            display: flex; align-items: center; padding: 10px; 
+            cursor: pointer; border-radius: 8px;
+            transition: background-color 0.2s;
+            color: var(--light-text-color);
+        }
+        .attachment-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .attachment-item .material-icons-outlined {
+            margin-right: 10px;
+            color: var(--main-accent);
+        }
+
+        /* Sidebar Navigasi */
+        #sidebarModal {
+            position: fixed; left: 0; top: 0; height: 100%; width: 300px;
+            background: var(--dark-bg-color); 
+            z-index: 100;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
+            
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+            display: flex; flex-direction: column; 
+        }
+        #sidebarModal.active {
+            transform: translateX(0);
+        }
+        #sidebarOverlay {
+            position: fixed; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 99;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out;
+        }
+        #sidebarOverlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .sidebar-header {
+            padding: 15px 20px; font-size: 1.5em; font-weight: 500;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .sidebar-menu-item {
+            display: flex; align-items: center; padding: 12px 20px; 
+            cursor: pointer; transition: background-color 0.2s;
+        }
+        .sidebar-menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-menu-item .material-icons-outlined {
+            margin-right: 15px;
+            color: var(--main-accent);
+        }
+
+        /* Bagian Riwayat Obrolan */
+        .sidebar-history {
+            flex-grow: 1; overflow-y: auto; padding: 10px 0;
+        }
+        .sidebar-chat-item {
+            padding: 10px 20px; cursor: pointer; border-radius: 4px;
+            margin: 5px 10px;
+            font-size: 0.95em;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .sidebar-chat-item:hover {
+            background-color: rgba(0, 123, 255, 0.2);
+        }
+        .sidebar-chat-item.active {
+            background-color: var(--main-accent);
+            font-weight: 500;
+        }
+        
+        /* Avatar Styling */
+        .avatar {
+            width: 30px; height: 30px; min-width: 30px;
+            border-radius: 50%; 
+            background-color: #333; 
+            color: white; 
+            display: flex; justify-content: center; align-items: center; 
+            font-weight: 500; font-size: 0.9em;
+            background-size: cover; 
+            background-position: center;
+        }
+        .message.ai .avatar { background-color: var(--main-accent); }
+        .message.user .avatar { background-color: #555; }
+        
+        /* Loader / Typing Indicator */
+        .typing-indicator-container {
+            display: flex;
+            align-items: center;
+            height: 20px; 
+        }
+        .typing-indicator span {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            margin: 0 2px;
+            background-color: var(--secondary-text-color);
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+
+        /* Modal Umum (Untuk Auth, Profile, Rename) - Mengembalikan Styling Lama */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7); 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s;
+        }
+        .modal[style*="flex"] {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: var(--glass-bg-primary); 
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+            animation: modal-in 0.3s ease-out forwards;
+        }
+        @keyframes modal-in {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-content h2 {
+            color: var(--main-accent);
+            text-align: center;
+            margin-top: 0;
+            border-bottom: 2px solid var(--main-accent);
+            padding-bottom: 10px;
+        }
+        .modal-content p {
+            text-align: center;
+            color: var(--secondary-text-color);
+            margin-bottom: 20px;
+        }
+        .modal-content label {
+            display: block;
+            margin-top: 10px;
+            color: var(--secondary-text-color);
+            font-size: 0.9em;
+        }
+        .modal-content input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 15px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            color: var(--light-text-color);
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        .modal-content input:focus {
+            border-color: var(--main-accent);
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+        .modal-content button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--main-accent);
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .modal-content button:hover {
+            background-color: var(--main-accent-hover);
+        }
+        .modal-content button.switch-btn {
+            background: none;
+            color: var(--secondary-text-color);
+            font-size: 0.9em;
+            margin-top: 15px;
+        }
+        .modal-content button.switch-btn:hover {
+            color: var(--light-text-color);
+            background: none;
+        }
+        #authError, #registerError {
+            color: var(--stop-btn-color); 
+            margin-bottom: 15px; 
+            font-weight: 500; 
+            text-align: center; 
+            display: none;
+        }
+        .profile-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .profile-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--main-accent);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 10px;
+            border: 3px solid var(--border-color);
+            background-size: cover;
+            background-position: center;
+        }
+        .hidden-input {
+            display: none !important;
+        }
+
+        /* Attachment Preview (Tanpa Tombol X Merah) */
+        #attachmentPreviewContainer {
+            display: none; 
+            align-items: center; 
+            justify-content: space-between; 
+            width: 95%; 
+            max-width: 768px; 
+            margin-top: 10px; 
+            padding: 5px 15px; 
+            border-radius: 8px; 
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+        }
+        #attachmentPreviewContainer div {
+            display: flex; 
+            align-items: center; 
+            overflow: hidden;
+        }
+        #attachmentFileName {
+            color: var(--secondary-text-color); 
+            font-size: 0.9em; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis;
+        }
+        #attachmentTypeIcon {
+            color: var(--main-accent); 
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <div id="loginForm">
+                <h2>Masuk ke PykizAi</h2>
+                <p>Silakan masukkan Username dan Password Anda.</p>
+                <div id="authError"></div>
+                <label for="loginUsername">Username:</label>
+                <input type="text" id="loginUsername" placeholder="Masukkan Username" required>
+                <label for="loginPassword">Password:</label>
+                <input type="password" id="loginPassword" placeholder="Masukkan Password" required>
+                <button onclick="attemptLogin()">Login</button>
+                <button class="switch-btn" onclick="switchAuthMode('register')">Belum punya akun? Daftar Sekarang</button>
+            </div>
+            <div id="registerForm" style="display: none;">
+                <h2>Daftar Akun Baru</h2>
+                <p>Buat Username dan Password yang Anda inginkan.</p>
+                <div id="registerError"></div>
+                <label for="registerUsername">Username Baru:</label>
+                <input type="text" id="registerUsername" placeholder="Buat Username" required>
+                <label for="registerPassword">Password Baru:</label>
+                <input type="password" id="registerPassword" placeholder="Buat Password" required>
+                <button onclick="registerUser()">Daftar Akun</button>
+                <button class="switch-btn" onclick="switchAuthMode('login')">Sudah punya akun? Masuk di sini</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="profileModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Pengaturan Profil</h2>
+            <div class="profile-container">
+                <div class="profile-photo" id="userPhotoPreview" onclick="document.getElementById('fileInput').click()" title="Klik untuk mengunggah foto">A</div>
+                <p id="currentUsernameDisplay" style="margin: 0; font-weight: 500;"></p>
+            </div>
+            <input type="file" id="fileInput" class="hidden-input" accept="image/*" onchange="handleImageUpload(event)">
+            <label for="usernameInput">Nama Pengguna:</label>
+            <input type="text" id="usernameInput" placeholder="Masukkan nama Anda" disabled style="background-color: #333; color: #bbb;">
+            <p style="font-size: 0.8em; color: var(--stop-btn-color); margin: 5px 0;">*Username tidak bisa diubah setelah login.</p>
+            <button onclick="saveProfileSettings()">Simpan Perubahan</button>
+            <button onclick="logoutUser()" style="background-color: #555; margin-top: 15px;">Logout</button>
+        </div>
+    </div>
+
+    <div id="renameChatModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Ubah Nama Obrolan</h2>
+            <p>Masukkan nama baru untuk obrolan saat ini:</p>
+            <input type="text" id="newChatNameInput" placeholder="Nama Obrolan Baru" required>
+            <button onclick="saveChatName()">Simpan</button>
+        </div>
+    </div>
+
+    <div id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div id="sidebarModal">
+        <div class="sidebar-header">
+            <span>PykizAi</span>
+            <button class="icon-btn menu-toggle-btn" onclick="closeSidebar()" title="Tutup Menu">
+                <span class="material-icons-outlined">close</span>
+            </button>
+        </div>
+        
+        <div class="sidebar-menu">
+            <div class="sidebar-menu-item" onclick="startNewChat()">
+                <span class="material-icons-outlined">add_comment</span>
+                <span>Obrolan Baru</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="openRenameModal()">
+                <span class="material-icons-outlined">edit</span>
+                <span>Edit Nama Obrolan</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="deleteCurrentChat()">
+                <span class="material-icons-outlined" style="color: var(--stop-btn-color);">delete</span>
+                <span>Hapus Obrolan Ini</span>
+            </div>
+        </div>
+        
+        <div class="sidebar-header" style="font-size: 1.2em;">Riwayat Obrolan</div>
+        <div class="sidebar-history" id="chatHistoryList">
+            </div>
+    </div>
+
+
+    <div class="chat-interface-container" id="chatContainer" style="display: none;">
+        
+        <div class="chat-header">
+            <div class="menu-group">
+                 <button class="icon-btn menu-toggle-btn" onclick="openSidebar()" title="Menu">
+                    <span class="material-icons-outlined">menu</span>
+                </button>
+                <div class="header-title">
+                    <span id="currentChatName">PykizAi Neon-1.0</span>
+                    <span id="codingModeIndicator" class="mode-indicator">CODING MODE</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="mode-toggle-btn" id="modeToggleButton" onclick="toggleCodingMode()" title="Toggle Coding Mode">
+                    <span class="material-icons-outlined">code</span>
+                </button>
+                <button class="profile-btn" onclick="openProfileModal()" title="Pengaturan Profil">
+                    <span class="material-icons-outlined">account_circle</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="chat-history" id="chatHistory">
+             </div>
+
+        <div class="input-area">
+             <button id="stopButton" onclick="stopChat()">
+                <span class="material-icons-outlined" style="font-size: 18px; margin-right: 5px;">stop</span> Hentikan Chat
+            </button>
+            <form class="input-form" onsubmit="sendMessage(event)">
+                
+                <input type="file" id="imageInput" class="hidden-input" accept="image/*" onchange="previewImage(event)" style="display: none;">
+                <input type="file" id="documentInput" class="hidden-input" accept=".pdf,.doc,.docx,.txt" onchange="previewDocument(event)" style="display: none;">
+                
+                <button type="button" class="icon-btn" onclick="toggleAttachmentMenu(this)" title="Lampiran">
+                    <span class="material-icons-outlined" id="attachmentIcon">add</span>
+                </button>
+                
+                <div id="attachmentMenu">
+                    <div class="attachment-item" onclick="document.getElementById('imageInput').click(); closeAttachmentMenu()">
+                        <span class="material-icons-outlined">image</span>
+                        <span>Import Foto (Max 5MB)</span>
+                    </div>
+                    <div class="attachment-item" onclick="document.getElementById('documentInput').click(); closeAttachmentMenu()">
+                        <span class="material-icons-outlined">description</span>
+                        <span>Import Dokumen (Eksperimental)</span>
+                    </div>
+                </div>
+
+                <textarea id="userInput" placeholder="Tanya PykizAi..." rows="1" required></textarea>
+                
+                <button type="submit" class="icon-btn send-btn" id="sendButton" title="Kirim" disabled><span class="material-icons-outlined">send</span></button>
+            </form>
+            <div id="attachmentPreviewContainer">
+                <div>
+                    <span id="attachmentTypeIcon" class="material-icons-outlined"></span>
+                    <span id="attachmentFileName"></span>
+                </div>
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // --- KONFIGURASI APLIKASI ---
+        const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+        const MODEL_ID = 'google/gemini-2.5-flash';
+        const FIXED_API_KEY = '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'; 
+        
+        let apiKey = FIXED_API_KEY; 
+        let isCodingMode = false; 
+        let currentAbortController = null; 
+        
+        // --- VARIABEL BARU UNTUK CHAT MANAGEMENT ---
+        let currentChatId = null;
+        let imageBase64 = null; 
+        let docFile = null; 
+
+        let chatSessions = [];
+        
+        let userProfile = {
+            username: "Anda",
+            photoDataUrl: "" 
+        };
+        
+        const CODING_SYSTEM_PROMPT = {
+            role: "system",
+            content: "Saya adalah Code Generation Assistant yang ahli. Jawab semua permintaan pengguna dengan memberikan kode yang LENGKAP, SIAP PAKAI, dan BERSIH. Pastikan setiap kode diapit dalam blok kode Markdown (```language) dan dilengkapi dengan komentar yang jelas serta penjelasan singkat tentang cara menggunakannya. Fokus pada hasil kode yang spesifik dan terperinci. JANGAN pernah menyertakan HTML, CSS, atau JavaScript ke dalam elemen chat history secara langsung; selalu gunakan blok kode Markdown."
+        };
+        const DEFAULT_SYSTEM_PROMPT = {
+            role: "system",
+            content: "Saya adalah asisten AI profesional dan serba bisa yang didukung oleh Gemini 2.5 Flash. Jawab dengan jelas dan ringkas. Saya memiliki kemampuan untuk menganalisis gambar dan teks. Anggap dokumen yang dilampirkan adalah teks."
+        };
+
+        // --- MANAJEMEN RIWAYAT OBROLAN ---
+        function loadChatSessions(username) {
+            const sessions = localStorage.getItem(`chatSessions_${username}`);
+            chatSessions = sessions ? JSON.parse(sessions) : [];
+            
+            if (chatSessions.length > 0) {
+                 if (!currentChatId || !getCurrentChat()) {
+                    loadChat(chatSessions[chatSessions.length - 1].id);
+                 }
+            } else {
+                 startNewChat('Obrolan Baru', false);
+            }
+            renderChatHistoryList();
+        }
+
+        function saveChatSessions() {
+            if (userProfile.username !== "Anda") {
+                 localStorage.setItem(`chatSessions_${userProfile.username}`, JSON.stringify(chatSessions));
+            }
+            renderChatHistoryList();
+        }
+
+        function getCurrentChat() {
+            return chatSessions.find(c => c.id === currentChatId);
+        }
+
+        function loadChat(chatId) {
+            if (currentAbortController) stopChat();
+            
+            currentChatId = chatId;
+            const chat = getCurrentChat();
+            if (!chat) return;
+
+            document.getElementById('currentChatName').textContent = chat.name;
+            const chatHistoryElement = document.getElementById('chatHistory');
+            chatHistoryElement.innerHTML = '';
+            
+            let hasMessages = false;
+            // Muat kembali semua pesan ke UI
+            chat.messages.forEach(msg => {
+                 if (msg.content) {
+                    hasMessages = true;
+                    // Ambil konten teks dan gambar dari array content
+                    const contentArray = Array.isArray(msg.content) ? msg.content : [{ type: 'text', text: msg.content }];
+                    const textContent = contentArray.find(c => c.type === 'text')?.text || '';
+                    const imageContent = contentArray.find(c => c.type === 'image')?.image?.url || null;
+                    
+                    addMessageToUI(textContent, msg.role, null, false, false, imageContent, false); 
+                 }
+            });
+            
+            // Tampilkan pesan selamat datang jika obrolan kosong
+            if (!hasMessages) {
+                 const initialMessage = `Halo, **${userProfile.username}**. Saya adalah asisten AI profesional yang dikembangkan oleh fikri,saya didukung oleh model canggih **Gemini 2.5 Flash** yang bisa menjawab semua pertanyaan anda.\n\nAnda dapat mengirim **foto** (Max 5MB) dan **dokumen** (Masih Tahap Pengembangan) melalui tombol <span class="material-icons-outlined" style="font-size: 1em;">add</span>. Gunakan tombol <> untuk beralih ke **Coding Mode** 🗿☕.`;
+                 addMessageToUI(initialMessage, 'ai', 'welcome-message', false, false, null, false);
+            }
+
+
+            document.getElementById('chatHistory').scrollTop = document.getElementById('chatHistory').scrollHeight;
+            renderChatHistoryList();
+            closeSidebar();
+        }
+
+        function startNewChat(name = 'Obrolan Baru', shouldLoad = true) {
+            const newId = 'chat-' + Date.now();
+            const newChat = { id: newId, name: name, messages: [] };
+            chatSessions.push(newChat);
+            saveChatSessions();
+            if (shouldLoad) {
+                loadChat(newId);
+            }
+            return newId;
+        }
+
+        function renameChat(newName) {
+            const chat = getCurrentChat();
+            if (chat) {
+                chat.name = newName;
+                saveChatSessions();
+                document.getElementById('currentChatName').textContent = newName;
+            }
+        }
+        
+        function deleteCurrentChat() {
+            const chat = getCurrentChat();
+            if (!chat) return;
+
+            if (confirm(`Anda yakin ingin menghapus obrolan "${chat.name}"? Tindakan ini tidak dapat dibatalkan.`)) {
+                chatSessions = chatSessions.filter(c => c.id !== currentChatId);
+                saveChatSessions();
+                
+                if (chatSessions.length > 0) {
+                    loadChat(chatSessions[chatSessions.length - 1].id);
+                } else {
+                    startNewChat('Obrolan Baru'); 
+                }
+            }
+        }
+
+        function renderChatHistoryList() {
+            const list = document.getElementById('chatHistoryList');
+            list.innerHTML = '';
+            
+            chatSessions.slice().reverse().forEach(chat => {
+                const item = document.createElement('div');
+                item.className = `sidebar-chat-item ${chat.id === currentChatId ? 'active' : ''}`;
+                item.textContent = chat.name;
+                item.onclick = () => loadChat(chat.id);
+                list.appendChild(item);
+            });
+        }
+        
+        // --- MANAJEMEN MODAL SIDEBAR ---
+        function openSidebar() {
+            document.getElementById('sidebarModal').classList.add('active');
+            document.getElementById('sidebarOverlay').classList.add('active');
+            renderChatHistoryList();
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebarModal').classList.remove('active');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        }
+
+        function openRenameModal() {
+            const chat = getCurrentChat();
+            if (!chat) {
+                 alert("Tidak ada obrolan yang aktif untuk diubah namanya.");
+                 return;
+            }
+            document.getElementById('newChatNameInput').value = chat.name;
+            document.getElementById('renameChatModal').style.display = 'flex';
+        }
+
+        function saveChatName() {
+            const newName = document.getElementById('newChatNameInput').value.trim();
+            if (newName) {
+                renameChat(newName);
+                document.getElementById('renameChatModal').style.display = 'none';
+                closeSidebar();
+            } else {
+                alert('Nama obrolan tidak boleh kosong!');
+            }
+        }
+
+        // --- MANAJEMEN LAMPIRAN ---
+
+        function toggleAttachmentMenu(button) {
+            const menu = document.getElementById('attachmentMenu');
+            menu.classList.toggle('active');
+        }
+
+        function closeAttachmentMenu() {
+            document.getElementById('attachmentMenu').classList.remove('active');
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        function updateSendButtonState() {
+            const userInput = document.getElementById('userInput');
+            const isDisabled = userInput.value.trim() === '' && !imageBase64 && !docFile && !currentAbortController;
+            document.getElementById('sendButton').disabled = isDisabled;
+        }
+
+        async function previewImage(event) {
+            const file = event.target.files[0];
+            clearAttachment(false);
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) { 
+                    alert("Ukuran file gambar terlalu besar. Maksimum 5MB.");
+                    clearAttachment();
+                    return;
+                }
+                try {
+                    imageBase64 = await fileToBase64(file);
+                    
+                    const previewContainer = document.getElementById('attachmentPreviewContainer');
+                    const fileNameSpan = document.getElementById('attachmentFileName');
+                    const typeIcon = document.getElementById('attachmentTypeIcon');
+
+                    fileNameSpan.textContent = file.name;
+                    typeIcon.textContent = 'image';
+                    previewContainer.style.display = 'flex';
+                    
+                } catch (error) {
+                    console.error("Error converting file to Base64:", error);
+                    alert("Gagal memproses file gambar.");
+                    clearAttachment();
+                }
+            }
+            updateSendButtonState();
+        }
+
+        function previewDocument(event) {
+             const file = event.target.files[0];
+             clearAttachment(false);
+             if (file) {
+                if (file.size > 2 * 1024 * 1024) { 
+                    alert("Ukuran file dokumen terlalu besar. Maksimum 2MB.");
+                    clearAttachment();
+                    return;
+                }
+                
+                docFile = file; 
+                const previewContainer = document.getElementById('attachmentPreviewContainer');
+                const fileNameSpan = document.getElementById('attachmentFileName');
+                const typeIcon = document.getElementById('attachmentTypeIcon');
+                
+                fileNameSpan.textContent = file.name;
+                typeIcon.textContent = 'description';
+                previewContainer.style.display = 'flex';
+             }
+             updateSendButtonState();
+        }
+        
+        function clearAttachment(update = true) {
+            const previewContainer = document.getElementById('attachmentPreviewContainer');
+            document.getElementById('imageInput').value = ''; 
+            document.getElementById('documentInput').value = ''; 
+
+            imageBase64 = null;
+            docFile = null; 
+            previewContainer.style.display = 'none';
+            if (update) updateSendButtonState();
+        }
+        
+        // --- UI UTILITY: Chat Rendering ---
+        
+        function formatContent(text) {
+            let html = text; 
+            let codeBlockCounter = 0;
+
+            // 1. Proses Blok Kode
+            html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, lang, content) {
+                const codeContent = content.trim(); 
+                const language = lang ? lang.toUpperCase() : 'CODE'; 
+                const codeId = `code-block-${codeBlockCounter++}`;
+                
+                const copyButtonHtml = `
+                    <div class="code-header">
+                        <span style="font-weight: 500; color: var(--secondary-text-color);">${language}</span>
+                        <button class="copy-btn" onclick="copyCode(this, '${codeId}')" title="Salin Kode">
+                            <span class="material-icons-outlined">content_copy</span>
+                        </button>
+                    </div>
+                `;
+                
+                return `
+                    <div class="code-block-wrapper">
+                        ${copyButtonHtml}
+                        <pre><code id="${codeId}" class="language-${language}">${codeContent}</code></pre>
+                    </div>
+                `;
+            });
+
+            // 2. Sekarang proses sisa teks (di luar blok kode)
+            html = html.replace(/\n/g, '<br>');
+            
+            // 3. Proses format inline
+            html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // 4. Wrap dalam paragraf
+            html = `<p>${html}</p>`;
+            
+            // 5. Cleanup
+            html = html.replace(/<br><br><br>/g, ' <br><br>');
+            html = html.replace(/<p><br><\/p>/g, '');
+            
+            return html;
+        }
+
+        
+        function addMessageToUI(text, sender, id = null, isLoading = false, isError = false, image = null, saveToSession = true) {
+            const chatHistory = document.getElementById('chatHistory');
+            const messageDiv = document.createElement('div');
+            const messageId = id || Date.now().toString();
+            const isUser = sender === 'user';
+            const chat = getCurrentChat();
+            
+            messageDiv.className = `message ${sender} ${isLoading ? 'loading' : ''} ${isError ? 'error' : ''}`;
+            messageDiv.id = messageId;
+
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'avatar';
+            
+            if (isUser) {
+                 if (userProfile.photoDataUrl) {
+                    avatarDiv.style.backgroundImage = `url('${userProfile.photoDataUrl}')`;
+                    avatarDiv.textContent = '';
+                } else {
+                    avatarDiv.textContent = userProfile.username.charAt(0).toUpperCase();
+                }
+            } else {
+                avatarDiv.textContent = 'Py'; 
+            }
+            
+            const contentWrapper = document.createElement('div');
+            contentWrapper.className = 'message-content-wrapper';
+            
+            // Tampilkan Gambar/Dokumen Preview di Bubble Pesan Pengguna
+            if (isUser && image) {
+                const imgElement = document.createElement('img');
+                imgElement.src = image;
+                imgElement.style.maxWidth = '100%';
+                imgElement.style.maxHeight = '200px';
+                imgElement.style.borderRadius = '8px';
+                imgElement.style.marginBottom = '10px';
+                contentWrapper.appendChild(imgElement);
+            } else if (isUser && docFile && saveToSession) { 
+                 const docPlaceholder = document.createElement('div');
+                 docPlaceholder.innerHTML = `<p style="margin: 0; padding: 10px; border: 1px dashed var(--main-accent); border-radius: 8px;"><strong>Dokumen Terlampir:</strong> ${docFile.name} (${(docFile.size / 1024).toFixed(2)} KB)</p>`;
+                 docPlaceholder.style.marginBottom = '10px';
+                 contentWrapper.appendChild(docPlaceholder);
+            } else if (isUser && !saveToSession && text.startsWith('(ANALISIS DOKUMEN:')) {
+                 // Re-render dokumen dari history 
+                 const fileNameMatch = text.match(/\(ANALISIS DOKUMEN: (.*?)\s\//);
+                 const fileName = fileNameMatch ? fileNameMatch[1] : 'Dokumen';
+                 const docPlaceholder = document.createElement('div');
+                 docPlaceholder.innerHTML = `<p style="margin: 0; padding: 10px; border: 1px dashed var(--main-accent); border-radius: 8px;"><strong>Dokumen Terlampir:</strong> ${fileName}</p>`;
+                 docPlaceholder.style.marginBottom = '10px';
+                 contentWrapper.appendChild(docPlaceholder);
+            }
+
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            
+            const contentToShow = isLoading 
+                ? `<div class="typing-indicator-container"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`
+                : isUser 
+                    ? text.replace(/\n/g, '<br>')
+                    : formatContent(text); 
+
+            bubbleDiv.innerHTML = contentToShow;
+
+
+            contentWrapper.appendChild(bubbleDiv);
+
+            if (!isUser) {
+                messageDiv.appendChild(avatarDiv);
+                messageDiv.appendChild(contentWrapper);
+            } else {
+                messageDiv.appendChild(contentWrapper);
+                messageDiv.appendChild(avatarDiv);
+            }
+
+            chatHistory.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.classList.add('show');
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            }, 50); 
+
+            if (!isLoading && !isError && saveToSession && chat) {
+                 const contentArray = [];
+                 if (image) {
+                     contentArray.push({ type: "image", image: { url: image } });
+                 }
+                 if (docFile) {
+                    contentArray.push({ type: "text", text: `(ANALISIS DOKUMEN: ${docFile.name} / ${docFile.type}) ${text}` });
+                 } else if (text) {
+                     contentArray.push({ type: "text", text: text });
+                 }
+                 
+                 if (contentArray.length > 0) {
+                     chat.messages.push({ role: sender, content: contentArray });
+                     saveChatSessions(); 
+                 }
+            }
+        }
+        
+        function typeMessage(element, text) {
+            return new Promise(resolve => {
+                let i = 0;
+                const speed = 20; 
+                const bubble = element.querySelector('.message-bubble');
+                let typedText = ''; 
+
+                bubble.innerHTML = '';
+                bubble.classList.add('typing'); 
+
+                function typeWriter() {
+                    if (i < text.length) {
+                        if (currentAbortController && currentAbortController.signal.aborted) {
+                            bubble.classList.remove('typing');
+                            bubble.innerHTML = `<p>⚠ **Chat Dibatalkan.** Respons dihentikan oleh pengguna.</p>`;
+                            return resolve(); 
+                        }
+                        
+                        typedText += text.charAt(i); 
+                        
+                        // Gunakan innerHTML untuk mendukung rendering Markdown secara parsial
+                        bubble.innerHTML = typedText.replace(/\n/g, '<br>');
+
+                        i++;
+                        
+                        const chatHistory = document.getElementById('chatHistory');
+                        chatHistory.scrollTop = chatHistory.scrollHeight;
+
+                        setTimeout(typeWriter, speed);
+                    } else {
+                        bubble.classList.remove('typing');
+                        bubble.innerHTML = formatContent(text); 
+                        resolve(text);
+                    }
+                }
+                typeWriter();
+            });
+        }
+        
+        function copyCode(button, codeElementId) {
+            const codeElement = document.getElementById(codeElementId);
+            if (!codeElement) return;
+
+            const codeToCopy = codeElement.textContent;
+
+            navigator.clipboard.writeText(codeToCopy).then(() => {
+                const icon = button.querySelector('.material-icons-outlined');
+                const text = document.createElement('span');
+                text.textContent = ' Disalin';
+                button.appendChild(text); 
+                
+                const originalIcon = icon.textContent;
+                icon.textContent = 'done';
+                
+                setTimeout(() => {
+                    icon.textContent = originalIcon;
+                    if(button.contains(text)) {
+                         button.removeChild(text);
+                    }
+                }, 2000);
+            }).catch(err => {
+                console.error('Gagal menyalin:', err);
+                alert('Gagal menyalin kode. Browser Anda mungkin tidak mendukung fitur ini.');
+            });
+        }
+        
+        // --- FUNGSI HENTIKAN CHAT (Stop Chat) ---
+        function stopChat() {
+            if (currentAbortController) {
+                currentAbortController.abort();
+                
+                const placeholder = document.querySelector('.message.ai.loading');
+                if (placeholder) {
+                     placeholder.classList.remove('loading');
+                     placeholder.classList.add('error');
+                     const bubble = placeholder.querySelector('.message-bubble');
+                     
+                     const typingIndicator = bubble.querySelector('.typing-indicator-container');
+                     if (typingIndicator) typingIndicator.remove();
+                     
+                     bubble.classList.remove('typing');
+                     bubble.innerHTML = `<p>⚠ **Chat Dibatalkan.** Respons dihentikan oleh pengguna.</p>`;
+                     
+                     const chat = getCurrentChat();
+                     if (chat) {
+                         chat.messages.pop(); 
+                         saveChatSessions();
+                     }
+
+                }
+            }
+            document.getElementById('userInput').disabled = false;
+            document.getElementById('stopButton').style.display = 'none';
+            currentAbortController = null;
+            updateSendButtonState();
+        }
+
+        // --- API Call & Placeholder Update ---
+        async function updatePlaceholder(id, response, isError = false, isAborted = false) { 
+            const placeholderDiv = document.getElementById(id);
+            if (!placeholderDiv) {
+                currentAbortController = null;
+                document.getElementById('userInput').disabled = false;
+                document.getElementById('stopButton').style.display = 'none';
+                updateSendButtonState();
+                return; 
+            }
+
+            currentAbortController = null;
+            document.getElementById('userInput').disabled = false;
+            document.getElementById('stopButton').style.display = 'none';
+            updateSendButtonState();
+
+            placeholderDiv.classList.remove('loading');
+            
+            const finalResponseText = isError 
+                ? ` Error: ${response}`
+                : response;
+            
+            if (isError || isAborted) {
+                placeholderDiv.classList.add('error');
+                const bubble = placeholderDiv.querySelector('.message-bubble');
+                const typingIndicator = bubble.querySelector('.typing-indicator-container');
+                if (typingIndicator) typingIndicator.remove();
+                bubble.innerHTML = `<p>${finalResponseText.replace(/\n/g, '<br>')}</p>`;
+                
+                const chat = getCurrentChat();
+                if (chat) {
+                     chat.messages.pop(); 
+                     saveChatSessions();
+                }
+            } else {
+                placeholderDiv.classList.add('success');
+                const typedContent = await typeMessage(placeholderDiv, response);
+                
+                const chat = getCurrentChat();
+                if (chat) {
+                    const lastMsgIndex = chat.messages.length - 1;
+                    
+                    if (lastMsgIndex !== -1) {
+                         chat.messages[lastMsgIndex] = { role: 'assistant', content: typedContent };
+                    }
+                    saveChatSessions();
+                }
+            }
+        }
+
+        async function callOpenRouterAPI(prompt, placeholderId) {
+             currentAbortController = new AbortController(); 
+             const signal = currentAbortController.signal;
+             
+             document.getElementById('stopButton').style.display = 'block'; 
+
+             const systemPrompt = isCodingMode ? CODING_SYSTEM_PROMPT : DEFAULT_SYSTEM_PROMPT;
+             
+             const chat = getCurrentChat();
+             if (!chat) {
+                updatePlaceholder(placeholderId, "Tidak ada obrolan aktif.", true);
+                return;
+             }
+             
+             // 1. Siapkan konten pengguna untuk API
+             const userContent = [];
+             if (imageBase64) {
+                 userContent.push({
+                     type: "image_url", 
+                     image_url: { url: imageBase64 }
+                 });
+             }
+             
+             let promptToSend = prompt;
+             if (docFile) {
+                 promptToSend = `[DOKUMEN TERLAMPIR: ${docFile.name} / ${docFile.type}] ${prompt}`;
+             }
+             if (promptToSend) {
+                 userContent.push({ type: "text", text: promptToSend });
+             }
+             
+             if (userContent.length === 0) {
+                updatePlaceholder(placeholderId, "Tidak ada pesan teks atau gambar untuk dikirim.", true);
+                return;
+             }
+
+             // 2. Simpan pesan pengguna ke chat sessions (dengan flag saveToSession = true)
+             // Ini akan dilakukan di addMessageToUI(saveToSession=true) sebelum callOpenRouterAPI
+
+             // 3. Tambahkan placeholder AI (untuk API response)
+             chat.messages.push({ role: "assistant", content: "" });
+             saveChatSessions();
+             
+             // 4. Buat list messages API
+             const messagesToSend = [
+                systemPrompt, 
+                ...chat.messages
+                    .filter(msg => msg.content && (Array.isArray(msg.content) ? msg.content.length > 0 : msg.content.length > 0))
+                    .map(msg => {
+                        let contentForApi = msg.content;
+                        if (Array.isArray(contentForApi)) {
+                             contentForApi = contentForApi.map(c => {
+                                 if (c.type === 'image') {
+                                     return { type: 'image_url', image_url: { url: c.image.url } };
+                                 }
+                                 // Filter pesan dokumen agar hanya teks prompt yang terkirim ke API
+                                 if (c.type === 'text' && c.text.startsWith('(ANALISIS DOKUMEN:')) {
+                                     return { type: "text", text: c.text }; 
+                                 }
+                                 return c;
+                             }).filter(c => c.type === 'text' || c.type === 'image_url');
+                        }
+                        return { role: msg.role, content: contentForApi };
+                    })
+             ];
+             
+             clearAttachment(); 
+
+             try {
+                 const response = await fetch(OPENROUTER_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json',
+                        'HTTP-Referer': window.location.href, 
+                        'X-Title': 'PykizAi Neon-1.0'
+                    },
+                    body: JSON.stringify({
+                        model: MODEL_ID,
+                        messages: messagesToSend,
+                        temperature: 0.7,
+                        max_tokens: 2000,
+                    }),
+                    signal: signal 
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    const errorMessage = data.error ? data.error.message : `Gagal memanggil API. Status: ${response.status}`;
+                    throw new Error(errorMessage);
+                }
+                
+                if (data.choices && data.choices.length > 0) {
+                    updatePlaceholder(placeholderId, data.choices[0].message.content, false);
+                } else {
+                    throw new Error('Konten balasan kosong atau tidak ada pilihan balasan.');
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    updatePlaceholder(placeholderId, "Permintaan API dibatalkan oleh pengguna.", true, true);
+                } else {
+                    updatePlaceholder(placeholderId, error.message, true);
+                }
+            }
+        }
+
+
+        // --- Message Handler & Inisialisasi ---
+        function sendMessage(event) {
+            event.preventDefault();
+            const input = document.getElementById('userInput');
+            const prompt = input.value.trim();
+            
+            if (prompt === "" && !imageBase64 && !docFile) return;
+
+            if (localStorage.getItem('isLoggedIn') !== 'true') {
+                 document.getElementById('authModal').style.display = 'flex';
+                 return;
+            }
+            
+            const placeholderId = 'ai-placeholder-' + Date.now();
+            
+            // Tampilkan pesan pengguna di UI dan SIMPAN ke SESSION
+            addMessageToUI(prompt, 'user', null, false, false, imageBase64, true); 
+
+            // Tampilkan AI placeholder
+            addMessageToUI('', 'ai', placeholderId, true, false, null, false);
+            
+            input.value = '';
+            input.style.height = 'auto'; 
+            
+            input.disabled = true; 
+            document.getElementById('sendButton').disabled = true;
+
+            callOpenRouterAPI(prompt, placeholderId); 
+        }
+
+        document.getElementById('userInput').addEventListener('input', function() {
+            const sendButton = document.getElementById('sendButton');
+
+            this.style.height = 'auto';
+            const newHeight = this.scrollHeight;
+            const maxHeight = 200; 
+
+            if (newHeight > maxHeight) {
+                this.style.height = maxHeight + 'px';
+                this.style.overflowY = 'scroll'; 
+            } else {
+                this.style.height = newHeight + 'px';
+                this.style.overflowY = 'hidden';
+            }
+            
+            updateSendButtonState();
+        });
+        
+        function initializeChatInterface(username = 'Anda') {
+            userProfile.username = username;
+            loadProfile(username); 
+            updateProfileDisplay(); 
+            
+            loadChatSessions(username); 
+            
+            if (chatSessions.length === 0) {
+                 const newId = startNewChat('Obrolan Baru', false);
+                 currentChatId = newId;
+            }
+            if (currentChatId) {
+                loadChat(currentChatId);
+            } else if (chatSessions.length > 0) {
+                 loadChat(chatSessions[chatSessions.length - 1].id);
+            }
+
+            document.getElementById('authModal').style.display = 'none';
+            document.getElementById('chatContainer').style.display = 'flex';
+            
+            updateSendButtonState();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Menggunakan localStorage untuk login persistent
+            if (localStorage.getItem('isLoggedIn') === 'true') {
+                const activeUser = localStorage.getItem('activeUser') || 'Anda';
+                initializeChatInterface(activeUser);
+            } else {
+                document.getElementById('authModal').style.display = 'flex';
+                switchAuthMode('login');
+            }
+            
+             document.addEventListener('click', function(e) {
+                const attachmentButton = document.querySelector('.input-form button.icon-btn');
+                const attachmentMenu = document.getElementById('attachmentMenu');
+                
+                if (attachmentMenu.classList.contains('active') && 
+                    !attachmentMenu.contains(e.target) && 
+                    !attachmentButton.contains(e.target)) {
+                    closeAttachmentMenu();
+                }
+            });
+        });
+        
+        // --- Fungsi Profil & Autentikasi (Pembaruan ke localStorage) ---
+        function getUsers() {
+            const users = localStorage.getItem('chatUsers');
+            return users ? JSON.parse(users) : [];
+        }
+        function saveUsers(users) {
+            localStorage.setItem('chatUsers', JSON.stringify(users));
+        }
+        function switchAuthMode(mode) {
+            document.getElementById('loginForm').style.display = mode === 'login' ? 'block' : 'none';
+            document.getElementById('registerForm').style.display = mode === 'register' ? 'block' : 'none';
+            document.getElementById('authError').style.display = 'none';
+            document.getElementById('registerError').style.display = 'none';
+        }
+        function registerUser() {
+            const usernameInput = document.getElementById('registerUsername');
+            const passwordInput = document.getElementById('registerPassword');
+            const errorDiv = document.getElementById('registerError');
+            
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            errorDiv.style.display = 'none';
+
+            if (username.length < 3 || password.length < 6) {
+                errorDiv.textContent = "Username minimal 3 karakter, Password minimal 6 karakter.";
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            let users = getUsers();
+            if (users.find(u => u.username === username)) {
+                errorDiv.textContent = "Username sudah digunakan. Silakan pilih yang lain.";
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            users.push({ username, password });
+            saveUsers(users);
+            
+            alert(`Registrasi berhasil! Username: ${username}`);
+            
+            document.getElementById('loginUsername').value = username;
+            document.getElementById('loginPassword').value = '';
+            switchAuthMode('login');
+        }
+        function attemptLogin() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const errorDiv = document.getElementById('authError');
+
+            const users = getUsers();
+            const user = users.find(u => u.username === username && u.password === password);
+
+            errorDiv.style.display = 'none';
+            
+            if (user) {
+                // Perubahan dari sessionStorage ke localStorage
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('activeUser', username);
+                initializeChatInterface(username);
+            } else {
+                errorDiv.textContent = "Username atau Password salah!";
+                errorDiv.style.display = 'block';
+                document.getElementById('loginPassword').value = ''; 
+            }
+        }
+        function logoutUser() {
+            if (confirm("Anda yakin ingin keluar? Anda harus login lagi untuk menggunakan AI.")) {
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('activeUser');
+                // Hapus data sesi (opsional, tapi disarankan)
+                // localStorage.removeItem(`chatSessions_${userProfile.username}`); 
+                
+                window.location.reload(); 
+            }
+        }
+
+        function toggleCodingMode() {
+            isCodingMode = !isCodingMode;
+            const button = document.getElementById('modeToggleButton');
+            const indicator = document.getElementById('codingModeIndicator');
+            
+            if (isCodingMode) {
+                button.classList.add('active');
+                indicator.classList.add('active');
+            } else {
+                button.classList.remove('active');
+                indicator.classList.remove('active');
+            }
+        }
+        function loadProfile(activeUsername) {
+            const savedProfile = localStorage.getItem(`userProfile_${activeUsername}`);
+            if (savedProfile) {
+                userProfile = JSON.parse(savedProfile);
+            } else {
+                userProfile = {
+                    username: activeUsername,
+                    photoDataUrl: ""
+                };
+            }
+        }
+        function updateProfileDisplay() {
+            document.getElementById('currentUsernameDisplay').textContent = userProfile.username;
+            document.getElementById('usernameInput').value = userProfile.username;
+            
+            const userAvatars = document.querySelectorAll('.message.user .avatar');
+            const photoPreview = document.getElementById('userPhotoPreview');
+            const applyPhotoStyle = (element) => {
+                if (userProfile.photoDataUrl) {
+                    element.style.backgroundImage = `url('${userProfile.photoDataUrl}')`;
+                    element.textContent = ''; 
+                } else {
+                    element.style.backgroundImage = 'none';
+                    element.textContent = userProfile.username.charAt(0).toUpperCase();
+                }
+            };
+            userAvatars.forEach(applyPhotoStyle);
+            applyPhotoStyle(photoPreview);
+        }
+        function openProfileModal() {
+            document.getElementById('profileModal').style.display = 'flex';
+            document.getElementById('usernameInput').value = userProfile.username;
+            updateProfileDisplay(); 
+        }
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const MAX_SIZE = 1024 * 1024; 
+            if (file.size > MAX_SIZE) {
+                alert("Ukuran file terlalu besar. Maksimum 1MB.");
+                event.target.value = '';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                userProfile.photoDataUrl = e.target.result; 
+                document.getElementById('userPhotoPreview').style.backgroundImage = `url('${userProfile.photoDataUrl}')`;
+                document.getElementById('userPhotoPreview').textContent = '';
+                saveProfileSettings(false); 
+            };
+            reader.readAsDataURL(file);
+        }
+        function saveProfileSettings(closeModal = true) {
+            // Username tidak bisa diubah
+            localStorage.setItem(`userProfile_${userProfile.username}`, JSON.stringify(userProfile));
+            updateProfileDisplay();
+            if (closeModal) {
+                document.getElementById('profileModal').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
