@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V-Ai</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: #000000;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: #0a0a0a;
+            border-right: 1px solid #2a2a2a;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            position: absolute;
+            height: 100vh;
+            z-index: 1000;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .close-sidebar-btn {
+            background: transparent;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 24px;
+            padding: 4px;
+        }
+
+        .new-chat-btn {
+            width: 100%;
+            padding: 12px 16px;
+            background: #2a7fff; /* BIRU */
+            border: none;
+            border-radius: 8px;
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .new-chat-btn:hover {
+            background: #1a6fff;
+        }
+
+        .chat-mode-btn {
+            flex: 1;
+            padding: 8px 12px;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            color: #888;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+
+        .chat-mode-btn.active {
+            background: #2a7fff; /* BIRU */
+            border-color: #2a7fff;
+            color: #ffffff;
+        }
+
+        .chat-mode-btn:hover:not(.active) {
+            background: #2a2a2a;
+        }
+
+        .chat-mode-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .history-item {
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .history-item:hover {
+            background: #1a1a1a;
+        }
+
+        .history-item.active {
+            background: #2a2a2a;
+        }
+
+        .history-text {
+            flex: 1;
+            font-size: 14px;
+            color: #ccc;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .delete-history-btn {
+            background: transparent;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            padding: 4px 8px;
+            font-size: 18px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .history-item:hover .delete-history-btn {
+            opacity: 1;
+        }
+
+        .delete-history-btn:hover {
+            color: #ff4444;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #000000;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .menu-btn {
+            width: 44px;
+            height: 44px;
+            background: #2a2a2a;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+        }
+
+        .app-name {
+            background: linear-gradient(45deg, #2a7fff, #0066ff); /* BIRU GRADIENT */
+            padding: 10px 24px;
+            border-radius: 24px;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 44px;
+            height: 44px;
+            background: #2a2a2a;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 20px;
+        }
+
+        .icon-btn:hover {
+            background: #3a3a3a;
+        }
+
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .welcome-message {
+            text-align: center;
+            margin: auto;
+            max-width: 600px;
+        }
+
+        .welcome-message h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            font-weight: 400;
+            color: #2a7fff; /* BIRU */
+        }
+
+        .message {
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            text-align: right;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .message.assistant {
+            text-align: left;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            display: inline-block;
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .message.user .message-content {
+            background: #2a7fff; /* BIRU */
+            color: #ffffff;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.assistant .message-content {
+            background: #2a2a2a;
+            color: #ffffff;
+            border-bottom-left-radius: 4px;
+        }
+
+        .typing-indicator {
+            display: inline-block;
+            padding: 12px 16px;
+            background: #2a2a2a;
+            border-radius: 18px;
+        }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #888;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        .input-area {
+            padding: 16px;
+            background: #000000;
+            border-top: 1px solid #2a2a2a;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: #2a2a2a;
+            border-radius: 24px;
+            padding: 0 16px;
+        }
+
+        .message-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-size: 16px;
+            padding: 14px 0;
+            outline: none;
+        }
+
+        .message-input::placeholder {
+            color: #888;
+        }
+
+        .voice-btn {
+            width: 36px;
+            height: 36px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .voice-btn:hover {
+            color: #2a7fff;
+        }
+
+        .send-btn {
+            width: 44px;
+            height: 44px;
+            background: #2a7fff; /* BIRU */
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 20px;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .send-btn:not(:disabled):hover {
+            background: #1a6fff;
+            transform: scale(1.05);
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        /* Settings Modal */
+        .settings-modal {
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .close-modal-btn {
+            background: transparent;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 28px;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+        }
+
+        .close-modal-btn:hover {
+            color: #2a7fff;
+        }
+
+        .modal-content {
+            padding: 20px;
+        }
+
+        .setting-section {
+            margin-bottom: 24px;
+        }
+
+        .setting-section h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #ccc;
+        }
+
+        .setting-item {
+            background: #1a1a1a;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .setting-label {
+            font-size: 15px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 28px;
+            background: #2a2a2a;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: #2a7fff; /* BIRU */
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            background: #ffffff;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(20px);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: #2a7fff; /* BIRU */
+            border: none;
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: #1a6fff;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 14px;
+            background: #2a2a2a;
+            border: none;
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: #3a3a3a;
+        }
+
+        .about-section {
+            text-align: center;
+            padding: 20px 0;
+            border-top: 1px solid #2a2a2a;
+            margin-top: 20px;
+        }
+
+        .about-section p {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .version-info {
+            color: #2a7fff; /* BIRU */
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        /* Bug Report Modal */
+        .bug-report-modal {
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        .form-textarea {
+            width: 100%;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 10px;
+            color: #ffffff;
+            padding: 12px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+            outline: none;
+        }
+
+        .form-textarea:focus {
+            border-color: #2a7fff;
+        }
+
+        .form-file-input {
+            display: none;
+        }
+
+        .file-upload-btn {
+            width: 100%;
+            padding: 14px;
+            background: #1a1a1a;
+            border: 1px dashed #2a2a2a;
+            border-radius: 10px;
+            color: #888;
+            cursor: pointer;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .file-upload-btn:hover {
+            border-color: #2a7fff; /* BIRU */
+            color: #2a7fff;
+        }
+
+        .file-preview {
+            margin-top: 12px;
+            padding: 12px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-preview img {
+            max-width: 60px;
+            max-height: 60px;
+            border-radius: 4px;
+        }
+
+        .file-info {
+            flex: 1;
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        .remove-file-btn {
+            background: transparent;
+            border: none;
+            color: #ff4444;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .error-message {
+            text-align: center;
+            color: #ff4444;
+            padding: 12px;
+            background: #2a2a2a;
+            border-radius: 12px;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+
+        /* Scrollbar styling */
+        .chat-area::-webkit-scrollbar,
+        .history-list::-webkit-scrollbar,
+        .settings-modal::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-area::-webkit-scrollbar-track,
+        .history-list::-webkit-scrollbar-track,
+        .settings-modal::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-area::-webkit-scrollbar-thumb,
+        .history-list::-webkit-scrollbar-thumb,
+        .settings-modal::-webkit-scrollbar-thumb {
+            background: #2a2a2a;
+            border-radius: 3px;
+        }
+
+        .chat-area::-webkit-scrollbar-thumb:hover,
+        .history-list::-webkit-scrollbar-thumb:hover,
+        .settings-modal::-webkit-scrollbar-thumb:hover {
+            background: #3a3a3a;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* Custom Alert Modal */
+        .custom-alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            padding: 24px;
+            min-width: 300px;
+            max-width: 400px;
+            z-index: 3000;
+            display: none;
+        }
+
+        .custom-alert.show {
+            display: block;
+        }
+
+        .alert-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #ffffff;
+        }
+
+        .alert-message {
+            font-size: 15px;
+            color: #ccc;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .alert-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .alert-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .alert-btn-cancel {
+            background: #2a2a2a;
+            color: #ffffff;
+        }
+
+        .alert-btn-cancel:hover {
+            background: #3a3a3a;
+        }
+
+        .alert-btn-confirm {
+            background: #2a7fff; /* BIRU */
+            color: #ffffff;
+        }
+
+        .alert-btn-confirm:hover {
+            background: #1a6fff;
+        }
+
+        .alert-btn-danger {
+            background: #ff4444;
+            color: #ffffff;
+        }
+
+        .alert-btn-danger:hover {
+            background: #dd3333;
+        }
+
+        .alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2999;
+            display: none;
+        }
+
+        .alert-overlay.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3 id="sidebarTitle">Riwayat Obrolan</h3>
+                <button class="close-sidebar-btn" onclick="toggleSidebar()">×</button>
+            </div>
+            
+            <!-- Single Chat Mode -->
+            <div style="padding: 12px; border-bottom: 1px solid #2a2a2a;">
+                <button class="new-chat-btn" id="newChatBtn" onclick="handleNewChat()">+ Obrolan Baru</button>
+            </div>
+            
+            <!-- History List -->
+            <div class="history-list" id="aiHistoryList">
+                <!-- History items -->
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <div class="header-left">
+                    <button class="menu-btn" onclick="toggleSidebar()">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div class="app-name">V-Ai</div>
+                </div>
+                <div class="header-right">
+                    <button class="icon-btn" onclick="openSettings()">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </button>
+                    <button class="icon-btn" onclick="openBugReport()">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="chat-area" id="chatArea">
+                <div class="welcome-message">
+                    <h1>Apa yang bisa saya bantu?</h1>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <div class="input-container">
+                    <div class="input-wrapper">
+                        <input type="text" class="message-input" id="messageInput" placeholder="Tanya V-Ai">
+                        <button class="voice-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                <line x1="12" y1="19" x2="12" y2="23"></line>
+                                <line x1="8" y1="23" x2="16" y2="23"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <button class="send-btn" id="sendBtn" disabled onclick="sendMessage()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="settings-modal">
+            <div class="modal-header">
+                <h2>Pengaturan</h2>
+                <button class="close-modal-btn" onclick="closeSettings()">×</button>
+            </div>
+            <div class="modal-content">
+                <div class="setting-section">
+                    <h3>Akun</h3>
+                    <div id="accountSection">
+                        <div id="loggedOutView">
+                            <button class="btn-primary" onclick="openAuthModal('register')">Daftar Akun</button>
+                            <button class="btn-secondary" onclick="openAuthModal('login')">Masuk</button>
+                        </div>
+                        <div id="loggedInView" style="display: none;">
+                            <div class="setting-item">
+                                <div>
+                                    <div class="setting-label" id="userNameDisplay"></div>
+                                    <p style="font-size: 13px; color: #888; margin-top: 4px;" id="userUsernameDisplay"></p>
+                                    <p style="font-size: 13px; color: #888; margin-top: 2px;" id="userEmailDisplay"></p>
+                                </div>
+                            </div>
+                            <button class="btn-secondary" onclick="handleLogout()" style="margin-top: 8px;">Keluar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="setting-section">
+                    <h3>Privasi</h3>
+                    <div class="setting-item">
+                        <div class="setting-label">Mode Samaran</div>
+                        <div class="toggle-switch" id="incognitoToggle" onclick="toggleIncognito()">
+                            <div class="toggle-slider"></div>
+                        </div>
+                    </div>
+                    <p style="font-size: 13px; color: #888; margin-top: 8px; padding: 0 16px;">
+                        Obrolan tidak akan tersimpan di riwayat
+                    </p>
+                </div>
+
+                <div class="about-section">
+                    <p>Tentang</p>
+                    <div class="version-info">V-Ai V1.0 Beta</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bug Report Modal -->
+    <div class="modal-overlay" id="bugReportModal">
+        <div class="bug-report-modal">
+            <div class="modal-header">
+                <h2>Laporkan Bug</h2>
+                <button class="close-modal-btn" onclick="closeBugReport()">×</button>
+            </div>
+            <div class="modal-content">
+                <form id="bugReportForm" onsubmit="submitBugReport(event)">
+                    <div class="form-group">
+                        <label class="form-label">Jelaskan masalah yang kamu alami:</label>
+                        <textarea class="form-textarea" id="bugDescription" placeholder="Contoh: Aplikasi crash saat mengirim pesan panjang..." required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Screenshot (opsional):</label>
+                        <label class="file-upload-btn" for="bugScreenshot">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                <polyline points="21 15 16 10 5 21"></polyline>
+                            </svg>
+                            <span>Upload Screenshot</span>
+                        </label>
+                        <input type="file" class="form-file-input" id="bugScreenshot" accept="image/*">
+                        <div id="screenshotPreview"></div>
+                    </div>
+
+                    <button type="submit" class="btn-primary">Kirim Laporan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal (Login/Register) -->
+    <div class="modal-overlay" id="authModal">
+        <div class="settings-modal">
+            <div class="modal-header">
+                <h2 id="authModalTitle">Masuk</h2>
+                <button class="close-modal-btn" onclick="closeAuthModal()">×</button>
+            </div>
+            <div class="modal-content">
+                <form id="authForm" onsubmit="handleAuth(event)">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-textarea" id="authEmail" placeholder="nama@email.com" required style="min-height: auto; height: 45px;">
+                    </div>
+                    
+                    <div class="form-group" id="authUsernameGroup" style="display: none;">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-textarea" id="authUsername" placeholder="username_unik" style="min-height: auto; height: 45px;">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-textarea" id="authPassword" placeholder="Masukkan password" required style="min-height: auto; height: 45px;">
+                    </div>
+
+                    <div class="form-group" id="authNameGroup" style="display: none;">
+                        <label class="form-label">Nama Lengkap</label>
+                        <input type="text" class="form-textarea" id="authName" placeholder="Nama kamu" style="min-height: auto; height: 45px;">
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="authSubmitBtn">Masuk</button>
+                    <button type="button" class="btn-secondary" id="authToggleBtn" onclick="toggleAuthMode()">Belum punya akun? Daftar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Alert -->
+    <div class="alert-overlay" id="alertOverlay"></div>
+    <div class="custom-alert" id="customAlert">
+        <div class="alert-title" id="alertTitle"></div>
+        <div class="alert-message" id="alertMessage"></div>
+        <div class="alert-buttons" id="alertButtons"></div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const chatArea = document.getElementById('chatArea');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const sidebar = document.getElementById('sidebar');
+        const aiHistoryList = document.getElementById('aiHistoryList');
+
+        // API Configuration
+        const API_KEY = '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';
+        const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+        const MODEL = 'xiaomi/mimo-v2-flash:free';
+
+        // State
+        let conversationHistory = [];
+        let allChats = JSON.parse(localStorage.getItem('allChats') || '[]');
+        let currentChatId = null;
+        let isIncognitoMode = false;
+        let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+        let authMode = 'login';
+
+        // Initialize
+        loadChatHistory();
+        loadIncognitoState();
+        updateUserUI();
+
+        // Event Listeners
+        messageInput.addEventListener('input', () => {
+            sendBtn.disabled = messageInput.value.trim() === '';
+        });
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Functions
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+        }
+
+        function newChat() {
+            currentChatId = null;
+            conversationHistory = [];
+            chatArea.innerHTML = '<div class="welcome-message"><h1>Apa yang bisa saya bantu?</h1></div>';
+            toggleSidebar();
+            updateHistoryUI();
+        }
+
+        function handleNewChat() {
+            newChat();
+        }
+
+        function loadChat(chatId) {
+            const chat = allChats.find(c => c.id === chatId);
+            if (chat) {
+                currentChatId = chatId;
+                conversationHistory = [...chat.messages];
+                renderChat();
+                toggleSidebar();
+                updateHistoryUI();
+            }
+        }
+
+        function deleteChat(chatId, event) {
+            event.stopPropagation();
+            showAlert('Hapus Obrolan', 'Yakin ingin menghapus obrolan ini?', [
+                {
+                    text: 'Batal',
+                    className: 'alert-btn-cancel',
+                    onClick: () => {}
+                },
+                {
+                    text: 'Hapus',
+                    className: 'alert-btn-danger',
+                    onClick: () => {
+                        allChats = allChats.filter(c => c.id !== chatId);
+                        localStorage.setItem('allChats', JSON.stringify(allChats));
+                        if (currentChatId === chatId) {
+                            newChat();
+                        } else {
+                            loadChatHistory();
+                        }
+                    }
+                }
+            ]);
+        }
+
+        function loadChatHistory() {
+            aiHistoryList.innerHTML = '';
+            allChats.forEach(chat => {
+                const item = document.createElement('div');
+                item.className = 'history-item' + (chat.id === currentChatId ? ' active' : '');
+                item.onclick = () => loadChat(chat.id);
+                
+                const text = document.createElement('div');
+                text.className = 'history-text';
+                text.textContent = chat.title;
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-history-btn';
+                deleteBtn.innerHTML = '×';
+                deleteBtn.onclick = (e) => deleteChat(chat.id, e);
+                
+                item.appendChild(text);
+                item.appendChild(deleteBtn);
+                aiHistoryList.appendChild(item);
+            });
+        }
+
+        function updateHistoryUI() {
+            const items = aiHistoryList.querySelectorAll('.history-item');
+            items.forEach(item => {
+                item.classList.remove('active');
+            });
+            if (currentChatId) {
+                const activeItem = Array.from(items).find(item => {
+                    const chat = allChats.find(c => c.title === item.querySelector('.history-text').textContent);
+                    return chat && chat.id === currentChatId;
+                });
+                if (activeItem) {
+                    activeItem.classList.add('active');
+                }
+            }
+        }
+
+        function saveCurrentChat() {
+            if (isIncognitoMode) return;
+            
+            if (conversationHistory.length === 0) return;
+
+            const firstUserMessage = conversationHistory.find(m => m.role === 'user');
+            const title = firstUserMessage ? firstUserMessage.content.substring(0, 40) + (firstUserMessage.content.length > 40 ? '...' : '') : 'Obrolan Baru';
+
+            if (currentChatId) {
+                const chatIndex = allChats.findIndex(c => c.id === currentChatId);
+                if (chatIndex !== -1) {
+                    allChats[chatIndex].messages = [...conversationHistory];
+                    allChats[chatIndex].updatedAt = Date.now();
+                }
+            } else {
+                currentChatId = Date.now();
+                const existingChat = allChats.find(c => c.id === currentChatId);
+                if (!existingChat) {
+                    allChats.unshift({
+                        id: currentChatId,
+                        title: title,
+                        messages: [...conversationHistory],
+                        createdAt: Date.now(),
+                        updatedAt: Date.now()
+                    });
+                }
+            }
+
+            localStorage.setItem('allChats', JSON.stringify(allChats));
+            loadChatHistory();
+        }
+
+        function renderChat() {
+            chatArea.innerHTML = '';
+            conversationHistory.forEach(msg => {
+                if (msg.role === 'user' || msg.role === 'assistant') {
+                    addMessage(msg.content, msg.role, false);
+                }
+            });
+        }
+
+        async function sendMessage() {
+            const userMessage = messageInput.value.trim();
+            if (!userMessage) return;
+
+            messageInput.value = '';
+            sendBtn.disabled = true;
+
+            const welcomeMessage = chatArea.querySelector('.welcome-message');
+            if (welcomeMessage) {
+                welcomeMessage.remove();
+            }
+
+            addMessage(userMessage, 'user', true);
+            conversationHistory.push({
+                role: 'user',
+                content: userMessage
+            });
+
+            const typingIndicator = showTypingIndicator();
+
+            try {
+                const systemMessage = {
+                    role: 'system',
+                    content: 'Kamu adalah V-Ai, dibuat tanggal 7 Januari 2026. Jawab dengan gaya natural aja, ga perlu maksain asik atau formal, seperti ngobrol biasa. Kalau ditanya siapa kamu atau pembuatmu, bilang "Aku V-Ai, dibuat sama Viki Dêsyonr" sekali aja. Kalau ditanya model apa, bilang "Aku pakai AI dari Xiaomi". Setelah ngenalin diri, langsung jawab pertanyaan user dengan natural. Bantu user dengan baik dan turuti permintaan mereka selama masih wajar.'
+                };
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${API_KEY}`,
+                        'Content-Type': 'application/json',
+                        'HTTP-Referer': window.location.href,
+                        'X-Title': 'V-Ai'
+                    },
+                    body: JSON.stringify({
+                        model: MODEL,
+                        messages: [systemMessage, ...conversationHistory],
+                        stream: false
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const assistantMessage = data.choices[0].message.content;
+
+                typingIndicator.remove();
+                addMessage(assistantMessage, 'assistant', true);
+
+                conversationHistory.push({
+                    role: 'assistant',
+                    content: assistantMessage
+                });
+
+                saveCurrentChat();
+
+            } catch (error) {
+                console.error('Error:', error);
+                typingIndicator.remove();
+                
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = 'Waduh, ada error nih. Coba lagi ya!';
+                chatArea.appendChild(errorDiv);
+                
+                scrollToBottom();
+            }
+        }
+
+        function addMessage(text, sender, animate) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            if (!animate) {
+                messageDiv.style.animation = 'none';
+            }
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = text;
+            
+            messageDiv.appendChild(contentDiv);
+            chatArea.appendChild(messageDiv);
+            
+            scrollToBottom();
+        }
+
+        function showTypingIndicator() {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message assistant';
+            
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.innerHTML = '<span></span><span></span><span></span>';
+            
+            messageDiv.appendChild(typingDiv);
+            chatArea.appendChild(messageDiv);
+            
+            scrollToBottom();
+            
+            return messageDiv;
+        }
+
+        function scrollToBottom() {
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        // Settings Modal
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('open');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('open');
+        }
+
+        function toggleIncognito() {
+            const toggle = document.getElementById('incognitoToggle');
+            const willBeActive = !toggle.classList.contains('active');
+            
+            if (willBeActive) {
+                showAlert('Mode Samaran', 'Aktifkan mode samaran? Obrolan tidak akan disimpan di riwayat.', [
+                    {
+                        text: 'Batal',
+                        className: 'alert-btn-cancel',
+                        onClick: () => {}
+                    },
+                    {
+                        text: 'Aktifkan',
+                        className: 'alert-btn-confirm',
+                        onClick: () => {
+                            toggle.classList.add('active');
+                            isIncognitoMode = true;
+                            localStorage.setItem('incognitoMode', isIncognitoMode);
+                        }
+                    }
+                ]);
+            } else {
+                toggle.classList.remove('active');
+                isIncognitoMode = false;
+                localStorage.setItem('incognitoMode', isIncognitoMode);
+            }
+        }
+
+        function loadIncognitoState() {
+            isIncognitoMode = localStorage.getItem('incognitoMode') === 'true';
+            if (isIncognitoMode) {
+                document.getElementById('incognitoToggle').classList.add('active');
+            }
+        }
+
+        // Bug Report Modal
+        function openBugReport() {
+            document.getElementById('bugReportModal').classList.add('open');
+        }
+
+        function closeBugReport() {
+            document.getElementById('bugReportModal').classList.remove('open');
+            document.getElementById('bugReportForm').reset();
+            document.getElementById('screenshotPreview').innerHTML = '';
+        }
+
+        document.getElementById('bugScreenshot').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('screenshotPreview');
+                    preview.innerHTML = `
+                        <div class="file-preview">
+                            <img src="${event.target.result}" alt="Screenshot">
+                            <div class="file-info">${file.name}</div>
+                            <button class="remove-file-btn" onclick="removeScreenshot()">×</button>
+                        </div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function removeScreenshot() {
+            document.getElementById('bugScreenshot').value = '';
+            document.getElementById('screenshotPreview').innerHTML = '';
+        }
+
+        function submitBugReport(event) {
+            event.preventDefault();
+            const description = document.getElementById('bugDescription').value;
+            const whatsappNumber = '6283159447683';
+            const message = `Halo Developer, saya menemukan bug di V-Ai:%0A%0A${encodeURIComponent(description)}`;
+            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
+            
+            window.open(whatsappUrl, '_blank');
+            closeBugReport();
+        }
+
+        // Alert System
+        function showAlert(title, message, buttons = []) {
+            const alertOverlay = document.getElementById('alertOverlay');
+            const customAlert = document.getElementById('customAlert');
+            const alertTitle = document.getElementById('alertTitle');
+            const alertMessage = document.getElementById('alertMessage');
+            const alertButtons = document.getElementById('alertButtons');
+
+            alertTitle.textContent = title;
+            alertMessage.textContent = message;
+            alertButtons.innerHTML = '';
+
+            if (buttons.length === 0) {
+                buttons = [{
+                    text: 'OK',
+                    className: 'alert-btn-confirm',
+                    onClick: () => hideAlert()
+                }];
+            }
+
+            buttons.forEach(btn => {
+                const button = document.createElement('button');
+                button.className = `alert-btn ${btn.className}`;
+                button.textContent = btn.text;
+                button.onclick = () => {
+                    btn.onClick();
+                    hideAlert();
+                };
+                alertButtons.appendChild(button);
+            });
+
+            alertOverlay.classList.add('show');
+            customAlert.classList.add('show');
+        }
+
+        function hideAlert() {
+            document.getElementById('alertOverlay').classList.remove('show');
+            document.getElementById('customAlert').classList.remove('show');
+        }
+
+        // Auth System
+        function openAuthModal(mode) {
+            authMode = mode;
+            const authModal = document.getElementById('authModal');
+            const authModalTitle = document.getElementById('authModalTitle');
+            const authSubmitBtn = document.getElementById('authSubmitBtn');
+            const authToggleBtn = document.getElementById('authToggleBtn');
+            const authNameGroup = document.getElementById('authNameGroup');
+            const authUsernameGroup = document.getElementById('authUsernameGroup');
+
+            if (mode === 'login') {
+                authModalTitle.textContent = 'Masuk';
+                authSubmitBtn.textContent = 'Masuk';
+                authToggleBtn.textContent = 'Belum punya akun? Daftar';
+                authNameGroup.style.display = 'none';
+                authUsernameGroup.style.display = 'none';
+            } else {
+                authModalTitle.textContent = 'Daftar Akun';
+                authSubmitBtn.textContent = 'Daftar';
+                authToggleBtn.textContent = 'Sudah punya akun? Masuk';
+                authNameGroup.style.display = 'block';
+                authUsernameGroup.style.display = 'block';
+            }
+
+            authModal.classList.add('open');
+            document.getElementById('authForm').reset();
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('open');
+        }
+
+        function toggleAuthMode() {
+            authMode = authMode === 'login' ? 'register' : 'login';
+            openAuthModal(authMode);
+        }
+
+        function handleAuth(event) {
+            event.preventDefault();
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            const name = document.getElementById('authName').value;
+            const username = document.getElementById('authUsername').value;
+
+            const isAdmin = email === 'TIMMUBLE@gmail.com' && password === 'TIMMUBLE OFFICIAL';
+
+            if (authMode === 'register') {
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                
+                if (users.find(u => u.email === email)) {
+                    showAlert('Gagal Daftar', 'Email sudah terdaftar.');
+                    return;
+                }
+
+                if (users.find(u => u.username === username)) {
+                    showAlert('Gagal Daftar', 'Username sudah digunakan.');
+                    return;
+                }
+
+                const newUser = {
+                    id: Date.now(),
+                    email, password, name, username,
+                    createdAt: Date.now(),
+                    isAdmin
+                };
+
+                users.push(newUser);
+                localStorage.setItem('users', JSON.stringify(users));
+
+                currentUser = { id: newUser.id, email, name, username, isAdmin };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+                showAlert('Berhasil!', 'Akun berhasil dibuat!');
+                updateUserUI();
+                closeAuthModal();
+            } else {
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                const user = users.find(u => u.email === email && u.password === password);
+
+                if (user) {
+                    currentUser = { id: user.id, email: user.email, name: user.name, username: user.username || `user${user.id}`, isAdmin: user.isAdmin || isAdmin };
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    
+                    showAlert('Berhasil!', `Selamat datang, ${user.name}!`);
+                    updateUserUI();
+                    closeAuthModal();
+                } else {
+                    showAlert('Gagal Masuk', 'Email atau password salah.');
+                }
+            }
+        }
+
+        function handleLogout() {
+            showAlert('Keluar', 'Yakin ingin keluar?', [
+                {
+                    text: 'Batal',
+                    className: 'alert-btn-cancel',
+                    onClick: () => {}
+                },
+                {
+                    text: 'Keluar',
+                    className: 'alert-btn-danger',
+                    onClick: () => {
+                        currentUser = null;
+                        localStorage.removeItem('currentUser');
+                        updateUserUI();
+                        showAlert('Berhasil', 'Kamu telah keluar.');
+                    }
+                }
+            ]);
+        }
+
+        function updateUserUI() {
+            const loggedOutView = document.getElementById('loggedOutView');
+            const loggedInView = document.getElementById('loggedInView');
+            const userNameDisplay = document.getElementById('userNameDisplay');
+            const userUsernameDisplay = document.getElementById('userUsernameDisplay');
+            const userEmailDisplay = document.getElementById('userEmailDisplay');
+
+            if (currentUser) {
+                loggedOutView.style.display = 'none';
+                loggedInView.style.display = 'block';
+                userNameDisplay.textContent = currentUser.name;
+                userUsernameDisplay.textContent = '@' + (currentUser.username || `user${currentUser.id}`);
+                userEmailDisplay.textContent = currentUser.email;
+                
+                if (currentUser.isAdmin) {
+                    userUsernameDisplay.innerHTML += ' <span style="background: #ff4444; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 4px;">ADMIN</span>';
+                }
+            } else {
+                loggedOutView.style.display = 'block';
+                loggedInView.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
