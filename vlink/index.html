@@ -1,0 +1,2959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLink - Link Sharing Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --text-primary: #000000;
+            --text-secondary: #666666;
+            --accent-color: #2481cc;
+            --border-color: #e0e0e0;
+            --card-bg: #ffffff;
+            --input-bg: #f5f5f5;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #000000;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #999999;
+            --accent-color: #2481cc;
+            --border-color: #333333;
+            --card-bg: #1a1a1a;
+            --input-bg: #2a2a2a;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .app-container {
+            max-width: 600px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-primary);
+        }
+
+        /* Header */
+        .header {
+            background: var(--accent-color);
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 101;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-color);
+            font-weight: 900;
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 16px;
+        }
+            padding-bottom: 80px;
+            overflow-y: auto;
+        }
+
+        /* Search Bar */
+        .search-container {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 16px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            transition: border 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        /* User Card */
+        .user-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .user-card:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-1px);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .user-details h3 {
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 9px;
+            font-weight: 700;
+            margin-left: 4px;
+            vertical-align: middle;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-publisher {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .badge-developer {
+            background: #dc3545;
+            color: white;
+        }
+
+        .follow-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 2px solid var(--accent-color);
+            background: transparent;
+            color: var(--accent-color);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 12px;
+        }
+
+        .follow-btn.following {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* Link Card */
+        .link-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            transition: border 0.3s;
+        }
+
+        .link-card:hover {
+            border-color: var(--accent-color);
+        }
+
+        .link-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .link-url {
+            color: var(--accent-color);
+            text-decoration: none;
+            word-break: break-all;
+            font-size: 12px;
+        }
+
+        .link-url:hover {
+            text-decoration: underline;
+        }
+
+        .link-meta {
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* Top Navigation */
+        .bottom-nav {
+            position: sticky;
+            top: 48px;
+            left: 0;
+            right: 0;
+            width: 100%;
+            background: var(--card-bg);
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: color 0.3s;
+            background: none;
+            border: none;
+            padding: 6px 4px;
+        }
+
+        .nav-item.active {
+            color: var(--accent-color);
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            animation: fadeIn 0.2s;
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 380px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            background: var(--accent-color);
+            color: white;
+            padding: 12px 16px;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-body {
+            padding: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 12px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            transition: border 0.3s;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 11px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            margin-top: 8px;
+        }
+
+        .btn-danger:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background: var(--input-bg);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+        }
+
+        .language-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .language-item {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .language-item:last-child {
+            border-bottom: none;
+        }
+
+        .language-item:hover {
+            background: var(--input-bg);
+        }
+
+        .check-icon {
+            width: 20px;
+            height: 20px;
+            display: none;
+        }
+
+        .check-icon.active {
+            display: block;
+        }
+
+        .check-icon.active::after {
+            content: '✓';
+            color: var(--accent-color);
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+
+        .stat-item:hover {
+            background: var(--input-bg);
+        }
+
+        .stat-number {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 3px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .developer-credit {
+            text-align: center;
+            padding: 16px;
+            margin-top: 16px;
+            border-top: 1px solid var(--border-color);
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .developer-credit strong {
+            color: var(--text-primary);
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .profile-pic-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-pic-edit {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 28px;
+            height: 28px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid var(--bg-primary);
+        }
+
+        .profile-pic-edit svg {
+            width: 14px;
+            height: 14px;
+            stroke: white;
+        }
+
+        .user-avatar {
+            background: var(--accent-color);
+            color: white;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .like-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border: 2px solid var(--border-color);
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .like-btn:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .like-btn.liked {
+            border-color: var(--accent-color);
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .like-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .link-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            align-items: center;
+        }
+
+        .comment-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border: 2px solid var(--border-color);
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .comment-btn:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .comment-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .comments-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .comment-input-area {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .comment-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-size: 13px;
+            resize: none;
+            min-height: 36px;
+            max-height: 100px;
+        }
+
+        .comment-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .comment-send-btn {
+            padding: 8px 12px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s;
+        }
+
+        .comment-send-btn:hover {
+            opacity: 0.9;
+        }
+
+        .comment-send-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .comment-item {
+            padding: 10px;
+            background: var(--input-bg);
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .comment-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .comment-author {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .comment-author-name {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .author-badge {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            border: 2px solid var(--accent-color);
+        }
+
+        .comment-text {
+            font-size: 13px;
+            line-height: 1.4;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+
+        .comment-footer {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .comment-time {
+            font-size: 10px;
+        }
+
+        .comment-action {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            transition: color 0.3s;
+        }
+
+        .comment-action:hover {
+            color: var(--accent-color);
+        }
+
+        .comment-action.liked {
+            color: var(--accent-color);
+        }
+
+        .comment-delete {
+            color: #dc3545;
+        }
+
+        .comment-delete:hover {
+            opacity: 0.8;
+        }
+
+        .reply-section {
+            margin-left: 36px;
+            margin-top: 8px;
+        }
+
+        .reply-input-area {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .reply-input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 12px;
+        }
+
+        .reply-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .reply-send-btn {
+            padding: 6px 10px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .reply-item {
+            padding: 8px;
+            background: var(--bg-primary);
+            border-radius: 6px;
+            margin-bottom: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .setting-item {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            font-weight: 500;
+        }
+
+        .theme-switch {
+            display: flex;
+            gap: 8px;
+        }
+
+        .theme-option {
+            padding: 8px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: var(--input-bg);
+        }
+
+        .theme-option.active {
+            border-color: var(--accent-color);
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px 16px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state svg {
+            margin-bottom: 12px;
+            width: 56px;
+            height: 56px;
+        }
+
+        .empty-state p {
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        .publisher-list {
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .publisher-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .delete-icon-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        /* Login Page */
+        .login-page {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: var(--bg-primary);
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            overflow: hidden;
+            border: 2px solid var(--border-color);
+        }
+
+        .login-header {
+            background: var(--accent-color);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 20px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--accent-color);
+        }
+
+        .login-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .login-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .login-body {
+            padding: 30px;
+        }
+
+        .back-btn {
+            background: var(--input-bg);
+            color: var(--text-primary);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="loginPage" class="login-page">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="login-logo">V</div>
+                <div class="login-title">VLink</div>
+                <div class="login-subtitle" data-i18n="login_subtitle">Link Sharing Platform</div>
+            </div>
+            <div class="login-body">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label data-i18n="username">Username</label>
+                        <input type="text" id="loginUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="password">Password</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" data-i18n="login">Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="app-container" style="display: none;">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">V</div>
+                <span>VLink</span>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="applyPublisherBtn" title="Apply as Publisher">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+                <button class="icon-btn" id="settingsBtn" title="Settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m8.66-11.66-4.24 4.24M7.58 16.42l-4.24 4.24M23 12h-6M7 12H1m20.66 8.66-4.24-4.24M7.58 7.58 3.34 3.34"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Top Navigation -->
+        <div class="bottom-nav">
+            <button class="nav-item" data-page="search">
+                <div class="nav-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                </div>
+                <div class="nav-label" data-i18n="nav_search">Search</div>
+            </button>
+            <button class="nav-item" data-page="following">
+                <div class="nav-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                </div>
+                <div class="nav-label" data-i18n="nav_following">Following</div>
+            </button>
+            <button class="nav-item" data-page="my-links" id="myLinksNav" style="display: none;">
+                <div class="nav-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                </div>
+                <div class="nav-label" data-i18n="nav_my_links">My Links</div>
+            </button>
+            <button class="nav-item" data-page="dev-panel" id="devPanelNav" style="display: none;">
+                <div class="nav-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="16 18 22 12 16 6"></polyline>
+                        <polyline points="8 6 2 12 8 18"></polyline>
+                    </svg>
+                </div>
+                <div class="nav-label" data-i18n="nav_dev">Dev Panel</div>
+            </button>
+            <button class="nav-item" data-page="profile">
+                <div class="nav-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </div>
+                <div class="nav-label" data-i18n="nav_profile">Profile</div>
+            </button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent"></div>
+
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span data-i18n="settings">Settings</span>
+                <button class="close-btn" onclick="closeModal('settingsModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <span class="setting-label" data-i18n="change_username">Change Username</span>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="newUsername" placeholder="New username">
+                </div>
+                <button class="btn btn-primary" onclick="changeUsername()" data-i18n="save">Save</button>
+
+                <div class="setting-item" style="margin-top: 20px;">
+                    <span class="setting-label" data-i18n="theme">Theme</span>
+                </div>
+                <div class="theme-switch">
+                    <div class="theme-option" data-theme="light" onclick="changeTheme('light')">
+                        <span data-i18n="light">Light</span>
+                    </div>
+                    <div class="theme-option" data-theme="dark" onclick="changeTheme('dark')">
+                        <span data-i18n="dark">Dark</span>
+                    </div>
+                </div>
+
+                <div class="setting-item" style="margin-top: 20px; cursor: pointer;" onclick="openModal('languageModal')">
+                    <span class="setting-label" data-i18n="language">Language</span>
+                    <span style="color: var(--accent-color);">›</span>
+                </div>
+
+                <button class="btn btn-danger" onclick="logout()" data-i18n="logout">Logout</button>
+
+                <div class="developer-credit">
+                    <strong>Developer</strong>
+                    VDverse
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Apply Publisher Modal -->
+    <div id="applyPublisherModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span data-i18n="apply_publisher">Apply as Publisher</span>
+                <button class="close-btn" onclick="closeModal('applyPublisherModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label data-i18n="your_username">Your Username</label>
+                    <input type="text" id="applyUsername" readonly>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="purpose">Purpose of becoming publisher</label>
+                    <textarea id="applyPurpose" placeholder="Why do you want to be a publisher?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="use_for">What will you use it for?</label>
+                    <textarea id="applyUseFor" placeholder="Describe your use case"></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="submitPublisherApplication()" data-i18n="submit">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Link Modal -->
+    <div id="addLinkModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span data-i18n="add_link">Add Link</span>
+                <button class="close-btn" onclick="closeModal('addLinkModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label data-i18n="link_title">Link Title</label>
+                    <input type="text" id="linkTitle" placeholder="e.g., My Portfolio">
+                </div>
+                <div class="form-group">
+                    <label>URL</label>
+                    <input type="url" id="linkUrl" placeholder="https://example.com">
+                </div>
+                <button class="btn btn-primary" onclick="saveLink()" data-i18n="save">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Publisher Modal (Developer Only) -->
+    <div id="addPublisherModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span data-i18n="add_publisher">Add Publisher</span>
+                <button class="close-btn" onclick="closeModal('addPublisherModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label data-i18n="username">Username</label>
+                    <input type="text" id="publisherUsername" placeholder="Enter username">
+                </div>
+                <button class="btn btn-primary" onclick="addPublisher()" data-i18n="add">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="confirmTitle">Confirmation</span>
+                <button class="close-btn" onclick="closeModal('confirmModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage" style="margin-bottom: 20px; line-height: 1.6;"></p>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-secondary" style="flex: 1;" onclick="closeModal('confirmModal')" data-i18n="cancel">Cancel</button>
+                    <button class="btn btn-danger" style="flex: 1;" id="confirmActionBtn" data-i18n="confirm">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Language Selector Modal -->
+    <div id="languageModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span data-i18n="language">Language</span>
+                <button class="close-btn" onclick="closeModal('languageModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="language-list">
+                    <div class="language-item" onclick="selectLanguage('en')">
+                        <span>English</span>
+                        <span class="check-icon" id="lang-en"></span>
+                    </div>
+                    <div class="language-item" onclick="selectLanguage('id')">
+                        <span>Indonesia</span>
+                        <span class="check-icon" id="lang-id"></span>
+                    </div>
+                    <div class="language-item" onclick="selectLanguage('ja')">
+                        <span>日本語 (Japanese)</span>
+                        <span class="check-icon" id="lang-ja"></span>
+                    </div>
+                    <div class="language-item" onclick="selectLanguage('th')">
+                        <span>ไทย (Thai)</span>
+                        <span class="check-icon" id="lang-th"></span>
+                    </div>
+                    <div class="language-item" onclick="selectLanguage('zh')">
+                        <span>中文 (Chinese)</span>
+                        <span class="check-icon" id="lang-zh"></span>
+                    </div>
+                    <div class="language-item" onclick="selectLanguage('ko')">
+                        <span>한국어 (Korean)</span>
+                        <span class="check-icon" id="lang-ko"></span>
+                    </div>
+                    <div class="language-item" onclick="selectLanguage('ru')">
+                        <span>Русский (Russian)</span>
+                        <span class="check-icon" id="lang-ru"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Followers/Following List Modal -->
+    <div id="followersModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="followersTitle">Followers</span>
+                <button class="close-btn" onclick="closeModal('followersModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="followersListContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Picture Modal -->
+    <div id="profilePicModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span data-i18n="change_profile_pic">Change Profile Picture</span>
+                <button class="close-btn" onclick="closeModal('profilePicModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div class="user-avatar" style="width: 120px; height: 120px; font-size: 48px; margin: 0 auto;" id="previewAvatar"></div>
+                </div>
+                <input type="file" id="profilePicInput" accept="image/*" style="display: none;">
+                <button class="btn btn-primary" onclick="document.getElementById('profilePicInput').click()" data-i18n="choose_image">Choose Image</button>
+                <button class="btn btn-danger" onclick="removeProfilePic()" style="margin-top: 10px;" data-i18n="remove_picture">Remove Picture</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, push, onValue, remove, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCNqQZFXjiS2ftAmIBpnqfPVCzqTmmd8zE",
+            authDomain: "vlink-777.firebaseapp.com",
+            databaseURL: "https://vlink-777-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "vlink-777",
+            storageBucket: "vlink-777.firebasestorage.app",
+            messagingSenderId: "328632000537",
+            appId: "1:328632000537:web:6cec0f95c6b6f32ea3ca88"
+        };
+
+        let app, database;
+        let isFirebaseConfigured = false;
+
+        try {
+            if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+                app = initializeApp(firebaseConfig);
+                database = getDatabase(app);
+                isFirebaseConfigured = true;
+            }
+        } catch (error) {
+            console.error("Firebase error:", error);
+        }
+
+        // Global Variables
+        const DEVELOPER_USERNAME = 'fikrieverly';
+        const DEVELOPER_PASSWORD = '123456789';
+        const WHATSAPP_NUMBER = '6283159447683';
+
+        let currentUser = null;
+        let currentPage = 'search';
+        let users = {};
+        let links = {};
+        let publishers = [];
+        let following = [];
+        let followers = {};
+        let profilePics = {};
+        let linkLikes = {};
+        let linkComments = {};
+
+        // Translations
+        const translations = {
+            en: {
+                login_subtitle: "Link Sharing Platform",
+                username: "Username",
+                password: "Password",
+                login: "Login",
+                nav_search: "Search",
+                nav_following: "Following",
+                nav_my_links: "My Links",
+                nav_dev: "Dev Panel",
+                nav_profile: "Profile",
+                settings: "Settings",
+                change_username: "Change Username",
+                save: "Save",
+                theme: "Theme",
+                light: "Light",
+                dark: "Dark",
+                language: "Language",
+                logout: "Logout",
+                apply_publisher: "Apply as Publisher",
+                your_username: "Your Username",
+                purpose: "Purpose of becoming publisher",
+                use_for: "What will you use it for?",
+                submit: "Submit",
+                add_link: "Add Link",
+                link_title: "Link Title",
+                add_publisher: "Add Publisher",
+                add: "Add",
+                search_users: "Search users...",
+                no_users: "No users found",
+                following_empty: "You're not following anyone yet",
+                my_links_title: "My Published Links",
+                add_new_link: "Add New Link",
+                no_links: "No links yet",
+                publishers_list: "Publishers List",
+                add_new_publisher: "Add New Publisher",
+                no_publishers: "No publishers yet",
+                cancel: "Cancel",
+                confirm: "Confirm",
+                delete_link_title: "Delete Link",
+                delete_link_msg: "Are you sure you want to delete this link? This action cannot be undone.",
+                delete_publisher_title: "Remove Publisher",
+                delete_publisher_msg: "Are you sure you want to remove publisher access from this user?",
+                unfollow_title: "Unfollow User",
+                unfollow_msg: "Are you sure you want to unfollow",
+                followers: "Followers",
+                following_count: "Following",
+                change_profile_pic: "Change Profile Picture",
+                choose_image: "Choose Image",
+                remove_picture: "Remove Picture",
+                likes: "Likes",
+                comments: "Comments",
+                write_comment: "Write a comment...",
+                reply: "Reply",
+                delete: "Delete",
+                send: "Send"
+            },
+            id: {
+                login_subtitle: "Platform Berbagi Link",
+                username: "Nama Pengguna",
+                password: "Kata Sandi",
+                login: "Masuk",
+                nav_search: "Cari",
+                nav_following: "Mengikuti",
+                nav_my_links: "Link Saya",
+                nav_dev: "Panel Dev",
+                nav_profile: "Profil",
+                settings: "Pengaturan",
+                change_username: "Ubah Nama Pengguna",
+                save: "Simpan",
+                theme: "Tema",
+                light: "Terang",
+                dark: "Gelap",
+                language: "Bahasa",
+                logout: "Keluar",
+                apply_publisher: "Daftar Jadi Publisher",
+                your_username: "Nama Pengguna Anda",
+                purpose: "Tujuan menjadi publisher",
+                use_for: "Digunakan untuk apa?",
+                submit: "Kirim",
+                add_link: "Tambah Link",
+                link_title: "Judul Link",
+                add_publisher: "Tambah Publisher",
+                add: "Tambah",
+                search_users: "Cari pengguna...",
+                no_users: "Tidak ada pengguna",
+                following_empty: "Anda belum mengikuti siapapun",
+                my_links_title: "Link yang Dipublikasi",
+                add_new_link: "Tambah Link Baru",
+                no_links: "Belum ada link",
+                publishers_list: "Daftar Publisher",
+                add_new_publisher: "Tambah Publisher Baru",
+                no_publishers: "Belum ada publisher",
+                cancel: "Batal",
+                confirm: "Konfirmasi",
+                delete_link_title: "Hapus Link",
+                delete_link_msg: "Apakah Anda yakin ingin menghapus link ini? Tindakan ini tidak dapat dibatalkan.",
+                delete_publisher_title: "Hapus Publisher",
+                delete_publisher_msg: "Apakah Anda yakin ingin mencabut akses publisher dari pengguna ini?",
+                unfollow_title: "Berhenti Mengikuti",
+                unfollow_msg: "Apakah Anda yakin ingin berhenti mengikuti",
+                followers: "Pengikut",
+                following_count: "Mengikuti",
+                change_profile_pic: "Ubah Foto Profil",
+                choose_image: "Pilih Gambar",
+                remove_picture: "Hapus Foto",
+                likes: "Suka",
+                comments: "Komentar",
+                write_comment: "Tulis komentar...",
+                reply: "Balas",
+                delete: "Hapus",
+                send: "Kirim"
+            },
+            ja: {
+                login_subtitle: "リンク共有プラットフォーム",
+                username: "ユーザー名",
+                password: "パスワード",
+                login: "ログイン",
+                nav_search: "検索",
+                nav_following: "フォロー中",
+                nav_my_links: "マイリンク",
+                nav_dev: "開発者",
+                nav_profile: "プロフィール",
+                settings: "設定",
+                change_username: "ユーザー名変更",
+                save: "保存",
+                theme: "テーマ",
+                light: "ライト",
+                dark: "ダーク",
+                language: "言語",
+                logout: "ログアウト",
+                apply_publisher: "パブリッシャー申請",
+                your_username: "あなたのユーザー名",
+                purpose: "パブリッシャーになる目的",
+                use_for: "何に使用しますか？",
+                submit: "送信",
+                add_link: "リンク追加",
+                link_title: "リンクタイトル",
+                add_publisher: "パブリッシャー追加",
+                add: "追加",
+                search_users: "ユーザーを検索...",
+                no_users: "ユーザーが見つかりません",
+                following_empty: "まだ誰もフォローしていません",
+                my_links_title: "公開したリンク",
+                add_new_link: "新しいリンクを追加",
+                no_links: "リンクはまだありません",
+                publishers_list: "パブリッシャーリスト",
+                add_new_publisher: "新しいパブリッシャーを追加",
+                no_publishers: "パブリッシャーはまだいません",
+                cancel: "キャンセル",
+                confirm: "確認",
+                delete_link_title: "リンクを削除",
+                delete_link_msg: "このリンクを削除してもよろしいですか？この操作は元に戻せません。",
+                delete_publisher_title: "パブリッシャーを削除",
+                delete_publisher_msg: "このユーザーのパブリッシャーアクセスを削除してもよろしいですか？",
+                unfollow_title: "フォロー解除",
+                unfollow_msg: "フォローを解除してもよろしいですか",
+                followers: "フォロワー",
+                following_count: "フォロー中",
+                change_profile_pic: "プロフィール写真を変更",
+                choose_image: "画像を選択",
+                remove_picture: "写真を削除",
+                likes: "いいね",
+                comments: "コメント",
+                write_comment: "コメントを書く...",
+                reply: "返信",
+                delete: "削除",
+                send: "送信"
+            },
+            th: {
+                login_subtitle: "แพลตฟอร์มแชร์ลิงก์",
+                username: "ชื่อผู้ใช้",
+                password: "รหัสผ่าน",
+                login: "เข้าสู่ระบบ",
+                nav_search: "ค้นหา",
+                nav_following: "กำลังติดตาม",
+                nav_my_links: "ลิงก์ของฉัน",
+                nav_dev: "แผงนักพัฒนา",
+                nav_profile: "โปรไฟล์",
+                settings: "การตั้งค่า",
+                change_username: "เปลี่ยนชื่อผู้ใช้",
+                save: "บันทึก",
+                theme: "ธีม",
+                light: "สว่าง",
+                dark: "มืด",
+                language: "ภาษา",
+                logout: "ออกจากระบบ",
+                apply_publisher: "สมัครเป็นผู้เผยแพร่",
+                your_username: "ชื่อผู้ใช้ของคุณ",
+                purpose: "วัตถุประสงค์ในการเป็นผู้เผยแพร่",
+                use_for: "จะใช้เพื่ออะไร?",
+                submit: "ส่ง",
+                add_link: "เพิ่มลิงก์",
+                link_title: "ชื่อลิงก์",
+                add_publisher: "เพิ่มผู้เผยแพร่",
+                add: "เพิ่ม",
+                search_users: "ค้นหาผู้ใช้...",
+                no_users: "ไม่พบผู้ใช้",
+                following_empty: "คุณยังไม่ได้ติดตามใคร",
+                my_links_title: "ลิงก์ที่เผยแพร่",
+                add_new_link: "เพิ่มลิงก์ใหม่",
+                no_links: "ยังไม่มีลิงก์",
+                publishers_list: "รายชื่อผู้เผยแพร่",
+                add_new_publisher: "เพิ่มผู้เผยแพร่ใหม่",
+                no_publishers: "ยังไม่มีผู้เผยแพร่",
+                cancel: "ยกเลิก",
+                confirm: "ยืนยัน",
+                delete_link_title: "ลบลิงก์",
+                delete_link_msg: "คุณแน่ใจหรือไม่ว่าต้องการลบลิงก์นี้? การดำเนินการนี้ไม่สามารถยกเลิกได้",
+                delete_publisher_title: "ลบผู้เผยแพร่",
+                delete_publisher_msg: "คุณแน่ใจหรือไม่ว่าต้องการลบสิทธิ์ผู้เผยแพร่จากผู้ใช้นี้?",
+                unfollow_title: "เลิกติดตาม",
+                unfollow_msg: "คุณแน่ใจหรือไม่ว่าต้องการเลิกติดตาม",
+                followers: "ผู้ติดตาม",
+                following_count: "กำลังติดตาม",
+                change_profile_pic: "เปลี่ยนรูปโปรไฟล์",
+                choose_image: "เลือกรูปภาพ",
+                remove_picture: "ลบรูปภาพ",
+                likes: "ถูกใจ",
+                comments: "ความคิดเห็น",
+                write_comment: "เขียนความคิดเห็น...",
+                reply: "ตอบกลับ",
+                delete: "ลบ",
+                send: "ส่ง"
+            },
+            zh: {
+                login_subtitle: "链接分享平台",
+                username: "用户名",
+                password: "密码",
+                login: "登录",
+                nav_search: "搜索",
+                nav_following: "关注中",
+                nav_my_links: "我的链接",
+                nav_dev: "开发者",
+                nav_profile: "个人资料",
+                settings: "设置",
+                change_username: "更改用户名",
+                save: "保存",
+                theme: "主题",
+                light: "明亮",
+                dark: "黑暗",
+                language: "语言",
+                logout: "登出",
+                apply_publisher: "申请成为发布者",
+                your_username: "您的用户名",
+                purpose: "成为发布者的目的",
+                use_for: "将用于什么？",
+                submit: "提交",
+                add_link: "添加链接",
+                link_title: "链接标题",
+                add_publisher: "添加发布者",
+                add: "添加",
+                search_users: "搜索用户...",
+                no_users: "未找到用户",
+                following_empty: "您还没有关注任何人",
+                my_links_title: "已发布的链接",
+                add_new_link: "添加新链接",
+                no_links: "还没有链接",
+                publishers_list: "发布者列表",
+                add_new_publisher: "添加新发布者",
+                no_publishers: "还没有发布者",
+                cancel: "取消",
+                confirm: "确认",
+                delete_link_title: "删除链接",
+                delete_link_msg: "您确定要删除此链接吗？此操作无法撤消。",
+                delete_publisher_title: "删除发布者",
+                delete_publisher_msg: "您确定要删除此用户的发布者权限吗？",
+                unfollow_title: "取消关注",
+                unfollow_msg: "您确定要取消关注",
+                followers: "粉丝",
+                following_count: "关注中",
+                change_profile_pic: "更改头像",
+                choose_image: "选择图片",
+                remove_picture: "删除图片",
+                likes: "点赞",
+                comments: "评论",
+                write_comment: "写评论...",
+                reply: "回复",
+                delete: "删除",
+                send: "发送"
+            },
+            ko: {
+                login_subtitle: "링크 공유 플랫폼",
+                username: "사용자 이름",
+                password: "비밀번호",
+                login: "로그인",
+                nav_search: "검색",
+                nav_following: "팔로잉",
+                nav_my_links: "내 링크",
+                nav_dev: "개발자",
+                nav_profile: "프로필",
+                settings: "설정",
+                change_username: "사용자 이름 변경",
+                save: "저장",
+                theme: "테마",
+                light: "라이트",
+                dark: "다크",
+                language: "언어",
+                logout: "로그아웃",
+                apply_publisher: "퍼블리셔 신청",
+                your_username: "당신의 사용자 이름",
+                purpose: "퍼블리셔가 되는 목적",
+                use_for: "무엇에 사용할 것인가?",
+                submit: "제출",
+                add_link: "링크 추가",
+                link_title: "링크 제목",
+                add_publisher: "퍼블리셔 추가",
+                add: "추가",
+                search_users: "사용자 검색...",
+                no_users: "사용자를 찾을 수 없습니다",
+                following_empty: "아직 아무도 팔로우하지 않았습니다",
+                my_links_title: "게시된 링크",
+                add_new_link: "새 링크 추가",
+                no_links: "아직 링크가 없습니다",
+                publishers_list: "퍼블리셔 목록",
+                add_new_publisher: "새 퍼블리셔 추가",
+                no_publishers: "아직 퍼블리셔가 없습니다",
+                cancel: "취소",
+                confirm: "확인",
+                delete_link_title: "링크 삭제",
+                delete_link_msg: "이 링크를 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
+                delete_publisher_title: "퍼블리셔 삭제",
+                delete_publisher_msg: "이 사용자의 퍼블리셔 권한을 삭제하시겠습니까?",
+                unfollow_title: "언팔로우",
+                unfollow_msg: "팔로우를 취소하시겠습니까",
+                followers: "팔로워",
+                following_count: "팔로잉",
+                change_profile_pic: "프로필 사진 변경",
+                choose_image: "이미지 선택",
+                remove_picture: "사진 삭제",
+                likes: "좋아요",
+                comments: "댓글",
+                write_comment: "댓글 작성...",
+                reply: "답글",
+                delete: "삭제",
+                send: "전송"
+            },
+            ru: {
+                login_subtitle: "Платформа обмена ссылками",
+                username: "Имя пользователя",
+                password: "Пароль",
+                login: "Войти",
+                nav_search: "Поиск",
+                nav_following: "Подписки",
+                nav_my_links: "Мои ссылки",
+                nav_dev: "Разработчик",
+                nav_profile: "Профиль",
+                settings: "Настройки",
+                change_username: "Изменить имя пользователя",
+                save: "Сохранить",
+                theme: "Тема",
+                light: "Светлая",
+                dark: "Темная",
+                language: "Язык",
+                logout: "Выйти",
+                apply_publisher: "Подать заявку на публикацию",
+                your_username: "Ваше имя пользователя",
+                purpose: "Цель стать издателем",
+                use_for: "Для чего будет использоваться?",
+                submit: "Отправить",
+                add_link: "Добавить ссылку",
+                link_title: "Название ссылки",
+                add_publisher: "Добавить издателя",
+                add: "Добавить",
+                search_users: "Поиск пользователей...",
+                no_users: "Пользователи не найдены",
+                following_empty: "Вы еще ни на кого не подписаны",
+                my_links_title: "Опубликованные ссылки",
+                add_new_link: "Добавить новую ссылку",
+                no_links: "Ссылок пока нет",
+                publishers_list: "Список издателей",
+                add_new_publisher: "Добавить нового издателя",
+                no_publishers: "Издателей пока нет",
+                cancel: "Отмена",
+                confirm: "Подтвердить",
+                delete_link_title: "Удалить ссылку",
+                delete_link_msg: "Вы уверены, что хотите удалить эту ссылку? Это действие нельзя отменить.",
+                delete_publisher_title: "Удалить издателя",
+                delete_publisher_msg: "Вы уверены, что хотите удалить права издателя у этого пользователя?",
+                unfollow_title: "Отписаться",
+                unfollow_msg: "Вы уверены, что хотите отписаться от",
+                followers: "Подписчики",
+                following_count: "Подписки",
+                change_profile_pic: "Изменить фото профиля",
+                choose_image: "Выбрать изображение",
+                remove_picture: "Удалить фото",
+                likes: "Нравится",
+                comments: "Комментарии",
+                write_comment: "Написать комментарий...",
+                reply: "Ответить",
+                delete: "Удалить",
+                send: "Отправить"
+            }
+        };
+
+        let currentLanguage = localStorage.getItem('language') || 'id';
+
+        // Initialize
+        function init() {
+            loadTheme();
+            loadLanguage();
+            
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = savedUser;
+                loadData();
+                showMainApp();
+            } else {
+                showLoginPage();
+            }
+        }
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            currentUser = username;
+            localStorage.setItem('currentUser', username);
+            
+            const userData = { 
+                username, 
+                isDeveloper: username === DEVELOPER_USERNAME 
+            };
+            
+            if (!isFirebaseConfigured) {
+                users[username] = userData;
+                localStorage.setItem('users', JSON.stringify(users));
+            } else {
+                // Save user to Firebase
+                set(ref(database, 'users/' + username), userData);
+            }
+            
+            loadData();
+            showMainApp();
+        });
+
+        function showLoginPage() {
+            document.getElementById('loginPage').style.display = 'flex';
+            document.getElementById('mainApp').style.display = 'none';
+        }
+
+        function showMainApp() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'flex';
+            
+            setupNavigation();
+            navigateTo('search');
+        }
+
+        function loadData() {
+            if (!isFirebaseConfigured) {
+                users = JSON.parse(localStorage.getItem('users') || '{}');
+                links = JSON.parse(localStorage.getItem('links') || '{}');
+                publishers = JSON.parse(localStorage.getItem('publishers') || '[]');
+                following = JSON.parse(localStorage.getItem('following_' + currentUser) || '[]');
+                followers[currentUser] = following;
+                profilePics = JSON.parse(localStorage.getItem('profilePics') || '{}');
+                linkLikes = JSON.parse(localStorage.getItem('linkLikes') || '{}');
+                linkComments = JSON.parse(localStorage.getItem('linkComments') || '{}');
+                
+                // Ensure current user is in users list
+                if (!users[currentUser]) {
+                    users[currentUser] = { 
+                        username: currentUser, 
+                        isDeveloper: currentUser === DEVELOPER_USERNAME 
+                    };
+                    localStorage.setItem('users', JSON.stringify(users));
+                }
+                return;
+            }
+
+            // Load from Firebase
+            const usersRef = ref(database, 'users');
+            onValue(usersRef, (snapshot) => {
+                users = snapshot.val() || {};
+                // Ensure current user exists
+                if (!users[currentUser]) {
+                    const userData = { 
+                        username: currentUser, 
+                        isDeveloper: currentUser === DEVELOPER_USERNAME 
+                    };
+                    users[currentUser] = userData;
+                    set(ref(database, 'users/' + currentUser), userData);
+                }
+            });
+
+            const linksRef = ref(database, 'links');
+            onValue(linksRef, (snapshot) => {
+                links = snapshot.val() || {};
+            });
+
+            const publishersRef = ref(database, 'publishers');
+            onValue(publishersRef, (snapshot) => {
+                publishers = snapshot.val() || [];
+                setupNavigation();
+            });
+
+            const followingRef = ref(database, 'following/' + currentUser);
+            onValue(followingRef, (snapshot) => {
+                following = snapshot.val() || [];
+                followers[currentUser] = following;
+            });
+
+            const allFollowingRef = ref(database, 'following');
+            onValue(allFollowingRef, (snapshot) => {
+                followers = snapshot.val() || {};
+            });
+
+            const profilePicsRef = ref(database, 'profilePics');
+            onValue(profilePicsRef, (snapshot) => {
+                profilePics = snapshot.val() || {};
+            });
+
+            const linkLikesRef = ref(database, 'linkLikes');
+            onValue(linkLikesRef, (snapshot) => {
+                linkLikes = snapshot.val() || {};
+            });
+
+            const linkCommentsRef = ref(database, 'linkComments');
+            onValue(linkCommentsRef, (snapshot) => {
+                linkComments = snapshot.val() || {};
+            });
+        }
+
+        // Navigation
+        function setupNavigation() {
+            const isDeveloper = currentUser === DEVELOPER_USERNAME;
+            const isPublisher = publishers.includes(currentUser);
+
+            // Update navigation visibility
+            const myLinksNav = document.querySelector('[data-page="my-links"]');
+            const devPanelNav = document.querySelector('[data-page="dev-panel"]');
+            
+            if (isDeveloper) {
+                myLinksNav.style.display = 'flex';
+                devPanelNav.style.display = 'flex';
+            } else if (isPublisher) {
+                myLinksNav.style.display = 'flex';
+                devPanelNav.style.display = 'none';
+            } else {
+                myLinksNav.style.display = 'none';
+                devPanelNav.style.display = 'none';
+            }
+
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const page = this.dataset.page;
+                    navigateTo(page);
+                });
+            });
+
+            document.getElementById('settingsBtn').addEventListener('click', () => {
+                openModal('settingsModal');
+            });
+
+            document.getElementById('applyPublisherBtn').addEventListener('click', () => {
+                document.getElementById('applyUsername').value = currentUser;
+                openModal('applyPublisherModal');
+            });
+        }
+
+        function navigateTo(page) {
+            currentPage = page;
+            
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
+
+            const content = document.getElementById('mainContent');
+            
+            switch(page) {
+                case 'search':
+                    renderSearchPage(content);
+                    break;
+                case 'following':
+                    renderFollowingPage(content);
+                    break;
+                case 'my-links':
+                    renderMyLinksPage(content);
+                    break;
+                case 'dev-panel':
+                    renderDevPanel(content);
+                    break;
+                case 'profile':
+                    renderProfilePage(content);
+                    break;
+            }
+        }
+
+        // Render Pages
+        function renderSearchPage(content) {
+            const t = translations[currentLanguage];
+            content.innerHTML = `
+                <div class="search-container">
+                    <input type="text" class="search-input" id="userSearch" placeholder="${t.search_users}">
+                </div>
+                <div id="searchResults"></div>
+            `;
+
+            document.getElementById('userSearch').addEventListener('input', function(e) {
+                const query = e.target.value.toLowerCase();
+                const results = document.getElementById('searchResults');
+                
+                if (!query) {
+                    results.innerHTML = '';
+                    return;
+                }
+
+                const filteredUsers = Object.values(users).filter(user => 
+                    user.username.toLowerCase().includes(query)
+                );
+
+                if (filteredUsers.length === 0) {
+                    results.innerHTML = `
+                        <div class="empty-state">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.3;">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.35-4.35"></path>
+                            </svg>
+                            <p>${t.no_users}</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                results.innerHTML = filteredUsers.map(user => {
+                    const isDev = user.username === DEVELOPER_USERNAME;
+                    const isPub = publishers.includes(user.username);
+                    const isFollowing = following.includes(user.username);
+                    
+                    return `
+                        <div class="user-card" onclick="viewUserProfile('${user.username}')">
+                            <div class="user-info">
+                                <div class="user-avatar">${user.username[0].toUpperCase()}</div>
+                                <div class="user-details">
+                                    <h3>
+                                        ${user.username}
+                                        ${isDev ? '<span class="badge badge-developer">Developer</span>' : ''}
+                                        ${!isDev && isPub ? '<span class="badge badge-publisher">Publisher</span>' : ''}
+                                    </h3>
+                                </div>
+                            </div>
+                            ${user.username !== currentUser ? `
+                                <button class="follow-btn ${isFollowing ? 'following' : ''}" 
+                                    onclick="event.stopPropagation(); toggleFollow('${user.username}')">
+                                    ${isFollowing ? 'Following' : 'Follow'}
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        function renderFollowingPage(content) {
+            const t = translations[currentLanguage];
+            if (following.length === 0) {
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.3;">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <p>${t.following_empty}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            content.innerHTML = following.map(username => {
+                const user = users[username] || { username };
+                const isDev = username === DEVELOPER_USERNAME;
+                const isPub = publishers.includes(username);
+                
+                return `
+                    <div class="user-card" onclick="viewUserProfile('${username}')">
+                        <div class="user-info">
+                            <div class="user-avatar">${username[0].toUpperCase()}</div>
+                            <div class="user-details">
+                                <h3>
+                                    ${username}
+                                    ${isDev ? '<span class="badge badge-developer">Developer</span>' : ''}
+                                    ${!isDev && isPub ? '<span class="badge badge-publisher">Publisher</span>' : ''}
+                                </h3>
+                            </div>
+                        </div>
+                        <button class="follow-btn following" 
+                            onclick="event.stopPropagation(); toggleFollow('${username}')">
+                            Following
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderMyLinksPage(content) {
+            const t = translations[currentLanguage];
+            const userLinks = Object.entries(links).filter(([id, link]) => link.author === currentUser);
+            
+            content.innerHTML = `
+                <h2 style="margin-bottom: 20px;">${t.my_links_title}</h2>
+                <button class="btn btn-primary" onclick="openModal('addLinkModal')" style="margin-bottom: 20px;">
+                    ${t.add_new_link}
+                </button>
+                <div id="linksList">
+                    ${userLinks.length === 0 ? `
+                        <div class="empty-state">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.3;">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                            </svg>
+                            <p>${t.no_links}</p>
+                        </div>
+                    ` :
+                    userLinks.map(([id, link]) => `
+                        <div class="link-card">
+                            <div class="link-title">${link.title}</div>
+                            <a href="${link.url}" target="_blank" class="link-url">${link.url}</a>
+                            <div class="link-meta">${new Date(link.createdAt).toLocaleDateString()}</div>
+                            <button class="btn btn-danger" style="margin-top: 10px;" onclick="deleteLink('${id}')">Delete</button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderDevPanel(content) {
+            const t = translations[currentLanguage];
+            content.innerHTML = `
+                <h2 style="margin-bottom: 20px;">${t.publishers_list}</h2>
+                <button class="btn btn-primary" onclick="openModal('addPublisherModal')" style="margin-bottom: 20px;">
+                    ${t.add_new_publisher}
+                </button>
+                <div class="publisher-list">
+                    ${publishers.length === 0 ? `
+                        <div class="empty-state">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.3;">
+                                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <p>${t.no_publishers}</p>
+                        </div>
+                    ` :
+                    publishers.map(username => `
+                        <div class="publisher-item">
+                            <span>${username}</span>
+                            <button class="delete-icon-btn" onclick="removePublisher('${username}')">×</button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderProfilePage(content) {
+            viewUserProfile(currentUser);
+        }
+
+        // User Profile
+        window.viewUserProfile = function(username) {
+            const user = users[username] || { username };
+            const isDev = username === DEVELOPER_USERNAME;
+            const isPub = publishers.includes(username);
+            const userLinks = Object.entries(links).filter(([id, link]) => link.author === username);
+            const isFollowing = following.includes(username);
+            
+            // Calculate followers
+            const userFollowers = Object.values(users).filter(u => {
+                const userFollowing = followers[u.username] || [];
+                return userFollowing.includes(username);
+            });
+            const followerCount = userFollowers.length;
+            const followingCount = (followers[username] || []).length;
+            
+            const profilePic = profilePics[username];
+            const t = translations[currentLanguage];
+
+            const content = document.getElementById('mainContent');
+            content.innerHTML = `
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div class="profile-pic-container" style="display: inline-block; position: relative;">
+                        <div class="user-avatar" style="width: 100px; height: 100px; font-size: 42px; margin: 0 auto 16px; ${profilePic ? `background-image: url(${profilePic});` : ''} ${profilePic ? 'font-size: 0;' : ''}">
+                            ${!profilePic ? username[0].toUpperCase() : ''}
+                        </div>
+                        ${username === currentUser ? `
+                            <div class="profile-pic-edit" onclick="openModal('profilePicModal')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <h2 style="margin-bottom: 12px;">
+                        ${username}
+                        ${isDev ? '<span class="badge badge-developer">DEVELOPER</span>' : ''}
+                        ${!isDev && isPub ? '<span class="badge badge-publisher">PUBLISHER</span>' : ''}
+                    </h2>
+                    
+                    <div style="display: flex; gap: 20px; justify-content: center; margin: 20px 0;">
+                        <div class="stat-item" onclick="showFollowersList('${username}', 'followers')">
+                            <div class="stat-number">${followerCount}</div>
+                            <div class="stat-label" data-i18n="followers">${t.followers}</div>
+                        </div>
+                        <div class="stat-item" onclick="showFollowersList('${username}', 'following')">
+                            <div class="stat-number">${followingCount}</div>
+                            <div class="stat-label" data-i18n="following_count">${t.following_count}</div>
+                        </div>
+                    </div>
+                    
+                    ${username !== currentUser ? `
+                        <button class="btn ${isFollowing ? 'btn-primary' : 'btn-primary'}" 
+                            style="max-width: 200px; margin-top: 16px;"
+                            onclick="toggleFollow('${username}')">
+                            ${isFollowing ? 'Following' : 'Follow'}
+                        </button>
+                    ` : ''}
+                </div>
+                <h3 style="margin-bottom: 16px;">Published Links</h3>
+                ${userLinks.length === 0 ? `
+                    <div class="empty-state">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.3;">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg>
+                        <p>No links published yet</p>
+                    </div>
+                ` :
+                userLinks.map(([id, link]) => {
+                    const likes = linkLikes[id] || [];
+                    const isLiked = likes.includes(currentUser);
+                    const likeCount = likes.length;
+                    const comments = linkComments[id] || [];
+                    const commentCount = comments.length;
+                    
+                    return `
+                        <div class="link-card" id="link-${id}">
+                            <div class="link-title">${link.title}</div>
+                            <a href="${link.url}" target="_blank" class="link-url">${link.url}</a>
+                            <div class="link-meta">${new Date(link.createdAt).toLocaleDateString()}</div>
+                            <div class="link-actions">
+                                <button class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${id}')">
+                                    <svg viewBox="0 0 24 24" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                    </svg>
+                                    <span>${likeCount}</span>
+                                </button>
+                                <button class="comment-btn" onclick="toggleComments('${id}')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                    </svg>
+                                    <span>${commentCount}</span>
+                                </button>
+                            </div>
+                            <div class="comments-section" id="comments-${id}" style="display: none;">
+                                ${renderCommentSection(id, link.author)}
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            `;
+        };
+
+        // Follow/Unfollow
+        window.toggleFollow = function(username) {
+            const index = following.indexOf(username);
+            const t = translations[currentLanguage];
+            
+            if (index > -1) {
+                // Show unfollow confirmation
+                showConfirmModal(
+                    t.unfollow_title,
+                    `${t.unfollow_msg} ${username}?`,
+                    function() {
+                        following.splice(index, 1);
+                        saveFollowing();
+                        navigateTo(currentPage);
+                    }
+                );
+            } else {
+                // Follow directly without confirmation
+                following.push(username);
+                saveFollowing();
+                navigateTo(currentPage);
+            }
+        };
+
+        function saveFollowing() {
+            if (!isFirebaseConfigured) {
+                localStorage.setItem('following_' + currentUser, JSON.stringify(following));
+            } else {
+                set(ref(database, 'following/' + currentUser), following);
+            }
+        }
+
+        // Links Management
+        window.saveLink = function() {
+            const title = document.getElementById('linkTitle').value.trim();
+            const url = document.getElementById('linkUrl').value.trim();
+            const t = translations[currentLanguage];
+
+            if (!title || !url) {
+                alert(t.no_links || 'Please fill all fields');
+                return;
+            }
+
+            const linkId = Date.now().toString();
+            const linkData = {
+                title,
+                url,
+                author: currentUser,
+                createdAt: Date.now()
+            };
+
+            if (!isFirebaseConfigured) {
+                links[linkId] = linkData;
+                localStorage.setItem('links', JSON.stringify(links));
+            } else {
+                set(ref(database, 'links/' + linkId), linkData);
+            }
+
+            closeModal('addLinkModal');
+            navigateTo('my-links');
+        };
+
+        window.deleteLink = function(linkId) {
+            const t = translations[currentLanguage];
+            showConfirmModal(
+                t.delete_link_title,
+                t.delete_link_msg,
+                function() {
+                    if (!isFirebaseConfigured) {
+                        delete links[linkId];
+                        localStorage.setItem('links', JSON.stringify(links));
+                    } else {
+                        remove(ref(database, 'links/' + linkId));
+                    }
+                    navigateTo('my-links');
+                }
+            );
+        };
+
+        // Publisher Management
+        window.submitPublisherApplication = function() {
+            const purpose = document.getElementById('applyPurpose').value.trim();
+            const useFor = document.getElementById('applyUseFor').value.trim();
+            const t = translations[currentLanguage];
+
+            if (!purpose || !useFor) {
+                alert(t.no_links || 'Please fill all fields');
+                return;
+            }
+
+            const message = `*Publisher Application*\n\nUsername: ${currentUser}\nPurpose: ${purpose}\nUse For: ${useFor}`;
+            const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+            
+            window.open(whatsappUrl, '_blank');
+            closeModal('applyPublisherModal');
+        };
+
+        window.addPublisher = function() {
+            const username = document.getElementById('publisherUsername').value.trim();
+            const t = translations[currentLanguage];
+
+            if (!username) {
+                alert(t.username || 'Please enter username');
+                return;
+            }
+
+            if (publishers.includes(username)) {
+                alert('Already a publisher');
+                return;
+            }
+
+            publishers.push(username);
+
+            if (!isFirebaseConfigured) {
+                localStorage.setItem('publishers', JSON.stringify(publishers));
+            } else {
+                set(ref(database, 'publishers'), publishers);
+            }
+
+            closeModal('addPublisherModal');
+            navigateTo('dev-panel');
+        };
+
+        window.removePublisher = function(username) {
+            const t = translations[currentLanguage];
+            showConfirmModal(
+                t.delete_publisher_title,
+                t.delete_publisher_msg,
+                function() {
+                    const index = publishers.indexOf(username);
+                    if (index > -1) {
+                        publishers.splice(index, 1);
+                    }
+
+                    if (!isFirebaseConfigured) {
+                        localStorage.setItem('publishers', JSON.stringify(publishers));
+                    } else {
+                        set(ref(database, 'publishers'), publishers);
+                    }
+
+                    navigateTo('dev-panel');
+                }
+            );
+        };
+
+        // Confirmation Modal
+        function showConfirmModal(title, message, onConfirm) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            
+            const confirmBtn = document.getElementById('confirmActionBtn');
+            // Remove old event listeners by cloning
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+            
+            newConfirmBtn.addEventListener('click', function() {
+                closeModal('confirmModal');
+                onConfirm();
+            });
+            
+            openModal('confirmModal');
+        }
+
+        // Settings
+        window.changeUsername = function() {
+            const newUsername = document.getElementById('newUsername').value.trim();
+            if (!newUsername) {
+                alert('Please enter new username');
+                return;
+            }
+
+            const oldUsername = currentUser;
+            currentUser = newUsername;
+            localStorage.setItem('currentUser', newUsername);
+
+            // Update all references
+            if (!isFirebaseConfigured) {
+                users[newUsername] = users[oldUsername];
+                delete users[oldUsername];
+                localStorage.setItem('users', JSON.stringify(users));
+
+                Object.keys(links).forEach(id => {
+                    if (links[id].author === oldUsername) {
+                        links[id].author = newUsername;
+                    }
+                });
+                localStorage.setItem('links', JSON.stringify(links));
+            }
+
+            closeModal('settingsModal');
+            location.reload();
+        };
+
+        window.changeTheme = function(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            
+            document.querySelectorAll('.theme-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+            document.querySelector(`[data-theme="${theme}"]`).classList.add('active');
+        };
+
+        function loadTheme() {
+            const theme = localStorage.getItem('theme') || 'light';
+            changeTheme(theme);
+        }
+
+        // Language Selector
+        window.selectLanguage = function(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('language', lang);
+            updateTranslations();
+            updateLanguageSelector();
+            closeModal('languageModal');
+            navigateTo(currentPage);
+        };
+
+        function updateLanguageSelector() {
+            document.querySelectorAll('.check-icon').forEach(icon => {
+                icon.classList.remove('active');
+            });
+            const activeIcon = document.getElementById('lang-' + currentLanguage);
+            if (activeIcon) {
+                activeIcon.classList.add('active');
+            }
+        }
+
+        function loadLanguage() {
+            const lang = localStorage.getItem('language') || 'id';
+            currentLanguage = lang;
+            updateTranslations();
+            updateLanguageSelector();
+        }
+
+        function updateTranslations() {
+            const t = translations[currentLanguage];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) {
+                    if (el.tagName === 'INPUT' && el.placeholder) {
+                        el.placeholder = t[key];
+                    } else {
+                        el.textContent = t[key];
+                    }
+                }
+            });
+        }
+
+        // Followers List
+        window.showFollowersList = function(username, type) {
+            const t = translations[currentLanguage];
+            const title = type === 'followers' ? t.followers : t.following_count;
+            document.getElementById('followersTitle').textContent = title;
+            
+            let userList = [];
+            if (type === 'followers') {
+                // Get users who follow this username
+                userList = Object.values(users).filter(u => {
+                    const userFollowing = followers[u.username] || [];
+                    return userFollowing.includes(username);
+                });
+            } else {
+                // Get users this username follows
+                const followingList = followers[username] || [];
+                userList = followingList.map(uname => users[uname] || { username: uname });
+            }
+            
+            const content = document.getElementById('followersListContent');
+            if (userList.length === 0) {
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.3;">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <p>No users</p>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = userList.map(user => {
+                    const isDev = user.username === DEVELOPER_USERNAME;
+                    const isPub = publishers.includes(user.username);
+                    const isFollowing = following.includes(user.username);
+                    
+                    return `
+                        <div class="user-card" onclick="closeModal('followersModal'); viewUserProfile('${user.username}');">
+                            <div class="user-info">
+                                <div class="user-avatar" style="width: 40px; height: 40px; font-size: 18px;">${user.username[0].toUpperCase()}</div>
+                                <div class="user-details">
+                                    <h3 style="font-size: 14px;">
+                                        ${user.username}
+                                        ${isDev ? '<span class="badge badge-developer">DEVELOPER</span>' : ''}
+                                        ${!isDev && isPub ? '<span class="badge badge-publisher">PUBLISHER</span>' : ''}
+                                    </h3>
+                                </div>
+                            </div>
+                            ${user.username !== currentUser && username === currentUser ? `
+                                <button class="follow-btn ${isFollowing ? 'following' : ''}" 
+                                    onclick="event.stopPropagation(); toggleFollow('${user.username}')">
+                                    ${isFollowing ? 'Following' : 'Follow'}
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            openModal('followersModal');
+        };
+
+        // Profile Picture
+        document.addEventListener('DOMContentLoaded', function() {
+            const profilePicInput = document.getElementById('profilePicInput');
+            if (profilePicInput) {
+                profilePicInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            const dataUrl = event.target.result;
+                            profilePics[currentUser] = dataUrl;
+                            
+                            if (!isFirebaseConfigured) {
+                                localStorage.setItem('profilePics', JSON.stringify(profilePics));
+                            } else {
+                                set(ref(database, 'profilePics/' + currentUser), dataUrl);
+                            }
+                            
+                            document.getElementById('previewAvatar').style.backgroundImage = `url(${dataUrl})`;
+                            document.getElementById('previewAvatar').style.fontSize = '0';
+                            closeModal('profilePicModal');
+                            navigateTo(currentPage);
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+        });
+
+        window.removeProfilePic = function() {
+            delete profilePics[currentUser];
+            
+            if (!isFirebaseConfigured) {
+                localStorage.setItem('profilePics', JSON.stringify(profilePics));
+            } else {
+                remove(ref(database, 'profilePics/' + currentUser));
+            }
+            
+            closeModal('profilePicModal');
+            navigateTo(currentPage);
+        };
+
+        // Like System
+        window.toggleLike = function(linkId) {
+            if (!linkLikes[linkId]) {
+                linkLikes[linkId] = [];
+            }
+            
+            const index = linkLikes[linkId].indexOf(currentUser);
+            if (index > -1) {
+                linkLikes[linkId].splice(index, 1);
+            } else {
+                linkLikes[linkId].push(currentUser);
+            }
+            
+            if (!isFirebaseConfigured) {
+                localStorage.setItem('linkLikes', JSON.stringify(linkLikes));
+            } else {
+                set(ref(database, 'linkLikes/' + linkId), linkLikes[linkId]);
+            }
+            
+            // Update UI without reloading
+            const likeBtn = document.querySelector(`[onclick="toggleLike('${linkId}')"]`);
+            if (likeBtn) {
+                const isLiked = linkLikes[linkId].includes(currentUser);
+                const likeCount = linkLikes[linkId].length;
+                
+                if (isLiked) {
+                    likeBtn.classList.add('liked');
+                } else {
+                    likeBtn.classList.remove('liked');
+                }
+                
+                const svg = likeBtn.querySelector('svg');
+                svg.setAttribute('fill', isLiked ? 'currentColor' : 'none');
+                
+                likeBtn.querySelector('span').textContent = likeCount;
+            }
+        };
+
+        window.logout = function() {
+            localStorage.removeItem('currentUser');
+            location.reload();
+        };
+
+        // Comment System
+        function renderCommentSection(linkId, linkAuthor) {
+            const t = translations[currentLanguage];
+            const comments = linkComments[linkId] || [];
+            
+            return `
+                <div class="comment-input-area">
+                    <textarea class="comment-input" id="comment-input-${linkId}" placeholder="${t.write_comment}" rows="1"></textarea>
+                    <button class="comment-send-btn" onclick="addComment('${linkId}')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </div>
+                <div id="comments-list-${linkId}">
+                    ${comments.map(comment => renderComment(comment, linkId, linkAuthor)).join('')}
+                </div>
+            `;
+        }
+
+        function renderComment(comment, linkId, linkAuthor) {
+            const t = translations[currentLanguage];
+            const user = users[comment.author] || { username: comment.author };
+            const isDev = comment.author === DEVELOPER_USERNAME;
+            const isPub = publishers.includes(comment.author);
+            const profilePic = profilePics[comment.author];
+            const linkAuthorPic = profilePics[linkAuthor];
+            
+            const commentLikes = comment.likes || [];
+            const isLiked = commentLikes.includes(currentUser);
+            const likeCount = commentLikes.length;
+            const isLikedByAuthor = commentLikes.includes(linkAuthor);
+            
+            const timeAgo = getTimeAgo(comment.timestamp);
+            const canDelete = currentUser === comment.author || currentUser === linkAuthor;
+            
+            return `
+                <div class="comment-item" id="comment-${comment.id}">
+                    <div class="comment-header">
+                        <div class="comment-avatar" style="${profilePic ? `background-image: url(${profilePic}); font-size: 0;` : ''}">${!profilePic ? comment.author[0].toUpperCase() : ''}</div>
+                        <div class="comment-author">
+                            <span class="comment-author-name">${comment.author}</span>
+                            ${isDev ? '<span class="badge badge-developer">DEVELOPER</span>' : ''}
+                            ${!isDev && isPub ? '<span class="badge badge-publisher">PUBLISHER</span>' : ''}
+                            ${isLikedByAuthor && linkAuthor !== comment.author ? `<div class="author-badge" style="background-image: url(${linkAuthorPic || ''});">${!linkAuthorPic ? linkAuthor[0].toUpperCase() : ''}</div>` : ''}
+                        </div>
+                    </div>
+                    <div class="comment-text">${comment.text}</div>
+                    <div class="comment-footer">
+                        <span class="comment-time">${timeAgo}</span>
+                        <span class="comment-action ${isLiked ? 'liked' : ''}" onclick="toggleCommentLike('${linkId}', '${comment.id}')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                            ${likeCount > 0 ? likeCount : ''}
+                        </span>
+                        <span class="comment-action" onclick="showReplyInput('${linkId}', '${comment.id}')">${t.reply}</span>
+                        ${canDelete ? `<span class="comment-action comment-delete" onclick="deleteComment('${linkId}', '${comment.id}')">${t.delete}</span>` : ''}
+                    </div>
+                    <div class="reply-section" id="reply-section-${comment.id}" style="display: none;">
+                        <div class="reply-input-area">
+                            <input type="text" class="reply-input" id="reply-input-${comment.id}" placeholder="${t.reply}...">
+                            <button class="reply-send-btn" onclick="addReply('${linkId}', '${comment.id}')">${t.send}</button>
+                        </div>
+                    </div>
+                    <div class="reply-section">
+                        ${(comment.replies || []).map(reply => renderReply(reply, linkId, comment.id, linkAuthor)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderReply(reply, linkId, commentId, linkAuthor) {
+            const t = translations[currentLanguage];
+            const user = users[reply.author] || { username: reply.author };
+            const isDev = reply.author === DEVELOPER_USERNAME;
+            const isPub = publishers.includes(reply.author);
+            const profilePic = profilePics[reply.author];
+            const linkAuthorPic = profilePics[linkAuthor];
+            
+            const replyLikes = reply.likes || [];
+            const isLiked = replyLikes.includes(currentUser);
+            const likeCount = replyLikes.length;
+            const isLikedByAuthor = replyLikes.includes(linkAuthor);
+            
+            const timeAgo = getTimeAgo(reply.timestamp);
+            const canDelete = currentUser === reply.author || currentUser === linkAuthor;
+            
+            return `
+                <div class="reply-item" id="reply-${reply.id}">
+                    <div class="comment-header">
+                        <div class="comment-avatar" style="width: 28px; height: 28px; font-size: 12px; ${profilePic ? `background-image: url(${profilePic}); font-size: 0;` : ''}">${!profilePic ? reply.author[0].toUpperCase() : ''}</div>
+                        <div class="comment-author">
+                            <span class="comment-author-name" style="font-size: 13px;">${reply.author}</span>
+                            ${isDev ? '<span class="badge badge-developer">DEVELOPER</span>' : ''}
+                            ${!isDev && isPub ? '<span class="badge badge-publisher">PUBLISHER</span>' : ''}
+                            ${isLikedByAuthor && linkAuthor !== reply.author ? `<div class="author-badge" style="width: 18px; height: 18px; background-image: url(${linkAuthorPic || ''});">${!linkAuthorPic ? linkAuthor[0].toUpperCase() : ''}</div>` : ''}
+                        </div>
+                    </div>
+                    <div class="comment-text" style="font-size: 13px;">${reply.text}</div>
+                    <div class="comment-footer">
+                        <span class="comment-time">${timeAgo}</span>
+                        <span class="comment-action ${isLiked ? 'liked' : ''}" onclick="toggleReplyLike('${linkId}', '${commentId}', '${reply.id}')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                            ${likeCount > 0 ? likeCount : ''}
+                        </span>
+                        ${canDelete ? `<span class="comment-action comment-delete" onclick="deleteReply('${linkId}', '${commentId}', '${reply.id}')">${t.delete}</span>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function getTimeAgo(timestamp) {
+            const now = Date.now();
+            const diff = now - timestamp;
+            const seconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+            
+            if (days > 0) return days + 'd';
+            if (hours > 0) return hours + 'h';
+            if (minutes > 0) return minutes + 'm';
+            return 'now';
+        }
+
+        window.toggleComments = function(linkId) {
+            const commentsSection = document.getElementById('comments-' + linkId);
+            if (commentsSection.style.display === 'none') {
+                commentsSection.style.display = 'block';
+            } else {
+                commentsSection.style.display = 'none';
+            }
+        };
+
+        window.addComment = function(linkId) {
+            const input = document.getElementById('comment-input-' + linkId);
+            const text = input.value.trim();
+            if (!text) return;
+            
+            if (!linkComments[linkId]) {
+                linkComments[linkId] = [];
+            }
+            
+            const comment = {
+                id: Date.now().toString(),
+                author: currentUser,
+                text: text,
+                timestamp: Date.now(),
+                likes: [],
+                replies: []
+            };
+            
+            linkComments[linkId].push(comment);
+            
+            if (!isFirebaseConfigured) {
+                localStorage.setItem('linkComments', JSON.stringify(linkComments));
+            } else {
+                set(ref(database, 'linkComments/' + linkId), linkComments[linkId]);
+            }
+            
+            input.value = '';
+            refreshComments(linkId);
+        };
+
+        window.showReplyInput = function(linkId, commentId) {
+            const replySection = document.getElementById('reply-section-' + commentId);
+            if (replySection.style.display === 'none') {
+                replySection.style.display = 'block';
+                document.getElementById('reply-input-' + commentId).focus();
+            } else {
+                replySection.style.display = 'none';
+            }
+        };
+
+        window.addReply = function(linkId, commentId) {
+            const input = document.getElementById('reply-input-' + commentId);
+            const text = input.value.trim();
+            if (!text) return;
+            
+            const comments = linkComments[linkId] || [];
+            const comment = comments.find(c => c.id === commentId);
+            if (!comment) return;
+            
+            if (!comment.replies) {
+                comment.replies = [];
+            }
+            
+            const reply = {
+                id: Date.now().toString(),
+                author: currentUser,
+                text: text,
+                timestamp: Date.now(),
+                likes: []
+            };
+            
+            comment.replies.push(reply);
+            
+            if (!isFirebaseConfigured) {
+                localStorage.setItem('linkComments', JSON.stringify(linkComments));
+            } else {
+                set(ref(database, 'linkComments/' + linkId), linkComments[linkId]);
+            }
+            
+            input.value = '';
+            refreshComments(linkId);
+        };
+
+        window.toggleCommentLike = function(linkId, commentId) {
+            const comments = linkComments[linkId] || [];
+            const comment = comments.find(c => c.id === commentId);
+            if (!comment) return;
+            
+            if (!comment.likes) {
+                comment.likes = [];
+            }
+            
+            const index = comment.likes.indexOf(currentUser);
+            if (index > -1) {
+                comment.likes.splice(index, 1);
+            } else {
+                comment.likes.push(currentUser);
+            }
+            
+            if (!isFirebaseConfigured) {
+                localStorage.setItem('linkComments', JSON.stringify(linkComments));
+            } else {
+                set(ref(database, 'linkComments/' + linkId), linkComments[linkId]);
+            }
+            
+            refreshComments(linkId);
+        };
+
+        window.toggleReplyLike = function(linkId, commentId, replyId) {
+            const comments = linkComments[linkId] || [];
+            const comment = comments.find(c => c.id === commentId);
+            if (!comment) return;
+            
+            const reply = (comment.replies || []).find(r => r.id === replyId);
+            if (!reply) return;
+            
+            if (!reply.likes) {
+                reply.likes = [];
+            }
+            
+            const index = reply.likes.indexOf(currentUser);
+            if (index > -1) {
+                reply.likes.splice(index, 1);
+            } else {
+                reply.likes.push(currentUser);
+            }
+            
+            if (!isFirebaseConfigured) {
+                localStorage.setItem('linkComments', JSON.stringify(linkComments));
+            } else {
+                set(ref(database, 'linkComments/' + linkId), linkComments[linkId]);
+            }
+            
+            refreshComments(linkId);
+        };
+
+        window.deleteComment = function(linkId, commentId) {
+            const t = translations[currentLanguage];
+            showConfirmModal(
+                t.delete,
+                'Delete this comment?',
+                function() {
+                    const comments = linkComments[linkId] || [];
+                    const index = comments.findIndex(c => c.id === commentId);
+                    if (index > -1) {
+                        comments.splice(index, 1);
+                        linkComments[linkId] = comments;
+                        
+                        if (!isFirebaseConfigured) {
+                            localStorage.setItem('linkComments', JSON.stringify(linkComments));
+                        } else {
+                            set(ref(database, 'linkComments/' + linkId), linkComments[linkId]);
+                        }
+                        
+                        refreshComments(linkId);
+                    }
+                }
+            );
+        };
+
+        window.deleteReply = function(linkId, commentId, replyId) {
+            const t = translations[currentLanguage];
+            showConfirmModal(
+                t.delete,
+                'Delete this reply?',
+                function() {
+                    const comments = linkComments[linkId] || [];
+                    const comment = comments.find(c => c.id === commentId);
+                    if (!comment) return;
+                    
+                    const index = (comment.replies || []).findIndex(r => r.id === replyId);
+                    if (index > -1) {
+                        comment.replies.splice(index, 1);
+                        
+                        if (!isFirebaseConfigured) {
+                            localStorage.setItem('linkComments', JSON.stringify(linkComments));
+                        } else {
+                            set(ref(database, 'linkComments/' + linkId), linkComments[linkId]);
+                        }
+                        
+                        refreshComments(linkId);
+                    }
+                }
+            );
+        };
+
+        function refreshComments(linkId) {
+            const link = links[linkId];
+            if (!link) return;
+            
+            const commentsSection = document.getElementById('comments-' + linkId);
+            if (commentsSection) {
+                commentsSection.innerHTML = renderCommentSection(linkId, link.author);
+                
+                // Update comment count
+                const commentBtn = document.querySelector(`#link-${linkId} .comment-btn span`);
+                if (commentBtn) {
+                    const comments = linkComments[linkId] || [];
+                    commentBtn.textContent = comments.length;
+                }
+            }
+        }
+
+        // Modal Functions
+        window.openModal = function(modalId) {
+            if (modalId === 'profilePicModal') {
+                const preview = document.getElementById('previewAvatar');
+                const profilePic = profilePics[currentUser];
+                if (profilePic) {
+                    preview.style.backgroundImage = `url(${profilePic})`;
+                    preview.style.fontSize = '0';
+                    preview.textContent = '';
+                } else {
+                    preview.style.backgroundImage = '';
+                    preview.style.fontSize = '48px';
+                    preview.textContent = currentUser[0].toUpperCase();
+                }
+            }
+            document.getElementById(modalId).classList.add('active');
+        };
+
+        window.closeModal = function(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        };
+
+        // Close modal on outside click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>
