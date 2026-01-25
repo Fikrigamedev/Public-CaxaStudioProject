@@ -16,7 +16,7 @@
             --bg-secondary: #1a1a1a;
             --text-primary: #ffffff;
             --text-secondary: #999999;
-            --accent-color: #2481cc;
+            --accent-color: #ffffff;
             --border-color: #262626;
             --card-bg: #000000;
             --input-bg: #262626;
@@ -97,6 +97,7 @@
             padding: 20px;
             background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
             color: white;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
         }
         
         .reel-actions {
@@ -465,20 +466,21 @@
         }
 
         .modal-header {
-            background: var(--accent-color);
-            color: white;
+            background: #000000;
+            color: #ffffff;
             padding: 12px 16px;
             font-size: 16px;
             font-weight: 600;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 2px solid #ffffff;
         }
 
         .close-btn {
             background: none;
             border: none;
-            color: white;
+            color: #ffffff;
             font-size: 20px;
             cursor: pointer;
             width: 28px;
@@ -487,6 +489,12 @@
             align-items: center;
             justify-content: center;
             border-radius: 50%;
+            transition: background 0.2s;
+        }
+        
+        .close-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
             transition: background 0.3s;
         }
 
@@ -546,12 +554,14 @@
         }
 
         .btn-primary {
-            background: var(--accent-color);
-            color: white;
+            background: #000000;
+            color: #ffffff;
+            border: 2px solid #ffffff;
         }
 
         .btn-primary:hover {
-            opacity: 0.9;
+            background: #ffffff;
+            color: #000000;
         }
 
         .btn-danger {
@@ -697,18 +707,18 @@
             cursor: pointer;
             transition: all 0.3s;
             font-size: 12px;
-            color: var(--text-secondary);
+            color: var(--text-primary);
         }
 
         .like-btn:hover {
-            border-color: var(--accent-color);
-            color: var(--accent-color);
+            border-color: #ffffff;
+            background: rgba(255,255,255,0.1);
         }
 
         .like-btn.liked {
-            border-color: var(--accent-color);
-            background: var(--accent-color);
-            color: white;
+            border-color: #ff0000;
+            background: #ff0000;
+            color: #ffffff;
         }
 
         .like-btn svg {
@@ -1132,18 +1142,19 @@
         }
 
         .chat-message-bubble {
-            background: var(--card-bg);
+            background: var(--input-bg);
             padding: 8px 12px;
             border-radius: 12px;
             font-size: 13px;
             word-wrap: break-word;
             border: 1px solid var(--border-color);
+            color: var(--text-primary);
         }
 
         .chat-message.own .chat-message-bubble {
-            background: var(--accent-color);
-            color: white;
-            border-color: var(--accent-color);
+            background: #000000;
+            color: #ffffff;
+            border: 2px solid #ffffff;
         }
 
         .chat-message-image {
@@ -1219,9 +1230,9 @@
             height: 48px;
             min-width: 48px;
             border-radius: 50%;
-            background: var(--accent-color);
-            border: none;
-            color: white;
+            background: #000000;
+            border: 2px solid #ffffff;
+            color: #ffffff;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -1231,13 +1242,9 @@
         }
 
         .chat-send-btn:hover {
-            opacity: 0.9;
+            background: #ffffff;
+            color: #000000;
             transform: scale(1.05);
-        }
-
-        .chat-send-btn svg {
-            width: 20px;
-            height: 20px;
         }
 
         .chat-send-btn svg {
@@ -1553,12 +1560,6 @@
     <div id="mainApp" class="app-container" style="display: none;">
         <!-- Header -->
         <div class="header">
-            <button class="icon-btn" onclick="navigateTo('search')" style="background: none; border: none; cursor: pointer; padding: 8px;">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <path d="m21 21-4.35-4.35"></path>
-                </svg>
-            </button>
             <div class="logo">
                 <span>WargaVirtual</span>
             </div>
@@ -1613,7 +1614,15 @@
                     </svg>
                 </div>
             </button>
-            <button class="nav-item" onclick="openModal('notificationModal')" style="position: relative;">
+            <button class="nav-item" data-page="search">
+                <div class="nav-icon">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                </div>
+            </button>
+            <button class="nav-item" data-page="notifications" style="position: relative;">
                 <div class="nav-icon">
                     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -1658,43 +1667,31 @@
     <div id="settingsModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <span data-i18n="settings">Settings</span>
+                <span>Pengaturan</span>
                 <button class="close-btn" onclick="closeModal('settingsModal')">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="setting-item">
-                    <span class="setting-label" data-i18n="change_username">Change Username</span>
+                    <span class="setting-label">Ubah Username</span>
                 </div>
                 <div class="form-group">
-                    <input type="text" id="newUsername" placeholder="New username">
+                    <input type="text" id="newUsername" placeholder="Username baru">
                 </div>
-                <button class="btn btn-primary" onclick="changeUsername()" data-i18n="save">Save</button>
+                <button class="btn btn-primary" onclick="changeUsername()">Simpan</button>
 
-                <div class="setting-item" style="margin-top: 20px;">
-                    <span class="setting-label" data-i18n="theme">Theme</span>
-                </div>
-                <div class="theme-switch">
-                    <div class="theme-option" data-theme="light" onclick="changeTheme('light')">
-                        <span data-i18n="light">Light</span>
+                <!-- Verified Badge Application -->
+                <div style="margin-top: 24px; padding: 16px; background: var(--input-bg); border-radius: 8px; border-left: 4px solid #1DA1F2;">
+                    <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+                        Ingin Centang Biru?
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#1DA1F2">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
                     </div>
-                    <div class="theme-option" data-theme="dark" onclick="changeTheme('dark')">
-                        <span data-i18n="dark">Dark</span>
-                    </div>
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">Dapatkan badge verifikasi centang biru di samping nama kamu!</div>
+                    <button class="btn btn-primary" onclick="applyVerified()" style="width: 100%; font-size: 14px;">Ajukan Verifikasi</button>
                 </div>
 
-                <div class="setting-item" style="margin-top: 20px; cursor: pointer;" onclick="openModal('languageModal')">
-                    <span class="setting-label" data-i18n="language">Language</span>
-                    <span style="color: var(--accent-color);">›</span>
-                </div>
-
-                <!-- Publisher Application -->
-                <div style="margin-top: 24px; padding: 16px; background: var(--input-bg); border-radius: 8px; border-left: 4px solid var(--accent-color);">
-                    <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Want to Upload Content?</div>
-                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">You need to become a Publisher to upload content. Click below to apply.</div>
-                    <button class="btn btn-primary" onclick="applyPublisher()" style="width: 100%; font-size: 14px;">Apply as Publisher</button>
-                </div>
-
-                <button class="btn btn-danger" onclick="logout()" data-i18n="logout" style="margin-top: 20px;">Logout</button>
+                <button class="btn btn-danger" onclick="logout()" style="margin-top: 20px;">Logout</button>
 
                 <div class="developer-credit">
                     <strong>Developer</strong>
@@ -1704,25 +1701,32 @@
         </div>
     </div>
 
-    <!-- Apply Publisher Modal -->
-    <div id="applyPublisherModal" class="modal">
+    <!-- Apply Verified Modal -->
+    <div id="applyVerifiedModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <span data-i18n="apply_publisher">Apply as Publisher</span>
-                <button class="close-btn" onclick="closeModal('applyPublisherModal')">&times;</button>
+                <span>Ajukan Verifikasi Centang Biru</span>
+                <button class="close-btn" onclick="closeModal('applyVerifiedModal')">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label data-i18n="your_username">Your Username</label>
-                    <input type="text" id="applyUsername" readonly>
+                    <label>Username Kamu</label>
+                    <input type="text" id="applyVerifiedUsername" readonly>
                 </div>
                 <div class="form-group">
-                    <label data-i18n="purpose">Purpose of becoming publisher</label>
-                    <textarea id="applyPurpose" placeholder="Why do you want to be a publisher?"></textarea>
+                    <label>Alasan Mengajukan Verifikasi</label>
+                    <textarea id="applyVerifiedReason" placeholder="Mengapa kamu layak mendapat centang biru?"></textarea>
                 </div>
                 <div class="form-group">
-                    <label data-i18n="use_for">What will you use it for?</label>
-                    <textarea id="applyUseFor" placeholder="Describe your use case"></textarea>
+                    <label>Bukti Identitas/Kredibilitas</label>
+                    <textarea id="applyVerifiedProof" placeholder="Link media sosial, portfolio, atau bukti kredibilitas lainnya"></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="submitVerifiedApplication()">Kirim Pengajuan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Link Modal -->
                 </div>
                 <button class="btn btn-primary" onclick="submitPublisherApplication()" data-i18n="submit">Submit</button>
             </div>
@@ -1754,28 +1758,31 @@
                         <button type="button" class="btn btn-danger" style="font-size: 12px; padding: 6px 12px;" onclick="clearLinkMedia()">Remove All Media</button>
                     </div>
                 </div>
+                <div class="form-group">
+                    <label>Audio (Optional) - TikTok Style</label>
+                    <input type="file" id="linkAudio" accept="audio/*" onchange="previewAudio(this)" style="display: none;">
+                    <button type="button" onclick="document.getElementById('linkAudio').click()" style="width: 100%; padding: 10px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18V5l12-2v13"></path>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <circle cx="18" cy="16" r="3"></circle>
+                        </svg>
+                        <span>Choose Audio</span>
+                    </button>
+                    <div id="audioPreview" style="margin-top: 10px; display: none;">
+                        <div style="background: var(--input-bg); border-radius: 8px; padding: 12px; margin-bottom: 8px;">
+                            <audio id="audioPlayer" controls style="width: 100%; margin-bottom: 8px;"></audio>
+                            <input type="text" id="audioName" placeholder="Audio name (e.g., Song Title - Artist)" style="width: 100%; padding: 8px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary);">
+                        </div>
+                        <button type="button" class="btn btn-danger" style="font-size: 12px; padding: 6px 12px;" onclick="clearAudio()">Remove Audio</button>
+                    </div>
+                </div>
                 <button class="btn btn-primary" onclick="saveLink()" data-i18n="save">Post</button>
             </div>
         </div>
     </div>
 
     <!-- Add Publisher Modal (Developer Only) -->
-    <div id="addPublisherModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span data-i18n="add_publisher">Add Publisher</span>
-                <button class="close-btn" onclick="closeModal('addPublisherModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label data-i18n="username">Username</label>
-                    <input type="text" id="publisherUsername" placeholder="Enter username">
-                </div>
-                <button class="btn btn-primary" onclick="addPublisher()" data-i18n="add">Add</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Confirmation Modal -->
     <div id="confirmModal" class="modal">
         <div class="modal-content">
@@ -1794,46 +1801,6 @@
     </div>
 
     <!-- Language Selector Modal -->
-    <div id="languageModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span data-i18n="language">Language</span>
-                <button class="close-btn" onclick="closeModal('languageModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="language-list">
-                    <div class="language-item" onclick="selectLanguage('en')">
-                        <span>English</span>
-                        <span class="check-icon" id="lang-en"></span>
-                    </div>
-                    <div class="language-item" onclick="selectLanguage('id')">
-                        <span>Indonesia</span>
-                        <span class="check-icon" id="lang-id"></span>
-                    </div>
-                    <div class="language-item" onclick="selectLanguage('ja')">
-                        <span>日本語 (Japanese)</span>
-                        <span class="check-icon" id="lang-ja"></span>
-                    </div>
-                    <div class="language-item" onclick="selectLanguage('th')">
-                        <span>ไทย (Thai)</span>
-                        <span class="check-icon" id="lang-th"></span>
-                    </div>
-                    <div class="language-item" onclick="selectLanguage('zh')">
-                        <span>中文 (Chinese)</span>
-                        <span class="check-icon" id="lang-zh"></span>
-                    </div>
-                    <div class="language-item" onclick="selectLanguage('ko')">
-                        <span>한국어 (Korean)</span>
-                        <span class="check-icon" id="lang-ko"></span>
-                    </div>
-                    <div class="language-item" onclick="selectLanguage('ru')">
-                        <span>Русский (Russian)</span>
-                        <span class="check-icon" id="lang-ru"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Followers/Following List Modal -->
     <div id="followersModal" class="modal">
@@ -1933,6 +1900,26 @@
         </div>
     </div>
 
+    <!-- Add Verified Badge Modal -->
+    <div id="addVerifiedModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Add Verified Badge</span>
+                <button class="close-btn" onclick="closeModal('addVerifiedModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="verifiedUsername" placeholder="Enter username">
+                </div>
+                <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">
+                    Verified users will get a blue checkmark next to their name.
+                </p>
+                <button class="btn btn-primary" onclick="addVerified()">Add Verified Badge</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Search Modal -->
     <div id="searchModal" class="modal">
         <div class="modal-content">
@@ -1997,6 +1984,7 @@
         let users = {};
         let links = {};
         let publishers = [];
+        let verifiedUsers = []; // Blue checkmark verified users
         let following = [];
         let followers = {};
         let profilePics = {};
@@ -2557,6 +2545,7 @@
                     users = JSON.parse(localStorage.getItem('users') || '{}');
                     links = JSON.parse(localStorage.getItem('links') || '{}');
                     publishers = JSON.parse(localStorage.getItem('publishers') || '[]');
+                    verifiedUsers = JSON.parse(localStorage.getItem('verifiedUsers') || '[]');
                     following = JSON.parse(localStorage.getItem('following_' + currentUser) || '[]');
                     followers[currentUser] = following;
                     profilePics = JSON.parse(localStorage.getItem('profilePics') || '{}');
@@ -2703,7 +2692,6 @@
         // Navigation
         function setupNavigation() {
             const isDeveloper = currentUser === DEVELOPER_USERNAME;
-            const isPublisher = publishers.includes(currentUser);
             const isAdmin = adminUsers.includes(currentUser);
 
             // Update navigation visibility
@@ -2711,22 +2699,18 @@
             const devPanelNav = document.querySelector('[data-page="dev-panel"]');
             const adminPanelNav = document.querySelector('[data-page="admin-panel"]');
             
+            // EVERYONE can upload now!
+            if (myLinksNav) myLinksNav.style.display = 'flex';
+            
             if (isDeveloper) {
-                myLinksNav.style.display = 'flex';
-                devPanelNav.style.display = 'flex';
-                adminPanelNav.style.display = 'none';
+                if (devPanelNav) devPanelNav.style.display = 'flex';
+                if (adminPanelNav) adminPanelNav.style.display = 'none';
             } else if (isAdmin) {
-                myLinksNav.style.display = 'none';
-                devPanelNav.style.display = 'none';
-                adminPanelNav.style.display = 'flex';
-            } else if (isPublisher) {
-                myLinksNav.style.display = 'flex';
-                devPanelNav.style.display = 'none';
-                adminPanelNav.style.display = 'none';
+                if (devPanelNav) devPanelNav.style.display = 'none';
+                if (adminPanelNav) adminPanelNav.style.display = 'flex';
             } else {
-                myLinksNav.style.display = 'none';
-                devPanelNav.style.display = 'none';
-                adminPanelNav.style.display = 'none';
+                if (devPanelNav) devPanelNav.style.display = 'none';
+                if (adminPanelNav) adminPanelNav.style.display = 'none';
             }
 
             document.querySelectorAll('.nav-item').forEach(item => {
@@ -2806,6 +2790,9 @@
                 case 'search':
                     renderSearchPage(content);
                     break;
+                case 'notifications':
+                    renderNotificationsPage(content);
+                    break;
                 case 'chat':
                     renderChatPage(content);
                     break;
@@ -2831,17 +2818,18 @@
         function getUserBadges(username) {
             const isDev = username === DEVELOPER_USERNAME;
             const isAdmin = adminUsers.includes(username);
-            const isPub = publishers.includes(username);
+            const isVerified = verifiedUsers.includes(username);
             
             let badges = '';
             if (isDev) {
                 badges += '<span class="badge badge-developer">DEVELOPER</span>';
             } else if (isAdmin) {
                 badges += '<span class="badge badge-admin">ADMIN</span>';
-            } else if (isPub) {
-                badges += '<span class="badge badge-publisher">PUBLISHER</span>';
-            } else {
-                badges += '<span class="badge badge-user">USER</span>';
+            }
+            
+            // Blue checkmark for verified users
+            if (isVerified) {
+                badges += '<svg width="16" height="16" viewBox="0 0 24 24" fill="#1DA1F2" style="margin-left: 4px; vertical-align: middle;"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
             }
             
             return badges;
@@ -2851,8 +2839,10 @@
             const t = translations[currentLanguage];
             
             // Get all links sorted by date (newest first) - For You feed
+            // OPTIMIZATION: Load only first 20 posts initially
             const allLinks = Object.entries(links)
-                .sort((a, b) => b[1].createdAt - a[1].createdAt);
+                .sort((a, b) => b[1].createdAt - a[1].createdAt)
+                .slice(0, 20);
             
             content.innerHTML = `
                 <div style="padding: 16px;">
@@ -2914,17 +2904,20 @@
                         if (!firstMedia) return '';
                         
                         return `
-                            <div class="reel-item" data-id="${id}" data-index="${index}">
+                            <div class="reel-item" data-id="${id}" data-index="${index}" onclick="toggleReelMedia('${id}')">
                                 ${firstMedia.type === 'video' ? `
                                     <video class="reel-video" id="reel-video-${id}" 
                                         src="${firstMedia.data}" 
                                         loop 
-                                        playsinline
-                                        onclick="toggleVideoPlay('${id}')">
+                                        playsinline>
                                     </video>
                                 ` : `
                                     <img class="reel-image" src="${firstMedia.data}" alt="">
                                 `}
+                                
+                                ${link.audioUrl ? `
+                                    <audio id="reel-audio-${id}" src="${link.audioUrl}" loop style="display: none;"></audio>
+                                ` : ''}
                                 
                                 <div class="reel-overlay">
                                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
@@ -2938,11 +2931,22 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div style="font-size: 13px; line-height: 1.5; margin-bottom: 6px; max-height: 80px; overflow-y: auto; padding-right: 50px;">
-                                        ${formatTextWithHashtags(link.title).substring(0, 200)}${link.title.length > 200 ? '...' : ''}
+                                    <div id="caption-${id}" style="font-size: 13px; line-height: 1.4; margin-bottom: 6px; cursor: pointer;" onclick="event.stopPropagation(); toggleCaption('${id}')">
+                                        <span id="caption-text-${id}">${formatTextWithHashtags(link.title.length > 80 ? link.title.substring(0, 80) + '...' : link.title)}</span>
+                                        ${link.title.length > 80 ? '<span style="color: var(--text-secondary); margin-left: 4px; font-weight: 600;">selengkapnya</span>' : ''}
                                     </div>
+                                    ${link.audioName ? `
+                                        <div style="display: flex; align-items: center; gap: 6px; margin-top: 8px; padding: 6px 10px; background: rgba(255,255,255,0.1); border-radius: 16px; backdrop-filter: blur(10px); cursor: pointer; width: fit-content; max-width: 85%;" onclick="event.stopPropagation(); useAudio('${link.audioName}', '${link.audioUrl}')">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+                                                <path d="M9 18V5l12-2v13"></path>
+                                                <circle cx="6" cy="18" r="3"></circle>
+                                                <circle cx="18" cy="16" r="3"></circle>
+                                            </svg>
+                                            <span style="font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${link.audioName}</span>
+                                        </div>
+                                    ` : ''}
                                     ${link.url ? `
-                                        <a href="${link.url}" target="_blank" style="font-size: 11px; color: #2481cc; text-decoration: none; word-break: break-all;">${link.url.substring(0, 50)}${link.url.length > 50 ? '...' : ''}</a>
+                                        <a href="${link.url}" target="_blank" style="font-size: 11px; color: #ffffff; text-decoration: none; word-break: break-all;">${link.url.substring(0, 50)}${link.url.length > 50 ? '...' : ''}</a>
                                     ` : ''}
                                 </div>
                                 
@@ -2951,20 +2955,21 @@
                                         <svg width="26" height="26" viewBox="0 0 24 24" fill="${isLiked ? '#ff0000' : 'none'}" stroke="white" stroke-width="2" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); cursor: pointer;" onclick="event.stopPropagation(); toggleReelLike('${id}')">
                                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                                         </svg>
-                                        ${likeCount > 0 ? `<span style="font-size: 11px; color: white; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5);" id="reel-like-count-${id}">${likeCount}</span>` : '<span style="font-size: 11px; color: white; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5); display: none;" id="reel-like-count-${id}">0</span>'}
+                                        <span style="font-size: 11px; color: white; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5);" id="reel-like-count-${id}">${likeCount}</span>
                                     </div>
                                     
                                     <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
                                         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); cursor: pointer;" onclick="event.stopPropagation(); openReelComments('${id}')">
                                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                                         </svg>
-                                        ${commentCount > 0 ? `<span style="font-size: 11px; color: white; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5);" id="reel-comment-count-${id}">${commentCount}</span>` : '<span style="font-size: 11px; color: white; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5); display: none;" id="reel-comment-count-${id}">0</span>'}
+                                        <span style="font-size: 11px; color: white; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5);" id="reel-comment-count-${id}">${commentCount}</span>
                                     </div>
                                     
                                     <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
                                         <svg width="24" height="24" viewBox="0 0 24 24" fill="${isFavorited ? '#ffd700' : 'none'}" stroke="white" stroke-width="2" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); cursor: pointer;" onclick="event.stopPropagation(); toggleReelFavorite('${id}')">
                                             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                                         </svg>
+                                        <span style="font-size: 11px; color: white; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">${Object.keys(favoriteLinks).filter(k => favoriteLinks[k] && k === id).length > 0 ? '1' : '0'}</span>
                                     </div>
                                     
                                     <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
@@ -2973,6 +2978,7 @@
                                             <polyline points="7 10 12 15 17 10"></polyline>
                                             <line x1="12" y1="15" x2="12" y2="3"></line>
                                         </svg>
+                                        <span style="font-size: 11px; color: white; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">${mediaArray.length}</span>
                                     </div>
                                     
                                     ${mediaArray.length > 1 ? `
@@ -3004,21 +3010,30 @@
             const reels = container.querySelectorAll('.reel-item');
             let currentReelIndex = 0;
             
-            // Play first video
-            playReelVideo(0);
+            // Play first video/audio
+            playReelMedia(0);
             
             // Intersection Observer for autoplay
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     const video = entry.target.querySelector('video');
+                    const audio = entry.target.querySelector('audio');
+                    
                     if (entry.isIntersecting) {
                         if (video) {
                             video.play().catch(() => {});
+                        }
+                        if (audio) {
+                            audio.play().catch(() => {});
                         }
                         currentReelIndex = parseInt(entry.target.dataset.index);
                     } else {
                         if (video) {
                             video.pause();
+                        }
+                        if (audio) {
+                            audio.pause();
+                            audio.currentTime = 0;
                         }
                     }
                 });
@@ -3027,10 +3042,18 @@
             reels.forEach(reel => observer.observe(reel));
         }
         
-        function playReelVideo(index) {
-            const video = document.querySelector(`.reel-item[data-index="${index}"] video`);
+        function playReelMedia(index) {
+            const reel = document.querySelector(`.reel-item[data-index="${index}"]`);
+            if (!reel) return;
+            
+            const video = reel.querySelector('video');
+            const audio = reel.querySelector('audio');
+            
             if (video) {
                 video.play().catch(() => {});
+            }
+            if (audio) {
+                audio.play().catch(() => {});
             }
         }
         
@@ -3103,6 +3126,94 @@
                         }, 600);
                     }
                 }
+            }
+        };
+        
+        window.toggleReelMedia = function(id) {
+            const video = document.getElementById('reel-video-' + id);
+            const audio = document.getElementById('reel-audio-' + id);
+            
+            let isPaused = false;
+            
+            if (video) {
+                isPaused = video.paused;
+                if (video.paused) {
+                    video.play();
+                } else {
+                    video.pause();
+                }
+            }
+            
+            if (audio) {
+                if (isPaused || (!video && audio.paused)) {
+                    audio.play();
+                } else {
+                    audio.pause();
+                }
+            }
+            
+            // Show pause icon for both video and audio
+            if (!video || video.paused || (audio && audio.paused)) {
+                const pauseIcon = document.getElementById('pause-icon-' + id);
+                if (!pauseIcon) {
+                    const icon = document.createElement('div');
+                    icon.id = 'pause-icon-' + id;
+                    icon.style.cssText = `
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        width: 80px;
+                        height: 80px;
+                        background: rgba(255,255,255,0.3);
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        animation: fadeOut 0.6s forwards;
+                        z-index: 100;
+                        pointer-events: none;
+                    `;
+                    icon.innerHTML = `
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="white">
+                            <rect x="6" y="4" width="4" height="16"></rect>
+                            <rect x="14" y="4" width="4" height="16"></rect>
+                        </svg>
+                    `;
+                    
+                    const reelItem = document.querySelector(`[data-id="${id}"]`);
+                    if (reelItem) reelItem.appendChild(icon);
+                    
+                    setTimeout(() => {
+                        if (icon.parentElement) icon.remove();
+                    }, 600);
+                } else {
+                    pauseIcon.style.display = 'flex';
+                    pauseIcon.style.animation = 'fadeOut 0.6s forwards';
+                    setTimeout(() => {
+                        pauseIcon.style.display = 'none';
+                    }, 600);
+                }
+            }
+        };
+        
+        window.toggleCaption = function(id) {
+            const link = links[id];
+            if (!link || link.title.length <= 80) return;
+            
+            const captionEl = document.getElementById('caption-' + id);
+            const captionText = document.getElementById('caption-text-' + id);
+            
+            if (!captionText) return;
+            
+            if (captionText.dataset.expanded === 'true') {
+                captionText.innerHTML = formatTextWithHashtags(link.title.substring(0, 80) + '...');
+                captionEl.innerHTML = captionText.outerHTML + '<span style="color: var(--text-secondary); margin-left: 4px; font-weight: 600;">selengkapnya</span>';
+                captionText.dataset.expanded = 'false';
+            } else {
+                captionText.innerHTML = formatTextWithHashtags(link.title);
+                captionEl.innerHTML = captionText.outerHTML + '<span style="color: var(--text-secondary); margin-left: 4px; font-weight: 600;">Sembunyikan</span>';
+                captionText.dataset.expanded = 'true';
             }
         };
         
@@ -3771,9 +3882,50 @@
                 if (ban.duration === 'permanent') return true;
                 return ban.until > Date.now();
             });
+            
+            // Calculate stats
+            const totalUsers = Object.keys(users).length;
+            const activeUsers = Object.values(users).filter(u => {
+                // Active = has posted or logged in last 7 days
+                const userLinks = Object.values(links).filter(l => l.author === u.username);
+                return userLinks.length > 0;
+            }).length;
 
             content.innerHTML = `
-                <h2 style="margin-bottom: 16px;">Public Announcement</h2>
+                <h2 style="margin-bottom: 16px;">User Statistics</h2>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px;">
+                    <div style="background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 10px; padding: 16px; text-align: center;">
+                        <div style="font-size: 32px; font-weight: 700; color: var(--accent-color);">${totalUsers}</div>
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">Total Users</div>
+                    </div>
+                    <div style="background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 10px; padding: 16px; text-align: center;">
+                        <div style="font-size: 32px; font-weight: 700; color: #10b981;">${activeUsers}</div>
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">Active Users</div>
+                    </div>
+                </div>
+                
+                <h2 style="margin-bottom: 16px;">Verified Badge Management</h2>
+                <button class="btn btn-primary" onclick="openModal('addVerifiedModal')" style="margin-bottom: 20px;">
+                    Add Verified Badge
+                </button>
+                <div class="publisher-list">
+                    ${verifiedUsers.length === 0 ? `
+                        <div class="empty-state">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.3;">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <p>No verified users</p>
+                        </div>
+                    ` :
+                    verifiedUsers.map(username => `
+                        <div class="publisher-item">
+                            <span>${username} <svg width="14" height="14" viewBox="0 0 24 24" fill="#1DA1F2" style="vertical-align: middle;"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+                            <button class="delete-icon-btn" onclick="removeVerified('${username}')">×</button>
+                        </div>
+                    `).join('')}
+                </div>
+            
+                <h2 style="margin-bottom: 16px; margin-top: 24px;">Public Announcement</h2>
                 <div style="background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 10px; padding: 12px; margin-bottom: 20px;">
                     <textarea id="announcementText" placeholder="Type announcement message..." style="width: 100%; padding: 10px; border: 2px solid var(--border-color); border-radius: 6px; background: var(--input-bg); color: var(--text-primary); font-size: 13px; resize: vertical; min-height: 60px; margin-bottom: 10px;"></textarea>
                     <div style="display: flex; gap: 8px;">
@@ -4308,6 +4460,9 @@
             const title = document.getElementById('linkTitle').value.trim();
             const url = document.getElementById('linkUrl').value.trim();
             const mediaInput = document.getElementById('linkMedia');
+            const audioInput = document.getElementById('linkAudio');
+            const audioNameInput = document.getElementById('audioName');
+            const audioPlayer = document.getElementById('audioPlayer');
             const t = translations[currentLanguage];
 
             if (!title) {
@@ -4322,6 +4477,20 @@
             }
 
             const linkId = Date.now().toString();
+            
+            // Get audio data if present
+            let audioData = null;
+            if (selectedAudio) {
+                audioData = {
+                    audioName: selectedAudio.name,
+                    audioUrl: selectedAudio.url
+                };
+            } else if (audioPlayer.src && audioNameInput.value.trim()) {
+                audioData = {
+                    audioName: audioNameInput.value.trim(),
+                    audioUrl: audioPlayer.src
+                };
+            }
             
             // Handle multiple media upload
             if (mediaInput.files && mediaInput.files.length > 0) {
@@ -4346,7 +4515,8 @@
                                 createdAt: Date.now(),
                                 media: mediaArray,
                                 mediaCount: mediaArray.length,
-                                hashtags: extractHashtags(title)
+                                hashtags: extractHashtags(title),
+                                ...(audioData && { audioName: audioData.audioName, audioUrl: audioData.audioUrl })
                             };
                             
                             saveLinkData(linkId, linkData);
@@ -4361,7 +4531,8 @@
                     url: url || '',
                     author: currentUser,
                     createdAt: Date.now(),
-                    hashtags: extractHashtags(title)
+                    hashtags: extractHashtags(title),
+                    ...(audioData && { audioName: audioData.audioName, audioUrl: audioData.audioUrl })
                 };
                 
                 saveLinkData(linkId, linkData);
@@ -4396,6 +4567,8 @@
             document.getElementById('linkTitle').value = '';
             document.getElementById('linkUrl').value = '';
             clearLinkMedia();
+            clearAudio();
+            selectedAudio = null; // Clear selected audio
             closeModal('addLinkModal');
             
             // Reload current page to show new link
@@ -4417,75 +4590,6 @@
                         remove(ref(database, 'links/' + linkId));
                     }
                     navigateTo('my-links');
-                }
-            );
-        };
-
-        // Publisher Management
-        window.submitPublisherApplication = function() {
-            const purpose = document.getElementById('applyPurpose').value.trim();
-            const useFor = document.getElementById('applyUseFor').value.trim();
-
-            if (!purpose || !useFor) {
-                alert('Please fill all fields');
-                return;
-            }
-
-            const message = `*Publisher Application*\n\nUsername: ${currentUser}\nPurpose: ${purpose}\nUse For: ${useFor}`;
-            const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-            
-            window.open(whatsappUrl, '_blank');
-            closeModal('applyPublisherModal');
-            
-            // Clear form
-            document.getElementById('applyPurpose').value = '';
-            document.getElementById('applyUseFor').value = '';
-        };
-
-        window.addPublisher = function() {
-            const username = document.getElementById('publisherUsername').value.trim();
-            const t = translations[currentLanguage];
-
-            if (!username) {
-                alert(t.username || 'Please enter username');
-                return;
-            }
-
-            if (publishers.includes(username)) {
-                alert('Already a publisher');
-                return;
-            }
-
-            publishers.push(username);
-
-            if (!isFirebaseConfigured) {
-                localStorage.setItem('publishers', JSON.stringify(publishers));
-            } else {
-                set(ref(database, 'publishers'), publishers);
-            }
-
-            closeModal('addPublisherModal');
-            navigateTo('dev-panel');
-        };
-
-        window.removePublisher = function(username) {
-            const t = translations[currentLanguage];
-            showConfirmModal(
-                t.delete_publisher_title,
-                t.delete_publisher_msg,
-                function() {
-                    const index = publishers.indexOf(username);
-                    if (index > -1) {
-                        publishers.splice(index, 1);
-                    }
-
-                    if (!isFirebaseConfigured) {
-                        localStorage.setItem('publishers', JSON.stringify(publishers));
-                    } else {
-                        set(ref(database, 'publishers'), publishers);
-                    }
-
-                    navigateTo('dev-panel');
                 }
             );
         };
@@ -5006,6 +5110,81 @@
             document.getElementById('mediaPreview').style.display = 'none';
             document.getElementById('mediaPreviewContainer').innerHTML = '';
         };
+        
+        window.previewAudio = function(input) {
+            const audioPreview = document.getElementById('audioPreview');
+            const audioPlayer = document.getElementById('audioPlayer');
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    audioPlayer.src = e.target.result;
+                    audioPreview.style.display = 'block';
+                };
+                
+                reader.readAsDataURL(file);
+            }
+        };
+        
+        window.clearAudio = function() {
+            document.getElementById('linkAudio').value = '';
+            document.getElementById('audioPreview').style.display = 'none';
+            document.getElementById('audioPlayer').src = '';
+            document.getElementById('audioName').value = '';
+        };
+        
+        let selectedAudio = null;
+        
+        window.useAudio = function(audioName, audioUrl) {
+            selectedAudio = { name: audioName, url: audioUrl };
+            
+            // Show toast notification
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 60px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0,0,0,0.9);
+                color: white;
+                padding: 12px 24px;
+                border-radius: 24px;
+                font-size: 13px;
+                font-weight: 600;
+                z-index: 9999;
+                backdrop-filter: blur(10px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            `;
+            toast.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                    <path d="M9 18V5l12-2v13"></path>
+                    <circle cx="6" cy="18" r="3"></circle>
+                    <circle cx="18" cy="16" r="3"></circle>
+                </svg>
+                <span>Audio "${audioName}" dipilih! Buka upload untuk menggunakan.</span>
+            `;
+            
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+            
+            // Pre-fill audio in upload modal if opened
+            if (selectedAudio) {
+                const audioPlayer = document.getElementById('audioPlayer');
+                const audioNameInput = document.getElementById('audioName');
+                const audioPreview = document.getElementById('audioPreview');
+                
+                if (audioPlayer && audioUrl) {
+                    audioPlayer.src = audioUrl;
+                    audioNameInput.value = audioName;
+                    audioPreview.style.display = 'block';
+                }
+            }
+        };
 
         // Stop all videos globally
         window.stopAllVideos = function() {
@@ -5238,9 +5417,44 @@
             }
         }
 
-        window.applyPublisher = function() {
-            document.getElementById('applyUsername').value = currentUser;
-            openModal('applyPublisherModal');
+        window.applyVerified = function() {
+            document.getElementById('applyVerifiedUsername').value = currentUser;
+            openModal('applyVerifiedModal');
+        };
+        
+        window.submitVerifiedApplication = function() {
+            const reason = document.getElementById('applyVerifiedReason').value.trim();
+            const proof = document.getElementById('applyVerifiedProof').value.trim();
+            
+            if (!reason || !proof) {
+                alert('Mohon isi semua field');
+                return;
+            }
+            
+            // Send notification to developer
+            const notificationId = Date.now().toString();
+            if (!notifications[DEVELOPER_USERNAME]) {
+                notifications[DEVELOPER_USERNAME] = [];
+            }
+            
+            notifications[DEVELOPER_USERNAME].push({
+                id: notificationId,
+                type: 'verified_application',
+                from: currentUser,
+                message: `mengajukan verifikasi centang biru. Alasan: ${reason.substring(0, 50)}...`,
+                timestamp: Date.now(),
+                read: false,
+                data: { reason, proof }
+            });
+            
+            if (!isFirebaseConfigured) {
+                localStorage.setItem('notifications', JSON.stringify(notifications));
+            } else {
+                set(ref(database, 'notifications/' + DEVELOPER_USERNAME), notifications[DEVELOPER_USERNAME]);
+            }
+            
+            closeModal('applyVerifiedModal');
+            alert('Pengajuan verifikasi berhasil dikirim! Tunggu konfirmasi dari developer.');
         };
 
 
@@ -5731,6 +5945,51 @@
         // Chat System
         let currentChatTab = 'public';
         let currentPrivateChat = null;
+
+        function renderNotificationsPage(content) {
+            const userNotifications = notifications[currentUser] || [];
+            const sortedNotifs = userNotifications.sort((a, b) => b.timestamp - a.timestamp);
+            
+            if (userNotifications.length > 0) {
+                userNotifications.forEach(n => n.read = true);
+                if (!isFirebaseConfigured) {
+                    localStorage.setItem('notifications', JSON.stringify(notifications));
+                } else {
+                    set(ref(database, 'notifications/' + currentUser), userNotifications);
+                }
+                updateNotificationBadge();
+            }
+            
+            content.innerHTML = `
+                <div style="padding: 16px;">
+                    <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">Notifikasi</h2>
+                    ${sortedNotifs.length === 0 ? `
+                        <div style="text-align: center; padding: 60px 20px;">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.3; margin: 0 auto 16px;">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            <p style="color: var(--text-secondary);">Belum ada notifikasi</p>
+                        </div>
+                    ` : sortedNotifs.map(notif => {
+                        const profilePic = profilePics[notif.from];
+                        const timeAgo = getTimeAgo(notif.timestamp);
+                        
+                        return `
+                            <div style="display: flex; gap: 12px; padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; background: ${notif.read ? 'transparent' : 'rgba(255,255,255,0.05)'};" onclick="${notif.linkId ? `openLinkDetail('${notif.linkId}')` : `viewUserProfile('${notif.from}'); navigateTo('profile');`}">
+                                <div class="user-avatar" style="width: 44px; height: 44px; ${profilePic ? `background-image: url(${profilePic}); font-size: 0;` : ''}">${!profilePic ? notif.from[0].toUpperCase() : ''}</div>
+                                <div style="flex: 1;">
+                                    <p style="font-size: 14px; line-height: 1.4; margin-bottom: 4px;">
+                                        <strong>${notif.from}</strong> ${notif.message}
+                                    </p>
+                                    <span style="font-size: 12px; color: var(--text-secondary);">${timeAgo}</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
 
         function renderChatPage(content) {
             const t = translations[currentLanguage];
@@ -6423,6 +6682,54 @@
             closeModal('addAdminModal');
             navigateTo('dev-panel');
         };
+        
+        window.addVerified = function() {
+            const username = document.getElementById('verifiedUsername').value.trim();
+            
+            if (!username) {
+                alert('Please enter username');
+                return;
+            }
+            
+            if (!users[username]) {
+                alert('User does not exist');
+                return;
+            }
+            
+            if (!verifiedUsers.includes(username)) {
+                verifiedUsers.push(username);
+                
+                if (!isFirebaseConfigured) {
+                    localStorage.setItem('verifiedUsers', JSON.stringify(verifiedUsers));
+                } else {
+                    set(ref(database, 'verifiedUsers'), verifiedUsers);
+                }
+            }
+            
+            closeModal('addVerifiedModal');
+            navigateTo('dev-panel');
+        };
+        
+        window.removeVerified = function(username) {
+            showConfirmModal(
+                'Remove Verified Badge',
+                `Remove verified badge from ${username}?`,
+                function() {
+                    const index = verifiedUsers.indexOf(username);
+                    if (index > -1) {
+                        verifiedUsers.splice(index, 1);
+                        
+                        if (!isFirebaseConfigured) {
+                            localStorage.setItem('verifiedUsers', JSON.stringify(verifiedUsers));
+                        } else {
+                            set(ref(database, 'verifiedUsers'), verifiedUsers);
+                        }
+                        
+                        navigateTo('dev-panel');
+                    }
+                }
+            );
+        };
 
         window.removeAdmin = function(username) {
             showConfirmModal(
@@ -6770,7 +7077,7 @@
         function formatTextWithMentions(text) {
             return text.replace(/@(\w+)/g, (match, username) => {
                 if (users[username]) {
-                    return `<span class="mention" onclick="viewUserProfile('${username}'); navigateTo('profile');" style="color: var(--accent-color); font-weight: 600; cursor: pointer;">@${username}</span>`;
+                    return `<span class="mention" onclick="event.stopPropagation(); viewUserProfile('${username}'); navigateTo('profile');" style="color: var(--accent-color); font-weight: 600; cursor: pointer;">@${username}</span>`;
                 }
                 return match;
             });
