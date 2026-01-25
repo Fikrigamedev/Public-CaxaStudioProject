@@ -12,25 +12,20 @@
         }
 
         :root {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f5f5f5;
-            --text-primary: #000000;
-            --text-secondary: #666666;
-            --accent-color: #2481cc;
-            --border-color: #e0e0e0;
-            --card-bg: #ffffff;
-            --input-bg: #f5f5f5;
-        }
-
-        [data-theme="dark"] {
             --bg-primary: #000000;
             --bg-secondary: #1a1a1a;
             --text-primary: #ffffff;
             --text-secondary: #999999;
             --accent-color: #2481cc;
-            --border-color: #333333;
-            --card-bg: #1a1a1a;
-            --input-bg: #2a2a2a;
+            --border-color: #262626;
+            --card-bg: #000000;
+            --input-bg: #262626;
+        }
+
+        /* Force dark theme always */
+        body {
+            background: #000000 !important;
+            color: #ffffff !important;
         }
 
         body {
@@ -50,19 +45,96 @@
             display: flex;
             flex-direction: column;
             background: var(--bg-primary);
+            padding-bottom: 50px;
+            overflow: hidden;
+        }
+        
+        /* TikTok/Reels Style Scrolling */
+        .reels-container {
+            position: fixed;
+            top: 44px;
+            left: 0;
+            right: 0;
+            bottom: 50px;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            max-width: 600px;
+            margin: 0 auto;
+            scroll-behavior: smooth;
+        }
+        
+        .reels-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .reel-item {
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 94px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            overflow: hidden;
+        }
+        
+        .reel-video, .reel-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #000;
+        }
+        
+        .reel-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            color: white;
+        }
+        
+        .reel-actions {
+            position: absolute;
+            right: 12px;
+            bottom: 120px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+            z-index: 10;
+        }
+        
+        .reel-action-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .reel-action-btn:active {
+            transform: scale(0.85);
         }
 
         /* Header */
         .header {
-            background: var(--accent-color);
-            color: white;
-            padding: 12px 16px;
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             position: sticky;
             top: 0;
             z-index: 101;
+            height: 44px;
         }
 
         .announcement-banner {
@@ -90,27 +162,20 @@
         .logo {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 18px;
-            font-weight: 700;
+            justify-content: center;
+            gap: 0;
+            font-size: 24px;
+            font-weight: 400;
+            font-family: 'Lobster', 'Brush Script MT', cursive;
+            letter-spacing: 0.5px;
         }
 
         .logo-icon {
-            width: 28px;
-            height: 28px;
-            background: white;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--accent-color);
-            font-weight: 900;
-            font-size: 14px;
+            display: none;
         }
 
         .header-actions {
-            display: flex;
-            gap: 10px;
+            display: none;
         }
 
         .icon-btn {
@@ -293,53 +358,65 @@
 
         /* Top Navigation */
         .bottom-nav {
-            position: sticky;
-            top: 48px;
+            position: fixed;
+            bottom: 0;
             left: 0;
             right: 0;
             width: 100%;
-            background: var(--card-bg);
-            border-bottom: 2px solid var(--border-color);
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border-color);
             display: flex;
             justify-content: space-around;
+            align-items: center;
             padding: 8px 0;
             z-index: 100;
+            height: 50px;
         }
 
         .nav-item {
             flex: 1;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 3px;
+            justify-content: center;
             cursor: pointer;
-            color: var(--text-secondary);
-            transition: color 0.3s;
+            color: var(--text-primary);
+            transition: transform 0.2s;
             background: none;
             border: none;
-            padding: 6px 4px;
+            padding: 8px;
         }
 
         .nav-item.active {
-            color: var(--accent-color);
+            color: var(--text-primary);
+        }
+        
+        .nav-item:active {
+            transform: scale(0.9);
         }
 
         .nav-icon {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         .nav-icon svg {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
+            stroke-width: 1.5;
+        }
+
+        .nav-item.active .nav-icon svg {
+            stroke-width: 2.5;
+            fill: var(--text-primary);
         }
 
         .nav-label {
-            font-size: 10px;
-            font-weight: 500;
+            display: none;
         }
 
         /* Modal */
@@ -1476,93 +1553,99 @@
     <div id="mainApp" class="app-container" style="display: none;">
         <!-- Header -->
         <div class="header">
+            <button class="icon-btn" onclick="navigateTo('search')" style="background: none; border: none; cursor: pointer; padding: 8px;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+            </button>
             <div class="logo">
-                <div class="logo-icon">W</div>
                 <span>WargaVirtual</span>
             </div>
-            <div class="header-actions">
-                <button class="icon-btn" id="searchBtn" title="Search Users" onclick="openModal('searchModal')">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.35-4.35"></path>
-                    </svg>
-                </button>
-                <button class="icon-btn" id="notificationBtn" title="Notifications" onclick="openModal('notificationModal')" style="position: relative;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                    </svg>
-                    <span id="notificationBadge" style="display: none; position: absolute; top: -4px; right: -4px; background: #ef4444; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center;"></span>
-                </button>
-                <button class="icon-btn" id="settingsBtn" title="Settings">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
-                        <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                </button>
-            </div>
+            <button class="icon-btn" onclick="openModal('settingsModal')" style="background: none; border: none; cursor: pointer; padding: 8px;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+            </button>
         </div>
 
         <!-- Announcement Banner -->
         <div id="announcementBanner" style="display: none;"></div>
         
-        <!-- Top Navigation -->
+        <!-- Bottom Navigation (Instagram-style) -->
         <div class="bottom-nav">
             <button class="nav-item" data-page="home">
                 <div class="nav-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                         <polyline points="9 22 9 12 15 12 15 22"></polyline>
                     </svg>
                 </div>
-                <div class="nav-label" data-i18n="nav_home">Home</div>
             </button>
-            <button class="nav-item" data-page="chat">
+            <button class="nav-item" data-page="reels">
                 <div class="nav-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                        <line x1="7" y1="2" x2="7" y2="22"></line>
+                        <line x1="17" y1="2" x2="17" y2="22"></line>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <line x1="2" y1="7" x2="7" y2="7"></line>
+                        <line x1="2" y1="17" x2="7" y2="17"></line>
+                        <line x1="17" y1="17" x2="22" y2="17"></line>
+                        <line x1="17" y1="7" x2="22" y2="7"></line>
                     </svg>
                 </div>
-                <div class="nav-label" data-i18n="nav_chat">Chat</div>
             </button>
             <button class="nav-item" data-page="my-links" id="myLinksNav" style="display: none;">
                 <div class="nav-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="14" width="7" height="7"></rect>
-                        <rect x="3" y="14" width="7" height="7"></rect>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
                     </svg>
                 </div>
-                <div class="nav-label" data-i18n="nav_my_links">My Content</div>
+            </button>
+            <button class="nav-item" data-page="chat">
+                <div class="nav-icon">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </div>
+            </button>
+            <button class="nav-item" onclick="openModal('notificationModal')" style="position: relative;">
+                <div class="nav-icon">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span id="notificationBadge" style="display: none; position: absolute; top: 2px; right: 2px; background: #ef4444; color: white; border-radius: 50%; min-width: 16px; height: 16px; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; padding: 0 4px;"></span>
+                </div>
+            </button>
+            <button class="nav-item" data-page="profile">
+                <div class="nav-icon">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </div>
             </button>
             <button class="nav-item" data-page="dev-panel" id="devPanelNav" style="display: none;">
                 <div class="nav-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <polyline points="16 18 22 12 16 6"></polyline>
                         <polyline points="8 6 2 12 8 18"></polyline>
                     </svg>
                 </div>
-                <div class="nav-label" data-i18n="nav_dev">Dev Panel</div>
             </button>
             <button class="nav-item" data-page="admin-panel" id="adminPanelNav" style="display: none;">
                 <div class="nav-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
                         <path d="M2 17l10 5 10-5"></path>
                         <path d="M2 12l10 5 10-5"></path>
                     </svg>
                 </div>
-                <div class="nav-label">Admin Panel</div>
-            </button>
-            <button class="nav-item" data-page="profile">
-                <div class="nav-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                </div>
-                <div class="nav-label" data-i18n="nav_profile">Profile</div>
             </button>
         </div>
 
@@ -2717,6 +2800,12 @@
                 case 'home':
                     renderHomePage(content);
                     break;
+                case 'reels':
+                    renderReelsPage(content);
+                    break;
+                case 'search':
+                    renderSearchPage(content);
+                    break;
                 case 'chat':
                     renderChatPage(content);
                     break;
@@ -2766,39 +2855,748 @@
                 .sort((a, b) => b[1].createdAt - a[1].createdAt);
             
             content.innerHTML = `
-                <div style="background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 10px; padding: 12px 16px; margin-bottom: 16px;">
-                    <h3 style="margin-bottom: 10px; font-size: 14px; font-weight: 600; color: var(--text-secondary);">Saran untuk Anda</h3>
-                    <div id="suggestedUsers"></div>
+                <div style="padding: 16px;">
+                    <h2 style="margin-bottom: 16px; font-size: 18px; font-weight: 700;">Untuk Anda</h2>
+                    ${allLinks.length === 0 ? `
+                        <div class="empty-state" style="padding: 60px 20px; text-align: center;">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.3; margin: 0 auto 16px;">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            <p style="color: var(--text-secondary);">Belum ada konten</p>
+                        </div>
+                    ` : renderLinksList(allLinks)}
                 </div>
-                
-                <h2 style="margin-bottom: 16px;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 8px;">
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
-                    </svg>
-                    Untuk Anda
-                </h2>
-                ${allLinks.length === 0 ? `
-                    <div class="empty-state">
-                        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.3;">
-                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            `;
+        }
+
+        function renderReelsPage(content) {
+            const t = translations[currentLanguage];
+            
+            // Get all links sorted by date (newest first)
+            const allLinks = Object.entries(links)
+                .sort((a, b) => b[1].createdAt - a[1].createdAt)
+                .slice(0, 50); // Load first 50 for performance
+            
+            if (allLinks.length === 0) {
+                content.innerHTML = `
+                    <div class="empty-state" style="height: calc(100vh - 94px); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.3;">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
                         </svg>
-                        <p>Belum ada konten</p>
+                        <p style="margin-top: 16px; color: var(--text-secondary);">Belum ada konten</p>
                     </div>
-                ` : renderLinksList(allLinks)}
+                `;
+                return;
+            }
+            
+            // Create TikTok/Reels style vertical scrolling
+            content.innerHTML = `
+                <div class="reels-container" id="reelsContainer">
+                    ${allLinks.map(([id, link], index) => {
+                        const likes = linkLikes[id] || [];
+                        const isLiked = likes.includes(currentUser);
+                        const likeCount = likes.length;
+                        const comments = linkComments[id] || [];
+                        const commentCount = comments.length;
+                        const isFavorited = favoriteLinks[id] || false;
+                        const profilePic = profilePics[link.author];
+                        
+                        // Get first media
+                        const mediaArray = Array.isArray(link.media) ? link.media : (link.media ? [{data: link.media, type: link.mediaType}] : []);
+                        const firstMedia = mediaArray[0];
+                        
+                        if (!firstMedia) return '';
+                        
+                        return `
+                            <div class="reel-item" data-id="${id}" data-index="${index}">
+                                ${firstMedia.type === 'video' ? `
+                                    <video class="reel-video" id="reel-video-${id}" 
+                                        src="${firstMedia.data}" 
+                                        loop 
+                                        playsinline
+                                        onclick="toggleVideoPlay('${id}')">
+                                    </video>
+                                ` : `
+                                    <img class="reel-image" src="${firstMedia.data}" alt="">
+                                `}
+                                
+                                <div class="reel-overlay">
+                                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                        <div class="user-avatar" style="width: 32px; height: 32px; border: 2px solid rgba(255,255,255,0.3); ${profilePic ? `background-image: url(${profilePic}); font-size: 0;` : ''}" onclick="viewUserProfile('${link.author}'); navigateTo('profile');">
+                                            ${!profilePic ? link.author[0].toUpperCase() : ''}
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span style="font-weight: 700; font-size: 14px; cursor: pointer;" onclick="viewUserProfile('${link.author}'); navigateTo('profile');">${link.author}</span>
+                                                ${getUserBadges(link.author)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="font-size: 13px; line-height: 1.5; margin-bottom: 6px; max-height: 80px; overflow-y: auto; padding-right: 50px;">
+                                        ${formatTextWithHashtags(link.title).substring(0, 200)}${link.title.length > 200 ? '...' : ''}
+                                    </div>
+                                    ${link.url ? `
+                                        <a href="${link.url}" target="_blank" style="font-size: 11px; color: #2481cc; text-decoration: none; word-break: break-all;">${link.url.substring(0, 50)}${link.url.length > 50 ? '...' : ''}</a>
+                                    ` : ''}
+                                </div>
+                                
+                                <div class="reel-actions">
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="${isLiked ? '#ff0000' : 'none'}" stroke="white" stroke-width="2" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); cursor: pointer;" onclick="event.stopPropagation(); toggleReelLike('${id}')">
+                                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                        </svg>
+                                        ${likeCount > 0 ? `<span style="font-size: 11px; color: white; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5);" id="reel-like-count-${id}">${likeCount}</span>` : '<span style="font-size: 11px; color: white; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5); display: none;" id="reel-like-count-${id}">0</span>'}
+                                    </div>
+                                    
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); cursor: pointer;" onclick="event.stopPropagation(); openReelComments('${id}')">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                        </svg>
+                                        ${commentCount > 0 ? `<span style="font-size: 11px; color: white; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5);" id="reel-comment-count-${id}">${commentCount}</span>` : '<span style="font-size: 11px; color: white; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5); display: none;" id="reel-comment-count-${id}">0</span>'}
+                                    </div>
+                                    
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="${isFavorited ? '#ffd700' : 'none'}" stroke="white" stroke-width="2" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); cursor: pointer;" onclick="event.stopPropagation(); toggleReelFavorite('${id}')">
+                                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                        </svg>
+                                    </div>
+                                    
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); cursor: pointer;" onclick="event.stopPropagation(); showReelDownload('${id}')">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="7 10 12 15 17 10"></polyline>
+                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                        </svg>
+                                    </div>
+                                    
+                                    ${mediaArray.length > 1 ? `
+                                        <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="1.5" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); cursor: pointer;" onclick="event.stopPropagation(); openLinkDetail('${id}')">
+                                                <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                                                <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                                                <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                                                <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                                            </svg>
+                                            <span style="font-size: 11px; color: white; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">${mediaArray.length}</span>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
             `;
             
-            // Load suggested users after render
-            setTimeout(() => loadSuggestedUsers(), 300);
+            // Setup video autoplay on scroll
+            setTimeout(() => setupReelsAutoplay(), 100);
+        }
+        
+        function setupReelsAutoplay() {
+            const container = document.getElementById('reelsContainer');
+            if (!container) return;
+            
+            const reels = container.querySelectorAll('.reel-item');
+            let currentReelIndex = 0;
+            
+            // Play first video
+            playReelVideo(0);
+            
+            // Intersection Observer for autoplay
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const video = entry.target.querySelector('video');
+                    if (entry.isIntersecting) {
+                        if (video) {
+                            video.play().catch(() => {});
+                        }
+                        currentReelIndex = parseInt(entry.target.dataset.index);
+                    } else {
+                        if (video) {
+                            video.pause();
+                        }
+                    }
+                });
+            }, { threshold: 0.7 });
+            
+            reels.forEach(reel => observer.observe(reel));
+        }
+        
+        function playReelVideo(index) {
+            const video = document.querySelector(`.reel-item[data-index="${index}"] video`);
+            if (video) {
+                video.play().catch(() => {});
+            }
+        }
+        
+        window.toggleVideoPlay = function(id) {
+            const video = document.getElementById('reel-video-' + id);
+            if (video) {
+                const pauseIcon = document.getElementById('pause-icon-' + id);
+                if (video.paused) {
+                    video.play();
+                    if (pauseIcon) pauseIcon.style.display = 'none';
+                } else {
+                    video.pause();
+                    // Show pause icon
+                    if (!pauseIcon) {
+                        const icon = document.createElement('div');
+                        icon.id = 'pause-icon-' + id;
+                        icon.style.cssText = `
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            width: 80px;
+                            height: 80px;
+                            background: rgba(0,0,0,0.6);
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            pointer-events: none;
+                            animation: fadeOut 0.6s forwards;
+                            z-index: 5;
+                        `;
+                        icon.innerHTML = `
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="white">
+                                <rect x="6" y="4" width="4" height="16"></rect>
+                                <rect x="14" y="4" width="4" height="16"></rect>
+                            </svg>
+                        `;
+                        video.parentElement.appendChild(icon);
+                        
+                        // Add fadeOut animation
+                        if (!document.getElementById('pause-animation')) {
+                            const style = document.createElement('style');
+                            style.id = 'pause-animation';
+                            style.textContent = `
+                                @keyframes fadeOut {
+                                    0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                                    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
+                                }
+                                @keyframes slideUp {
+                                    from { transform: translateY(100%); }
+                                    to { transform: translateY(0); }
+                                }
+                                @keyframes slideDown {
+                                    from { transform: translateY(0); }
+                                    to { transform: translateY(100%); }
+                                }
+                            `;
+                            document.head.appendChild(style);
+                        }
+                        
+                        setTimeout(() => {
+                            if (icon.parentElement) icon.remove();
+                        }, 600);
+                    } else {
+                        pauseIcon.style.display = 'flex';
+                        pauseIcon.style.animation = 'fadeOut 0.6s forwards';
+                        setTimeout(() => {
+                            pauseIcon.style.display = 'none';
+                        }, 600);
+                    }
+                }
+            }
+        };
+        
+        window.openReelComments = function(linkId) {
+            const link = links[linkId];
+            if (!link) return;
+            
+            // Create bottom sheet
+            const sheet = document.createElement('div');
+            sheet.id = 'commentBottomSheet';
+            sheet.style.cssText = `
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                max-width: 600px;
+                margin: 0 auto;
+                background: var(--bg-primary);
+                border-radius: 16px 16px 0 0;
+                z-index: 1001;
+                max-height: 70vh;
+                display: flex;
+                flex-direction: column;
+                animation: slideUp 0.3s ease-out;
+            `;
+            
+            const comments = linkComments[linkId] || [];
+            const commentCount = comments.length;
+            
+            sheet.innerHTML = `
+                <div style="padding: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; position: relative;">
+                    <div style="width: 40px; height: 4px; background: var(--border-color); border-radius: 2px; margin-bottom: 8px;"></div>
+                    <h3 style="position: absolute; font-size: 16px; font-weight: 600;">${commentCount} Komentar</h3>
+                </div>
+                <div style="flex: 1; overflow-y: auto; padding: 12px;" id="bottomSheetComments">
+                    ${comments.length === 0 ? `
+                        <p style="text-align: center; color: var(--text-secondary); padding: 40px 20px;">
+                            Belum ada komentar
+                        </p>
+                    ` : comments.map(comment => renderComment(comment, linkId, link.author)).join('')}
+                </div>
+                <div class="comment-input-area" style="border-top: 1px solid var(--border-color); padding: 12px;">
+                    <textarea class="comment-input" id="bottomsheet-comment-input-${linkId}" placeholder="Tulis komentar..." rows="1"></textarea>
+                    <button class="comment-send-btn" onclick="addReelComment('${linkId}')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            
+            // Add backdrop
+            const backdrop = document.createElement('div');
+            backdrop.id = 'commentBackdrop';
+            backdrop.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.7);
+                z-index: 1000;
+            `;
+            backdrop.onclick = () => closeReelComments();
+            
+            document.body.appendChild(backdrop);
+            document.body.appendChild(sheet);
+            
+            // Setup mention detection
+            const input = document.getElementById('bottomsheet-comment-input-' + linkId);
+            if (input) {
+                setupMentionDetection(input);
+            }
+        };
+        
+        window.closeReelComments = function() {
+            const sheet = document.getElementById('commentBottomSheet');
+            const backdrop = document.getElementById('commentBackdrop');
+            
+            if (sheet) {
+                sheet.style.animation = 'slideDown 0.3s ease-out';
+                setTimeout(() => {
+                    sheet.remove();
+                    if (backdrop) backdrop.remove();
+                }, 300);
+            }
+        };
+        
+        window.addReelComment = function(linkId) {
+            const input = document.getElementById('bottomsheet-comment-input-' + linkId);
+            const text = input.value.trim();
+            if (!text) return;
+            
+            if (!linkComments[linkId]) {
+                linkComments[linkId] = [];
+            }
+            
+            const comment = {
+                id: Date.now().toString(),
+                author: currentUser,
+                text: text,
+                timestamp: Date.now(),
+                likes: [],
+                replies: []
+            };
+            
+            linkComments[linkId].push(comment);
+            
+            // Extract and notify mentioned users
+            const mentionedUsers = extractMentions(text);
+            if (mentionedUsers.length > 0) {
+                notifyMentionedUsers(mentionedUsers, 'komentar', linkId);
+            }
+            
+            // Send notification to post author
+            const link = links[linkId];
+            if (link && link.author !== currentUser) {
+                addNotification(
+                    link.author,
+                    'comment',
+                    currentUser,
+                    `${currentUser} berkomentar di konten Anda`,
+                    linkId
+                );
+            }
+            
+            if (!isFirebaseConfigured) {
+                localStorage.setItem('linkComments', JSON.stringify(linkComments));
+            } else {
+                set(ref(database, 'linkComments/' + linkId), linkComments[linkId]);
+            }
+            
+            input.value = '';
+            hideMentionSuggestions();
+            
+            // Refresh comments in bottom sheet
+            const commentsContainer = document.getElementById('bottomSheetComments');
+            if (commentsContainer) {
+                const comments = linkComments[linkId] || [];
+                commentsContainer.innerHTML = comments.map(comment => renderComment(comment, linkId, link.author)).join('');
+                
+                // Update count
+                const countEl = document.querySelector('#commentBottomSheet h3');
+                if (countEl) countEl.textContent = comments.length + ' Komentar';
+            }
+            
+            // Update count in reel
+            updateReelCommentCount(linkId);
+        };
+        
+        function updateReelCommentCount(linkId) {
+            const commentCount = (linkComments[linkId] || []).length;
+            const countSpan = document.getElementById('reel-comment-count-' + linkId);
+            if (countSpan) {
+                if (commentCount > 0) {
+                    countSpan.textContent = commentCount;
+                    countSpan.style.display = 'block';
+                } else {
+                    countSpan.style.display = 'none';
+                }
+            }
+        }
+        
+        window.toggleReelLike = function(linkId) {
+            if (!linkLikes[linkId]) {
+                linkLikes[linkId] = [];
+            }
+            
+            const index = linkLikes[linkId].indexOf(currentUser);
+            const wasLiked = index > -1;
+            
+            if (wasLiked) {
+                linkLikes[linkId].splice(index, 1);
+            } else {
+                linkLikes[linkId].push(currentUser);
+                
+                // Send notification
+                const link = links[linkId];
+                if (link && link.author !== currentUser) {
+                    addNotification(
+                        link.author,
+                        'like',
+                        currentUser,
+                        `${currentUser} menyukai konten Anda`,
+                        linkId
+                    );
+                }
+            }
+            
+            if (!isFirebaseConfigured) {
+                localStorage.setItem('linkLikes', JSON.stringify(linkLikes));
+            } else {
+                set(ref(database, 'linkLikes/' + linkId), linkLikes[linkId]);
+            }
+            
+            // Update UI real-time
+            const likeCount = linkLikes[linkId].length;
+            const isLiked = !wasLiked;
+            
+            const reelItem = document.querySelector(`[data-id="${linkId}"]`);
+            if (reelItem) {
+                const svg = reelItem.querySelector('.reel-actions svg');
+                if (svg) {
+                    svg.setAttribute('fill', isLiked ? '#ff0000' : 'none');
+                }
+                
+                const countSpan = document.getElementById('reel-like-count-' + linkId);
+                if (countSpan) {
+                    if (likeCount > 0) {
+                        countSpan.textContent = likeCount;
+                        countSpan.style.display = 'block';
+                    } else {
+                        countSpan.style.display = 'none';
+                    }
+                }
+            }
+        };
+        
+        window.toggleReelFavorite = function(linkId) {
+            const wasFavorited = favoriteLinks[linkId];
+            favoriteLinks[linkId] = !favoriteLinks[linkId];
+            
+            // Send notification if favoriting
+            if (!wasFavorited && favoriteLinks[linkId]) {
+                const link = links[linkId];
+                if (link && link.author !== currentUser) {
+                    addNotification(
+                        link.author,
+                        'favorite',
+                        currentUser,
+                        `${currentUser} menyimpan konten Anda`,
+                        linkId
+                    );
+                }
+            }
+            
+            if (!isFirebaseConfigured) {
+                localStorage.setItem('favoriteLinks', JSON.stringify(favoriteLinks));
+            } else {
+                set(ref(database, 'favoriteLinks/' + currentUser), favoriteLinks);
+            }
+            
+            // Update UI
+            const reelItem = document.querySelector(`[data-id="${linkId}"]`);
+            if (reelItem) {
+                const favSvg = reelItem.querySelectorAll('.reel-actions svg')[2];
+                if (favSvg) {
+                    favSvg.setAttribute('fill', favoriteLinks[linkId] ? '#ffd700' : 'none');
+                }
+            }
+        };
+        
+        window.showReelDownload = function(linkId) {
+            const link = links[linkId];
+            if (!link) return;
+            
+            const mediaArray = Array.isArray(link.media) ? link.media : (link.media ? [{data: link.media, type: link.mediaType}] : []);
+            
+            // Create custom download modal
+            const modal = document.createElement('div');
+            modal.id = 'downloadModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.8);
+                z-index: 2000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: fadeIn 0.2s;
+            `;
+            
+            const content = document.createElement('div');
+            content.style.cssText = `
+                background: var(--card-bg);
+                border-radius: 16px;
+                width: 90%;
+                max-width: 400px;
+                max-height: 70vh;
+                overflow-y: auto;
+            `;
+            
+            content.innerHTML = `
+                <div style="padding: 20px; border-bottom: 1px solid var(--border-color);">
+                    <h3 style="font-size: 18px; font-weight: 700; text-align: center;">Unduh Media</h3>
+                </div>
+                <div style="padding: 12px;">
+                    ${mediaArray.map((media, index) => `
+                        <div style="padding: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 12px; cursor: pointer;" onclick="downloadSingleMedia('${media.data}', '${media.type}', ${index})">
+                            <div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; background: #000;">
+                                ${media.type === 'image' ? 
+                                    `<img src="${media.data}" style="width: 100%; height: 100%; object-fit: cover;">` :
+                                    `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                        </svg>
+                                    </div>`
+                                }
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600;">${media.type === 'image' ? 'Foto' : 'Video'} ${index + 1}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">Klik untuk unduh</div>
+                            </div>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="padding: 12px;">
+                    <button onclick="closeDownloadModal()" style="width: 100%; padding: 12px; background: var(--input-bg); border: none; border-radius: 8px; color: var(--text-primary); font-weight: 600; cursor: pointer;">
+                        Tutup
+                    </button>
+                </div>
+            `;
+            
+            modal.appendChild(content);
+            modal.onclick = (e) => {
+                if (e.target === modal) closeDownloadModal();
+            };
+            
+            document.body.appendChild(modal);
+        };
+        
+        window.downloadSingleMedia = function(dataUrl, type, index) {
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = `wargavirtual_${type}_${Date.now()}_${index + 1}.${type === 'image' ? 'jpg' : 'mp4'}`;
+            link.click();
+        };
+        
+        window.closeDownloadModal = function() {
+            const modal = document.getElementById('downloadModal');
+            if (modal) modal.remove();
+        };
+
+        function renderSearchPage(content) {
+            content.innerHTML = `
+                <div style="padding: 12px; position: sticky; top: 44px; background: var(--bg-primary); z-index: 10; border-bottom: 1px solid var(--border-color);">
+                    <div style="position: relative;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.5;">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                        <input type="text" id="searchInput" placeholder="Cari username, #hashtag, atau caption..." 
+                            style="width: 100%; padding: 10px 12px 10px 40px; border-radius: 8px; border: none; background: var(--input-bg); color: var(--text-primary); font-size: 14px;">
+                    </div>
+                </div>
+                <div id="searchResults" style="padding: 0;"></div>
+            `;
+            
+            const searchInput = document.getElementById('searchInput');
+            const results = document.getElementById('searchResults');
+            
+            // Auto-focus
+            setTimeout(() => searchInput.focus(), 100);
+            
+            searchInput.addEventListener('input', debounce(function(e) {
+                const query = e.target.value.toLowerCase().trim();
+                
+                if (!query) {
+                    results.innerHTML = `
+                        <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="opacity: 0.3; margin: 0 auto 16px;">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.35-4.35"></path>
+                            </svg>
+                            <p>Cari pengguna, hashtag, atau konten</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                performSearch(query, results);
+            }, 300));
+        }
+        
+        function performSearch(query, resultsContainer) {
+            let resultHTML = '';
+            
+            // Search users
+            const filteredUsers = Object.values(users).filter(user => 
+                user.username.toLowerCase().includes(query)
+            );
+
+            if (filteredUsers.length > 0) {
+                resultHTML += '<div style="padding: 16px 16px 8px; font-weight: 700; font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Pengguna</div>';
+                resultHTML += filteredUsers.slice(0, 5).map(user => {
+                    const profilePic = profilePics[user.username];
+                    return `
+                        <div class="user-card" onclick="viewUserProfile('${user.username}'); navigateTo('profile');" style="cursor: pointer; padding: 12px 16px; border-bottom: 1px solid var(--border-color);">
+                            <div class="user-info">
+                                <div class="user-avatar" style="width: 44px; height: 44px; ${profilePic ? `background-image: url(${profilePic}); font-size: 0;` : ''}">${!profilePic ? user.username[0].toUpperCase() : ''}</div>
+                                <div class="user-details">
+                                    <h3 style="font-size: 14px; font-weight: 600;">
+                                        ${user.username}
+                                        ${getUserBadges(user.username)}
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            // Search content by hashtags and captions
+            const isHashtagSearch = query.startsWith('#');
+            const searchTerm = isHashtagSearch ? query.substring(1) : query;
+            
+            const matchingContent = Object.entries(links).filter(([id, link]) => {
+                if (isHashtagSearch) {
+                    const hashtags = (link.title.match(/#[\w]+/g) || []).map(h => h.toLowerCase());
+                    return hashtags.some(h => h.includes('#' + searchTerm));
+                } else {
+                    return link.title.toLowerCase().includes(searchTerm);
+                }
+            }).slice(0, 20);
+
+            if (matchingContent.length > 0) {
+                resultHTML += `<div style="padding: 16px 16px 8px; font-weight: 700; font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">${isHashtagSearch ? 'Hashtag' : 'Konten'}</div>`;
+                resultHTML += `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 0;">`;
+                resultHTML += matchingContent.map(([id, link]) => {
+                    const mediaArray = Array.isArray(link.media) ? link.media : (link.media ? [{data: link.media, type: link.mediaType}] : []);
+                    const firstMedia = mediaArray[0];
+                    const likes = (linkLikes[id] || []).length;
+                    const comments = (linkComments[id] || []).length;
+                    
+                    if (firstMedia) {
+                        if (firstMedia.type === 'image') {
+                            return `
+                                <div style="aspect-ratio: 1; background-image: url(${firstMedia.data}); background-size: cover; background-position: center; cursor: pointer; position: relative;" onclick="openLinkDetail('${id}')">
+                                    ${mediaArray.length > 1 ? `
+                                        <div style="position: absolute; top: 6px; right: 6px;">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="white" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));">
+                                                <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                                                <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                                                <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                                                <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                                            </svg>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `;
+                        } else {
+                            return `
+                                <div style="aspect-ratio: 1; background: #000; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative;" onclick="openLinkDetail('${id}')">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                    </svg>
+                                    <div style="position: absolute; top: 6px; right: 6px;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="white" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));">
+                                            <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                                            <polygon points="14 7 7 12 14 17 14 7"></polygon>
+                                        </svg>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                    return '';
+                }).join('');
+                resultHTML += '</div>';
+            }
+            
+            if (!resultHTML) {
+                resultsContainer.innerHTML = `
+                    <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="opacity: 0.3; margin: 0 auto 16px;">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="11" y1="8" x2="11" y2="12"></line>
+                            <line x1="11" y1="16" x2="11.01" y2="16"></line>
+                        </svg>
+                        <p>Tidak ada hasil</p>
+                    </div>
+                `;
+            } else {
+                resultsContainer.innerHTML = resultHTML;
+            }
         }
 
         function renderLinksList(linkEntries) {
             const canDeleteAny = currentUser === DEVELOPER_USERNAME || adminUsers.includes(currentUser);
             
-            // Load only first 15 links initially for better performance
-            const linksToShow = linkEntries.slice(0, 15);
+            // Load only first 10 links initially for better performance
+            const linksToShow = linkEntries.slice(0, 10);
+            const hasMore = linkEntries.length > 10;
             
-            // Use map with minimal DOM operations
+            // Use DocumentFragment for better DOM performance
             const html = linksToShow.map(([id, link]) => {
                 const likes = linkLikes[id] || [];
                 const isLiked = likes.includes(currentUser);
@@ -2886,8 +3684,52 @@
                 `;
             });
             
-            return html.join('');
+            let result = html.join('');
+            
+            // Add load more button if there are more links
+            if (hasMore) {
+                result += `
+                    <div style="text-align: center; padding: 20px;">
+                        <button class="btn btn-secondary" onclick="loadMoreLinks()" id="loadMoreBtn">
+                            Muat Lebih Banyak
+                        </button>
+                    </div>
+                `;
+            }
+            
+            return result;
         }
+        
+        let currentLinkOffset = 10;
+        window.loadMoreLinks = function() {
+            const allLinks = Object.entries(links).sort((a, b) => b[1].createdAt - a[1].createdAt);
+            const nextBatch = allLinks.slice(currentLinkOffset, currentLinkOffset + 10);
+            
+            if (nextBatch.length > 0) {
+                const newHTML = nextBatch.map(([id, link]) => {
+                    // Reuse same rendering logic (copy from above)
+                    const likes = linkLikes[id] || [];
+                    const isLiked = likes.includes(currentUser);
+                    const likeCount = likes.length;
+                    const comments = linkComments[id] || [];
+                    const commentCount = comments.length;
+                    const isFavorited = favoriteLinks[id] || false;
+                    const canDeleteAny = currentUser === DEVELOPER_USERNAME || adminUsers.includes(currentUser);
+                    
+                    return `<div class="link-card" id="link-${id}">...</div>`;
+                }).join('');
+                
+                const loadMoreBtn = document.getElementById('loadMoreBtn');
+                if (loadMoreBtn) {
+                    loadMoreBtn.insertAdjacentHTML('beforebegin', newHTML);
+                    currentLinkOffset += 10;
+                    
+                    if (currentLinkOffset >= allLinks.length) {
+                        loadMoreBtn.remove();
+                    }
+                }
+            }
+        };
 
         function renderMyLinksPage(content) {
             const t = translations[currentLanguage];
@@ -4503,7 +5345,7 @@
             if (commentCountEl) commentCountEl.textContent = comments.length;
             
             if (comments.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px 20px; font-size: 13px;">Belum ada komentar. Jadilah yang pertama! 💬</p>';
+                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px 20px; font-size: 13px;">Belum ada komentar. Jadilah yang pertama!</p>';
                 return;
             }
             
@@ -4975,6 +5817,12 @@
                     reader.readAsDataURL(file);
                 }
             });
+            
+            // Setup mention detection
+            const chatInput = document.getElementById('publicChatInput');
+            if (chatInput) {
+                setupMentionDetection(chatInput);
+            }
 
             displayPublicMessages();
         }
@@ -5040,11 +5888,11 @@
                         ${msg.replyTo ? `
                             <div style="background: rgba(99, 102, 241, 0.1); padding: 6px 10px; border-radius: 8px; margin-bottom: 6px; font-size: 12px; border-left: 3px solid var(--accent-color);">
                                 <div style="font-weight: 600; color: var(--accent-color); margin-bottom: 2px;">↩ Balas ${msg.replyTo.author}</div>
-                                <div style="opacity: 0.8;">${msg.replyTo.text ? msg.replyTo.text.substring(0, 50) + (msg.replyTo.text.length > 50 ? '...' : '') : '📷 Foto'}</div>
+                                <div style="opacity: 0.8;">${msg.replyTo.text ? msg.replyTo.text.substring(0, 50) + (msg.replyTo.text.length > 50 ? '...' : '') : 'Foto'}</div>
                             </div>
                         ` : ''}
                         <div class="chat-message-bubble">
-                            ${msg.text || ''}
+                            ${msg.text ? formatTextWithMentions(msg.text) : ''}
                             ${msg.image ? `<img src="${msg.image}" class="chat-message-image" onclick="openPhotoPreview('${msg.image}')" style="cursor: pointer;">` : ''}
                         </div>
                         <div style="display: flex; gap: 8px; margin-top: 4px;">
@@ -5082,7 +5930,7 @@
             
             document.getElementById('replyIndicator').style.display = 'block';
             document.getElementById('replyToUsername').textContent = author;
-            document.getElementById('replyToText').textContent = text || (hasImage ? '📷 Foto' : '');
+            document.getElementById('replyToText').textContent = text || (hasImage ? 'Foto' : '');
             document.getElementById('publicChatInput').focus();
         };
 
@@ -5111,6 +5959,14 @@
             };
 
             publicChat.push(message);
+            
+            // Notify mentioned users
+            if (text) {
+                const mentionedUsers = extractMentions(text);
+                if (mentionedUsers.length > 0) {
+                    notifyMentionedUsers(mentionedUsers, 'chat publik', null);
+                }
+            }
 
             if (!isFirebaseConfigured) {
                 localStorage.setItem('publicChat', JSON.stringify(publicChat));
@@ -5120,6 +5976,7 @@
 
             if (input) input.value = '';
             cancelReply();
+            hideMentionSuggestions();
             displayPublicMessages();
         };
 
@@ -5317,7 +6174,7 @@
             
             document.getElementById('privateReplyIndicator').style.display = 'block';
             document.getElementById('privateReplyToUsername').textContent = author;
-            document.getElementById('privateReplyToText').textContent = text || (hasImage ? '📷 Foto' : '');
+            document.getElementById('privateReplyToText').textContent = text || (hasImage ? 'Foto' : '');
             document.getElementById('privateChatInput').focus();
         };
 
@@ -5685,7 +6542,7 @@
                             ${isLikedByAuthor && linkAuthor !== comment.author ? `<div class="author-badge" style="background-image: url(${linkAuthorPic || ''});">${!linkAuthorPic ? linkAuthor[0].toUpperCase() : ''}</div>` : ''}
                         </div>
                     </div>
-                    <div class="comment-text">${comment.text}</div>
+                    <div class="comment-text">${formatTextWithMentions(comment.text)}</div>
                     <div class="comment-footer">
                         <span class="comment-time">${timeAgo}</span>
                         <span class="comment-action ${isLiked ? 'liked' : ''}" onclick="toggleCommentLike('${linkId}', '${comment.id}')">
@@ -5775,6 +6632,150 @@
             }
         };
 
+        // Tagging System (@mentions)
+        let currentMentionInput = null;
+        let mentionSuggestions = null;
+        
+        function setupMentionDetection(inputElement) {
+            currentMentionInput = inputElement;
+            
+            inputElement.addEventListener('input', function(e) {
+                detectMention(inputElement);
+            });
+            
+            inputElement.addEventListener('keydown', function(e) {
+                if (mentionSuggestions && mentionSuggestions.style.display !== 'none') {
+                    if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter') {
+                        e.preventDefault();
+                        navigateMentionSuggestions(e.key);
+                    }
+                }
+            });
+        }
+        
+        function detectMention(input) {
+            const text = input.value;
+            const cursorPos = input.selectionStart;
+            const textBeforeCursor = text.substring(0, cursorPos);
+            const match = textBeforeCursor.match(/@(\w*)$/);
+            
+            if (match) {
+                const query = match[1].toLowerCase();
+                showMentionSuggestions(query, input);
+            } else {
+                hideMentionSuggestions();
+            }
+        }
+        
+        function showMentionSuggestions(query, input) {
+            const matchedUsers = Object.values(users)
+                .filter(u => u.username.toLowerCase().includes(query) && u.username !== currentUser)
+                .slice(0, 5);
+            
+            if (matchedUsers.length === 0) {
+                hideMentionSuggestions();
+                return;
+            }
+            
+            if (!mentionSuggestions) {
+                mentionSuggestions = document.createElement('div');
+                mentionSuggestions.id = 'mentionSuggestions';
+                mentionSuggestions.style.cssText = `
+                    position: absolute;
+                    background: var(--card-bg);
+                    border: 1px solid var(--border-color);
+                    border-radius: 8px;
+                    max-height: 200px;
+                    overflow-y: auto;
+                    z-index: 1000;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                `;
+                document.body.appendChild(mentionSuggestions);
+            }
+            
+            const rect = input.getBoundingClientRect();
+            mentionSuggestions.style.left = rect.left + 'px';
+            mentionSuggestions.style.bottom = (window.innerHeight - rect.top + 5) + 'px';
+            mentionSuggestions.style.width = rect.width + 'px';
+            
+            mentionSuggestions.innerHTML = matchedUsers.map(user => {
+                const profilePic = profilePics[user.username];
+                return `
+                    <div class="mention-suggestion-item" data-username="${user.username}" style="
+                        padding: 10px 12px;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        border-bottom: 1px solid var(--border-color);
+                    " onmouseover="this.style.background='var(--input-bg)'" onmouseout="this.style.background='transparent'" onclick="insertMention('${user.username}')">
+                        <div class="user-avatar" style="width: 32px; height: 32px; ${profilePic ? `background-image: url(${profilePic}); font-size: 0;` : ''}">${!profilePic ? user.username[0].toUpperCase() : ''}</div>
+                        <div>
+                            <div style="font-weight: 600; font-size: 13px;">${user.username}</div>
+                            ${getUserBadges(user.username)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            mentionSuggestions.style.display = 'block';
+        }
+        
+        function hideMentionSuggestions() {
+            if (mentionSuggestions) {
+                mentionSuggestions.style.display = 'none';
+            }
+        }
+        
+        function insertMention(username) {
+            if (!currentMentionInput) return;
+            
+            const text = currentMentionInput.value;
+            const cursorPos = currentMentionInput.selectionStart;
+            const textBeforeCursor = text.substring(0, cursorPos);
+            const textAfterCursor = text.substring(cursorPos);
+            
+            // Replace @partial with @username
+            const newTextBefore = textBeforeCursor.replace(/@\w*$/, '@' + username + ' ');
+            currentMentionInput.value = newTextBefore + textAfterCursor;
+            
+            // Set cursor position after mention
+            const newCursorPos = newTextBefore.length;
+            currentMentionInput.selectionStart = newCursorPos;
+            currentMentionInput.selectionEnd = newCursorPos;
+            currentMentionInput.focus();
+            
+            hideMentionSuggestions();
+        }
+        
+        function extractMentions(text) {
+            const mentions = text.match(/@(\w+)/g);
+            return mentions ? mentions.map(m => m.substring(1)) : [];
+        }
+        
+        function notifyMentionedUsers(mentionedUsers, type, linkId) {
+            mentionedUsers.forEach(username => {
+                if (username !== currentUser && users[username]) {
+                    addNotification(
+                        username,
+                        'mention',
+                        currentUser,
+                        `${currentUser} menyebut Anda di ${type}`,
+                        linkId
+                    );
+                }
+            });
+        }
+        
+        function formatTextWithMentions(text) {
+            return text.replace(/@(\w+)/g, (match, username) => {
+                if (users[username]) {
+                    return `<span class="mention" onclick="viewUserProfile('${username}'); navigateTo('profile');" style="color: var(--accent-color); font-weight: 600; cursor: pointer;">@${username}</span>`;
+                }
+                return match;
+            });
+        }
+
         window.addComment = function(linkId) {
             const input = document.getElementById('comment-input-' + linkId);
             const text = input.value.trim();
@@ -5795,7 +6796,13 @@
             
             linkComments[linkId].push(comment);
             
-            // Send notification
+            // Extract and notify mentioned users
+            const mentionedUsers = extractMentions(text);
+            if (mentionedUsers.length > 0) {
+                notifyMentionedUsers(mentionedUsers, 'komentar', linkId);
+            }
+            
+            // Send notification to post author
             const link = links[linkId];
             if (link && link.author !== currentUser) {
                 addNotification(
@@ -5814,6 +6821,7 @@
             }
             
             input.value = '';
+            hideMentionSuggestions();
             refreshComments(linkId);
         };
 
@@ -5970,6 +6978,12 @@
             const commentsSection = document.getElementById('comments-' + linkId);
             if (commentsSection) {
                 commentsSection.innerHTML = renderCommentSection(linkId, link.author);
+                
+                // Setup mention detection on comment input
+                const commentInput = document.getElementById('comment-input-' + linkId);
+                if (commentInput) {
+                    setupMentionDetection(commentInput);
+                }
                 
                 // Update comment count
                 const commentBtn = document.querySelector(`#link-${linkId} .comment-btn span`);
@@ -6131,10 +7145,26 @@
                                         ${preview}
                                         <div style="flex: 1; min-width: 0;">
                                             <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${formatTextWithHashtags(link.title)}</div>
-                                            <div style="font-size: 11px; color: var(--text-secondary); display: flex; gap: 12px;">
-                                                <span>👤 ${link.author}</span>
-                                                <span>❤️ ${likes}</span>
-                                                <span>💬 ${comments}</span>
+                                            <div style="font-size: 11px; color: var(--text-secondary); display: flex; gap: 12px; align-items: center;">
+                                                <span style="display: flex; align-items: center; gap: 4px;">
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                        <circle cx="12" cy="7" r="4"></circle>
+                                                    </svg>
+                                                    ${link.author}
+                                                </span>
+                                                <span style="display: flex; align-items: center; gap: 4px;">
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                                    </svg>
+                                                    ${likes}
+                                                </span>
+                                                <span style="display: flex; align-items: center; gap: 4px;">
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                                    </svg>
+                                                    ${comments}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
