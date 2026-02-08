@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Firebase Debug</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --bg:#0d0d0d;
+  --panel:#161616;
+  --border:#262626;
+  --blue:#2f7cf6;
+  --green:#4cff9a;
+  --yellow:#ffd84d;
+  --red:#ff6d6d;
+  --mono:ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+*{box-sizing:border-box;font-family:system-ui}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:#eaeaea;
+  display:flex;
+  justify-content:center;
+  padding:16px;
+}
+
+.app{width:100%;max-width:460px}
+
+h1{
+  text-align:center;
+  color:var(--blue);
+  margin-bottom:12px;
+}
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;
+  margin-bottom:12px;
+}
+
+label{font-size:12px;opacity:.7}
+
+.input{
+  margin-top:6px;
+  width:100%;
+  padding:10px;
+  background:#0f0f0f;
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:#fff;
+}
+
+.status{
+  text-align:center;
+  padding:10px;
+  border-radius:10px;
+  margin-bottom:12px;
+  font-weight:600;
+}
+
+.status.green{background:#0f2517;color:var(--green)}
+.status.yellow{background:#2a240f;color:var(--yellow)}
+.status.red{background:#2a0f0f;color:var(--red)}
+.status.gray{background:#1a1a1a;color:#aaa}
+
+.btn{
+  width:100%;
+  padding:12px;
+  margin-bottom:10px;
+  border:none;
+  border-radius:10px;
+  background:var(--blue);
+  color:#fff;
+  cursor:pointer;
+  font-size:15px;
+}
+
+.log{
+  background:#090909;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px;
+  max-height:300px;
+  overflow-y:auto;
+  font-size:12px;
+  font-family:var(--mono);
+  white-space:pre-wrap;
+}
+
+.line{margin-bottom:10px}
+.ok{color:var(--green)}
+.err{color:var(--red)}
+.info{color:#7db3ff}
+
+/* popup */
+.support{
+  position:fixed;
+  top:14px;
+  left:50%;
+  transform:translateX(-50%) translateY(-150%);
+  background:#1c1c1c;
+  border:2px solid #000;
+  padding:10px 14px;
+  border-radius:6px;
+  transition:.4s ease;
+  z-index:999;
+}
+.support.show{transform:translateX(-50%) translateY(0)}
+.support-title{font-size:12px;color:#ffd84d;font-weight:600}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<h1>Firebase Debug</h1>
+
+<div class="status gray" id="status">IDLE</div>
+
+<div class="panel">
+  <label>Database URL</label>
+  <input class="input" id="db">
+</div>
+
+<div class="panel">
+  <label>Project ID</label>
+  <input class="input" id="pid">
+</div>
+
+<button class="btn" onclick="runFullTest()">Run Deep Debug</button>
+<button class="btn" onclick="clearLog()">Clear Log</button>
+
+<div class="log" id="log"></div>
+</div>
+
+<div class="support" id="support">
+  <div class="support-title">Support Developer</div>
+  <div>VikiDVerse</div>
+</div>
+
+<script>
+const db = document.getElementById("db");
+const pid = document.getElementById("pid");
+const logBox = document.getElementById("log");
+const statusBox = document.getElementById("status");
+const popup = document.getElementById("support");
+
+/* restore */
+db.value = localStorage.db || "";
+pid.value = localStorage.pid || "";
+logBox.textContent = localStorage.logs || "";
+statusBox.textContent = localStorage.statusText || "IDLE";
+statusBox.className = localStorage.statusClass || "status gray";
+
+function save(){
+  localStorage.db=db.value;
+  localStorage.pid=pid.value;
+  localStorage.logs=logBox.textContent;
+  localStorage.statusText=statusBox.textContent;
+  localStorage.statusClass=statusBox.className;
+}
+
+function logBlock(title,content,type="info"){
+  const t=new Date().toLocaleTimeString();
+  const d=document.createElement("div");
+  d.className=`line ${type}`;
+  d.textContent=`[${t}] ${title}\n${content}`;
+  logBox.prepend(d);
+  save();
+}
+
+function baseUrl(){
+  let u=db.value.trim();
+  if(!u.endsWith("/")) u+="/";
+  return u;
+}
+
+function setStatus(text,cls){
+  statusBox.textContent=text;
+  statusBox.className="status "+cls;
+  save();
+}
+
+async function debugFetch(label,url,options){
+  try{
+    const r=await fetch(url,options);
+    let body="";
+    try{ body=await r.text(); }catch{}
+    let infer="";
+    if(r.status===401||r.status===403) infer="INFER: auth required / rules deny";
+    else if(r.status===404) infer="INFER: path not found / db disabled";
+    else if(r.ok) infer="INFER: allowed";
+    else infer="INFER: unknown rules";
+
+    logBlock(
+      label,
+      `URL: ${url}
+HTTP: ${r.status} ${r.statusText}
+BODY: ${body||"(empty)"}
+${infer}`,
+      r.ok?"ok":"err"
+    );
+    return r.ok;
+  }catch(e){
+    logBlock(
+      label,
+      `URL: ${url}
+NETWORK ERROR
+DETAIL: ${e.message}
+INFER: unreachable / CORS / DNS`,
+      "err"
+    );
+    return false;
+  }
+}
+
+async function runFullTest(){
+  logBlock("DEBUG START","Starting deep Firebase inspection...");
+  setStatus("TESTING","gray");
+
+  const ping = await debugFetch(
+    "PING",
+    baseUrl()+".json",
+    {method:"GET"}
+  );
+
+  if(!ping){
+    setStatus("UNREACHABLE","gray");
+    return;
+  }
+
+  const canRead = await debugFetch(
+    "READ",
+    baseUrl()+"_debug.json",
+    {method:"GET"}
+  );
+
+  const canWrite = await debugFetch(
+    "WRITE",
+    baseUrl()+"_debug.json",
+    {
+      method:"PUT",
+      body:JSON.stringify({t:Date.now()})
+    }
+  );
+
+  if(canRead && canWrite){
+    setStatus("CONNECTED","green");
+  }else if(canRead && !canWrite){
+    setStatus("PARTIAL (READ ONLY)","yellow");
+  }else{
+    setStatus("BLOCKED","red");
+  }
+}
+
+function clearLog(){
+  logBox.textContent="";
+  save();
+}
+
+/* popup */
+function popupCycle(){
+  popup.classList.add("show");
+  setTimeout(()=>popup.classList.remove("show"),30000);
+}
+popupCycle();
+setInterval(popupCycle,90000);
+</script>
+
+</body>
+</html>
