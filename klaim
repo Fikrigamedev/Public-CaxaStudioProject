@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FikriStore | Klaim Garansi</title>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --biru: #0056b3;
+            --latar: #f8fafc;
+            --kartu: #ffffff;
+            --teks: #1e293b;
+            --garis: #e2e8f0;
+            --emas: #f59e0b;
+            --merah: #ef4444;
+            --wa: #25d366;
+            --transisi: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-tema="gelap"] {
+            --latar: #0f172a;
+            --kartu: #1e293b;
+            --teks: #f1f5f9;
+            --garis: #334155;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+        body { 
+            background-color: var(--latar); 
+            color: var(--teks); 
+            min-height: 100vh;
+            transition: background-color 0.4s;
+        }
+
+        nav {
+            background: var(--kartu);
+            padding: 15px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--garis);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo { font-weight: 800; color: var(--biru); font-size: 1.2rem; cursor: pointer; }
+        .menu-bar {
+            display: flex; gap: 5px; background: var(--latar);
+            padding: 4px; border-radius: 12px; border: 1px solid var(--garis);
+        }
+        .menu-bar a { 
+            text-decoration: none; color: var(--teks); font-size: 0.75rem; font-weight: 600;
+            padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: var(--transisi);
+        }
+        .menu-bar a.aktif { background: var(--biru); color: white; }
+
+        .tombol-tema { position: absolute; right: 15px; top: 18px; cursor: pointer; opacity: 0.7; }
+
+        .konten { padding: 20px; max-width: 800px; margin: 0 auto; width: 100%; }
+        .hal { display: none; opacity: 0; }
+        .hal.aktif { display: block; animation: fadeIn 0.4s forwards; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .kartu { 
+            background: var(--kartu); padding: 30px 20px; border-radius: 20px; 
+            text-align: center; border: 1px solid var(--garis);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            max-width: 400px; margin: 0 auto;
+        }
+
+        .group-input { display: flex; gap: 8px; margin-bottom: 10px; }
+        input {
+            width: 100%; padding: 12px; border: 1.5px solid var(--garis);
+            border-radius: 12px; background: transparent; color: var(--teks); font-size: 0.85rem;
+        }
+        input:focus { border-color: var(--biru); outline: none; }
+
+        button {
+            width: 100%; padding: 12px; background: var(--biru); color: white;
+            border: none; border-radius: 12px; font-weight: 600; cursor: pointer; 
+            font-size: 0.85rem; transition: var(--transisi);
+        }
+        button:active { transform: scale(0.98); }
+
+        .btn-gen { width: 50px; background: #6366f1; font-size: 1.2rem; padding: 0; display: flex; align-items: center; justify-content: center; }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); display: none; justify-content: center;
+            align-items: center; z-index: 1000; backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: #1e293b; color: white; width: 90%; max-width: 340px;
+            border-radius: 24px; padding: 25px; transform: scale(0.9); transition: var(--transisi);
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-overlay.show .modal-content { transform: scale(1); }
+
+        .row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #334155; font-size: 0.75rem; }
+        .catatan { background: rgba(245,158,11,0.15); border: 1px dashed var(--emas); color: var(--emas); padding: 12px; border-radius: 12px; font-size: 0.65rem; margin-top: 15px; line-height: 1.4; }
+        .catatan.error { background: rgba(239,68,68,0.15); border-color: var(--merah); color: var(--merah); }
+
+        /* Admin Table */
+        .table-wrap { overflow-x: auto; margin-top: 15px; border-radius: 12px; border: 1px solid var(--garis); background: var(--kartu); }
+        table { width: 100%; font-size: 0.7rem; border-collapse: collapse; text-align: left; min-width: 500px; }
+        th { padding: 12px; background: var(--latar); }
+        td { padding: 12px; border-top: 1px solid var(--garis); }
+
+        /* Floating Chat Button (Simpel) */
+        .wa-float {
+            position: fixed; bottom: 25px; right: 25px;
+            background: var(--wa); color: white; width: 56px; height: 56px;
+            border-radius: 18px; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 20px rgba(37, 211, 102, 0.3); z-index: 99;
+            text-decoration: none; transition: var(--transisi);
+        }
+        .wa-float:hover { transform: translateY(-5px); box-shadow: 0 12px 25px rgba(37, 211, 102, 0.4); }
+        
+        /* Ikon Chat Simpel SVG */
+        .chat-icon { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+</head>
+<body data-tema="terang">
+
+    <nav>
+        <div class="logo" onclick="navigasi('beranda')">FikriStore</div>
+        <div class="menu-bar">
+            <a onclick="navigasi('beranda')" id="m-beranda" class="aktif">Beranda</a>
+            <a onclick="navigasi('riwayat')" id="m-riwayat">Riwayat</a>
+            <a onclick="navigasi('admin')" id="m-admin" style="display: none;">Panel</a>
+            <a onclick="navigasi('masuk')" id="m-masuk">Masuk</a>
+        </div>
+        <div class="tombol-tema" onclick="toggleTema()">
+            <svg id="icon-tema" width="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </div>
+    </nav>
+
+    <div class="konten">
+        <section id="h-beranda" class="hal aktif">
+            <div class="kartu">
+                <h2 style="font-size: 1.1rem; margin-bottom: 5px;">Klaim Garansi</h2>
+                <p style="font-size: 0.7rem; opacity: 0.5; margin-bottom: 20px;">Masukkan kode unik untuk aktivasi</p>
+                <input type="text" id="inputCek" placeholder="CONTOH: XYZHG" style="text-transform: uppercase;">
+                <button onclick="handleCek()" style="margin-top:10px">Klaim Garansi</button>
+            </div>
+        </section>
+
+        <section id="h-riwayat" class="hal">
+            <h3 style="font-size: 0.9rem; margin-bottom: 15px; text-align: center;">Riwayat Klaim Anda</h3>
+            <div id="listRiwayat" style="max-width: 400px; margin: 0 auto;"></div>
+        </section>
+
+        <section id="h-masuk" class="hal">
+            <div class="kartu">
+                <h2 style="font-size: 1.1rem;">Login</h2>
+                <p style="font-size: 0.65rem; opacity: 0.5; margin-bottom: 20px;">opsional</p>
+                <input type="text" id="userA" placeholder="Username">
+                <input type="password" id="passA" placeholder="Password" style="margin-top: 10px;">
+                <button onclick="handleLogin()" style="margin-top: 15px;">Login Dashboard</button>
+            </div>
+        </section>
+
+        <section id="h-admin" class="hal">
+            <div class="kartu" style="text-align: left; margin-bottom: 20px; padding: 20px; max-width: 100%;">
+                <h3 style="font-size: 0.9rem; margin-bottom: 10px;">Terbitkan Kode Baru</h3>
+                <div class="group-input">
+                    <input type="text" id="newK" placeholder="Kode Unik" style="text-transform: uppercase;">
+                    <button class="btn-gen" onclick="generateUnik()" title="Generate Kode Otomatis">⚡</button>
+                </div>
+                <input type="text" id="newP" placeholder="Nama Produk" style="margin-bottom:10px">
+                <input type="date" id="newT" style="margin-bottom:10px">
+                <button onclick="addCloud()">Simpan Kode</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Kode</th>
+                            <th>Produk</th>
+                            <th>Status</th>
+                            <th>Waktu Klaim</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminTable"></tbody>
+                </table>
+            </div>
+            <button onclick="doLogout()" style="background: #ef4444; margin-top: 20px; width: auto; padding: 8px 15px;">Logout</button>
+        </section>
+    </div>
+
+    <div id="modalRes" class="modal-overlay">
+        <div class="modal-content">
+            <h4 id="modalTitle" style="color: #60a5fa; font-size: 0.9rem;">Berhasil Terverifikasi!</h4>
+            <div style="margin: 15px 0;">
+                <div class="row"><span>ID Kode</span><span id="resK"></span></div>
+                <div class="row"><span>Nama Produk</span><span id="resP"></span></div>
+                <div class="row" style="border:none"><span>Berlaku Hingga</span><span id="resT"></span></div>
+            </div>
+            <div id="modalNote" class="catatan">
+                ⚠️ <b>PENTING:</b> Jangan lupa di-<b>screenshot</b> bagian ini dan kirimkan buktinya kepada penjual.<br><br>
+                <i>Jika masalah sudah terselesaikan maka otomatis garansi sudah terpakai atau sudah tidak berlaku lagi.</i>
+            </div>
+            <button onclick="closeModal()" style="background: #334155; margin-top: 20px;">Tutup</button>
+        </div>
+    </div>
+
+    <a href="https://wa.me/6283159447683" target="_blank" class="wa-float">
+        <svg class="chat-icon" viewBox="0 0 24 24">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-11.8h.4"></path>
+            <path d="M3 21l1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"></path>
+        </svg>
+    </a>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyABHGgcg8OTHpIP8x8c8K6mdtyIXzzmCeg",
+            authDomain: "fikri-klaim.firebaseapp.com",
+            databaseURL: "https://fikri-klaim-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "fikri-klaim",
+            storageBucket: "fikri-klaim.firebasestorage.app",
+            messagingSenderId: "990825119050",
+            appId: "1:990825119050:web:c14e5c21bba5fa6d80d5b3"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let masterData = {};
+
+        function navigasi(id) {
+            document.querySelectorAll('.hal').forEach(h => h.classList.remove('aktif'));
+            document.querySelectorAll('.menu-bar a').forEach(a => a.classList.remove('aktif'));
+            document.getElementById('h-'+id).classList.add('aktif');
+            document.getElementById('m-'+id).classList.add('aktif');
+            if(id === 'riwayat') renderRiwayat();
+        }
+
+        function toggleTema() {
+            const b = document.body;
+            const isDark = b.getAttribute('data-tema') === 'gelap';
+            b.setAttribute('data-tema', isDark ? 'terang' : 'gelap');
+        }
+
+        db.ref('warranties').on('value', snap => {
+            masterData = snap.val() || {};
+            renderAdmin();
+        });
+
+        function generateUnik() {
+            const char = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let hasil = '';
+            do {
+                hasil = '';
+                for (let i = 0; i < 6; i++) {
+                    hasil += char.charAt(Math.floor(Math.random() * char.length));
+                }
+            } while (masterData[hasil]); 
+            document.getElementById('newK').value = hasil;
+        }
+
+        function handleCek() {
+            const k = document.getElementById('inputCek').value.toUpperCase();
+            const d = masterData[k];
+            
+            if(d) {
+                if(d.claimed === true) {
+                    document.getElementById('modalTitle').innerText = "Maaf, Kode Terpakai";
+                    document.getElementById('modalTitle').style.color = "var(--merah)";
+                    document.getElementById('resK').innerText = d.code;
+                    document.getElementById('resP').innerText = d.name;
+                    document.getElementById('resT').innerText = d.date;
+                    document.getElementById('modalNote').className = "catatan error";
+                    document.getElementById('modalNote').innerHTML = "❌ <b>Garansi ini sudah diklaim sebelumnya.</b> Satu kode hanya berlaku untuk satu kali klaim.";
+                    document.getElementById('modalRes').classList.add('show');
+                    return;
+                }
+
+                const waktuSekarang = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+                db.ref('warranties/'+k).update({ 
+                    claimed: true,
+                    claimTime: waktuSekarang
+                });
+
+                let r = JSON.parse(localStorage.getItem('f_history') || '[]');
+                if(!r.find(x => x.code === k)) { r.push(d); localStorage.setItem('f_history', JSON.stringify(r)); }
+                
+                document.getElementById('modalTitle').innerText = "Berhasil Terverifikasi!";
+                document.getElementById('modalTitle').style.color = "#60a5fa";
+                document.getElementById('resK').innerText = d.code;
+                document.getElementById('resP').innerText = d.name;
+                document.getElementById('resT').innerText = d.date;
+                document.getElementById('modalNote').className = "catatan";
+                document.getElementById('modalNote').innerHTML = "⚠️ <b>PENTING:</b> Jangan lupa di-<b>screenshot</b> bagian ini dan kirimkan buktinya kepada penjual.<br><br><i>Jika masalah sudah terselesaikan maka otomatis garansi sudah terpakai atau sudah tidak berlaku lagi.</i>";
+                document.getElementById('modalRes').classList.add('show');
+            } else { alert("Maaf, kode tidak ditemukan."); }
+        }
+
+        function closeModal() { document.getElementById('modalRes').classList.remove('show'); }
+
+        function handleLogin() {
+            if(document.getElementById('userA').value === "fikrieverly" && document.getElementById('passA').value === "akunadmin#1") {
+                document.getElementById('m-admin').style.display = "block";
+                navigasi('admin');
+            } else { alert("Data login salah!"); }
+        }
+
+        function doLogout() { document.getElementById('m-admin').style.display = "none"; navigasi('beranda'); }
+
+        function addCloud() {
+            const k = document.getElementById('newK').value.toUpperCase();
+            const p = document.getElementById('newP').value;
+            const t = document.getElementById('newT').value;
+            if(k && p && t) {
+                db.ref('warranties/'+k).set({ code:k, name:p, date:t, claimed:false, claimTime: "-" });
+                alert("Berhasil!");
+                document.getElementById('newK').value = '';
+                document.getElementById('newP').value = '';
+            }
+        }
+
+        function renderAdmin() {
+            const b = document.getElementById('adminTable');
+            b.innerHTML = Object.values(masterData).map(i => `
+                <tr>
+                    <td><b>${i.code}</b></td>
+                    <td>${i.name}</td>
+                    <td><span style="color:${i.claimed?'var(--merah)':'#10b981'}; font-weight:bold;">${i.claimed?'TERPAKAI':'READY'}</span></td>
+                    <td>${i.claimTime || "-"}</td>
+                    <td><button onclick="del('${i.code}')" style="background:red; padding:4px 8px; width:auto; font-size:10px;">Hapus</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function del(c) { if(confirm("Hapus kode ini?")) db.ref('warranties/'+c).remove(); }
+
+        function renderRiwayat() {
+            const r = JSON.parse(localStorage.getItem('f_history') || '[]');
+            const l = document.getElementById('listRiwayat');
+            l.innerHTML = r.length ? r.map(i => `
+                <div class="kartu" style="margin-bottom:10px; display:flex; justify-content:space-between; padding:15px; text-align:left; max-width:100%;">
+                    <div><b>${i.name}</b><br><small>${i.code}</small></div>
+                    <div style="text-align:right"><b>${i.date}</b><br><small style="color:green">Terverifikasi</small></div>
+                </div>
+            `).join('') : "<p style='font-size:0.8rem; opacity:0.5; text-align:center;'>Belum ada riwayat klaim.</p>";
+        }
+    </script>
+</body>
+</html>
