@@ -1,0 +1,1871 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexa</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ocean: #4A90D9;
+    --ocean-dark: #2E6DB4;
+    --ocean-light: #6AAEE8;
+    --ocean-pale: #D6E9F8;
+    --white: #FFFFFF;
+    --gray-50: #F8FAFC;
+    --gray-100: #EFF4FB;
+    --gray-200: #DDEAF8;
+    --gray-300: #C3D6ED;
+    --gray-400: #8AAFC8;
+    --gray-500: #5A80A0;
+    --gray-600: #3A5F7D;
+    --gray-700: #243E56;
+    --text: #1A3048;
+    --border: #C8DFF0;
+    --nav-h: 60px;
+    --top-h: 56px;
+    --radius: 14px;
+    --shadow: 0 2px 12px rgba(74,144,217,0.10);
+    --shadow-md: 0 4px 24px rgba(74,144,217,0.15);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: 'Nunito', sans-serif; background: var(--gray-50); color: var(--text); }
+  body { display: flex; flex-direction: column; overflow: hidden; }
+
+  /* TOP BAR */
+  #topbar {
+    height: var(--top-h);
+    background: var(--white);
+    border-bottom: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+  }
+  #logo {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 18px;
+    color: var(--ocean);
+    letter-spacing: 1px;
+    flex-shrink: 0;
+  }
+  #topbar-spacer { flex: 1; }
+  .topbar-btn {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    color: var(--ocean);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .topbar-btn:hover { background: var(--ocean-pale); border-color: var(--ocean); }
+  .topbar-btn svg { width: 20px; height: 20px; }
+
+  /* MAIN */
+  #main {
+    flex: 1;
+    margin-top: var(--top-h);
+    margin-bottom: var(--nav-h);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  /* BOTTOM NAV */
+  #bottomnav {
+    height: var(--nav-h);
+    background: var(--white);
+    border-top: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 100;
+    box-shadow: 0 -2px 12px rgba(74,144,217,0.08);
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    cursor: pointer;
+    padding: 8px 0;
+    color: var(--gray-400);
+    font-size: 11px;
+    font-weight: 600;
+    transition: color 0.15s;
+    user-select: none;
+  }
+  .nav-item.active { color: var(--ocean); }
+  .nav-item svg { width: 22px; height: 22px; }
+
+  /* PAGES */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* FEED */
+  #feed-page { padding: 12px; }
+  .post-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    margin-bottom: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .post-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .post-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--ocean-pale);
+    border: 2px solid var(--ocean-light);
+    object-fit: cover;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ocean);
+    font-weight: 700;
+    font-size: 16px;
+    overflow: hidden;
+  }
+  .post-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .post-meta { flex: 1; }
+  .post-name { font-weight: 700; font-size: 14px; color: var(--text); }
+  .post-username { font-size: 12px; color: var(--gray-400); }
+  .post-time { font-size: 11px; color: var(--gray-400); }
+  .post-media {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    background: var(--gray-100);
+    display: block;
+  }
+  .post-media video { width: 100%; max-height: 420px; object-fit: cover; display: block; }
+  .post-caption { padding: 10px 14px; font-size: 14px; color: var(--text); line-height: 1.5; }
+  .post-actions {
+    display: flex;
+    padding: 8px 14px 12px;
+    gap: 18px;
+  }
+  .post-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--gray-400);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background: none;
+    border: none;
+    transition: color 0.15s;
+  }
+  .post-action-btn:hover { color: var(--ocean); }
+  .post-action-btn.liked { color: #E05252; }
+  .post-action-btn svg { width: 18px; height: 18px; }
+
+  /* PUBLIC CHAT */
+  #chat-page {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+  }
+  #chat-page.active { display: flex; }
+  #chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .chat-msg {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+  .chat-msg.mine { flex-direction: row-reverse; }
+  .chat-bubble-wrap { max-width: 70%; }
+  .chat-bubble {
+    padding: 9px 13px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-break: break-word;
+  }
+  .chat-msg.mine .chat-bubble {
+    background: var(--ocean);
+    color: var(--white);
+    border-bottom-right-radius: 4px;
+  }
+  .chat-msg:not(.mine) .chat-bubble {
+    background: var(--white);
+    color: var(--text);
+    border: 1.5px solid var(--border);
+    border-bottom-left-radius: 4px;
+  }
+  .chat-sender { font-size: 11px; color: var(--gray-400); font-weight: 600; margin-bottom: 2px; }
+  .chat-time { font-size: 10px; color: var(--gray-400); margin-top: 3px; text-align: right; }
+  .chat-avatar-sm {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--ocean-pale);
+    border: 1.5px solid var(--ocean-light);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: var(--ocean);
+    overflow: hidden;
+  }
+  .chat-avatar-sm img { width: 100%; height: 100%; object-fit: cover; }
+  #chat-input-bar {
+    padding: 10px 12px;
+    background: var(--white);
+    border-top: 1.5px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  #chat-input {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: 22px;
+    border: 1.5px solid var(--border);
+    background: var(--gray-50);
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  #chat-input:focus { border-color: var(--ocean); }
+  #chat-send-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--ocean);
+    border: none;
+    color: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+  #chat-send-btn:hover { background: var(--ocean-dark); }
+  #chat-send-btn svg { width: 18px; height: 18px; }
+
+  /* COMMUNITY */
+  #community-page { padding: 12px; }
+  .community-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    margin-bottom: 12px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .community-card:hover { border-color: var(--ocean); }
+  .community-name { font-weight: 700; font-size: 16px; color: var(--text); margin-bottom: 4px; }
+  .community-desc { font-size: 13px; color: var(--gray-500); margin-bottom: 10px; }
+  .community-meta { display: flex; gap: 14px; font-size: 12px; color: var(--gray-400); }
+  .community-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--ocean-pale);
+    color: var(--ocean);
+    border-radius: 8px;
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .comm-join-btn {
+    margin-top: 10px;
+    padding: 7px 18px;
+    border-radius: 10px;
+    border: 1.5px solid var(--ocean);
+    background: var(--white);
+    color: var(--ocean);
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .comm-join-btn.joined { background: var(--ocean); color: var(--white); }
+
+  /* PROFILE PAGE */
+  #profile-page { overflow-y: auto; }
+  #profile-banner {
+    height: 160px;
+    background: var(--ocean-pale);
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  #profile-banner img { width: 100%; height: 100%; object-fit: cover; }
+  #banner-edit-overlay {
+    position: absolute; inset: 0;
+    background: rgba(74,144,217,0.18);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+  }
+  #profile-banner:hover #banner-edit-overlay { display: flex; }
+  #profile-avatar-wrap {
+    position: relative;
+    width: 84px; height: 84px;
+    margin: -42px auto 0;
+    z-index: 2;
+    cursor: pointer;
+  }
+  #profile-avatar {
+    width: 84px; height: 84px;
+    border-radius: 50%;
+    background: var(--ocean-pale);
+    border: 4px solid var(--white);
+    object-fit: cover;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; font-weight: 700; color: var(--ocean);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+  }
+  #profile-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  #avatar-edit-btn {
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--ocean);
+    border: 2px solid var(--white);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--white);
+  }
+  #avatar-edit-btn svg { width: 13px; height: 13px; }
+  #profile-info { text-align: center; padding: 10px 16px 0; }
+  #profile-display-name { font-size: 20px; font-weight: 700; color: var(--text); }
+  #profile-username-show { font-size: 14px; color: var(--gray-400); margin-top: 2px; }
+  #profile-id-row {
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px; margin-top: 4px; font-size: 12px; color: var(--gray-400);
+  }
+  #copy-id-btn {
+    background: none; border: none;
+    color: var(--ocean); cursor: pointer;
+    display: flex; align-items: center;
+  }
+  #copy-id-btn svg { width: 14px; height: 14px; }
+  #profile-stats {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    padding: 14px 0 0;
+  }
+  .stat-item { text-align: center; }
+  .stat-num { font-size: 18px; font-weight: 700; color: var(--text); }
+  .stat-label { font-size: 12px; color: var(--gray-400); }
+  #profile-actions { display: flex; justify-content: center; gap: 10px; padding: 14px 16px; }
+  .profile-action-btn {
+    padding: 9px 22px;
+    border-radius: 11px;
+    border: 1.5px solid var(--ocean);
+    background: var(--white);
+    color: var(--ocean);
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .profile-action-btn.primary { background: var(--ocean); color: var(--white); }
+  #profile-privacy-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 0 16px 14px;
+    font-size: 13px;
+    color: var(--gray-500);
+    font-weight: 600;
+  }
+  .toggle-switch {
+    width: 44px; height: 24px;
+    border-radius: 12px;
+    background: var(--gray-300);
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .toggle-switch.on { background: var(--ocean); }
+  .toggle-knob {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--white);
+    position: absolute;
+    top: 2px; left: 2px;
+    transition: left 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+  }
+  .toggle-switch.on .toggle-knob { left: 22px; }
+  #profile-posts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    padding: 2px;
+  }
+  .profile-post-thumb {
+    aspect-ratio: 1;
+    background: var(--gray-200);
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+  }
+  .profile-post-thumb img, .profile-post-thumb video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .profile-post-video-badge {
+    position: absolute; top: 5px; right: 5px;
+    background: rgba(30,50,80,0.6);
+    border-radius: 6px;
+    padding: 2px 5px;
+    display: flex; align-items: center;
+    color: var(--white);
+  }
+  .profile-post-video-badge svg { width: 13px; height: 13px; }
+
+  /* SETTINGS PAGE (iOS style) */
+  #settings-page { background: var(--gray-100); min-height: 100%; }
+  .settings-back {
+    display: flex; align-items: center; gap: 6px;
+    padding: 14px 16px 6px;
+    color: var(--ocean); font-weight: 700; font-size: 15px;
+    cursor: pointer;
+  }
+  .settings-back svg { width: 18px; height: 18px; }
+  .settings-title { font-size: 22px; font-weight: 700; color: var(--text); padding: 0 16px 16px; }
+  .settings-section { margin: 0 14px 18px; }
+  .settings-section-label {
+    font-size: 12px; font-weight: 700;
+    color: var(--gray-400);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0 4px 6px;
+  }
+  .settings-group {
+    background: var(--white);
+    border-radius: 14px;
+    border: 1.5px solid var(--border);
+    overflow: hidden;
+  }
+  .settings-row {
+    display: flex;
+    align-items: center;
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.12s;
+    gap: 12px;
+  }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-row:hover { background: var(--gray-50); }
+  .settings-row-icon {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    color: var(--white);
+  }
+  .settings-row-icon svg { width: 17px; height: 17px; }
+  .settings-row-label { flex: 1; font-size: 15px; color: var(--text); font-weight: 600; }
+  .settings-row-value { font-size: 14px; color: var(--gray-400); }
+  .settings-row-arrow { color: var(--gray-300); }
+  .settings-row-arrow svg { width: 16px; height: 16px; }
+
+  /* AUTH PAGE */
+  #auth-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--white);
+    padding: 24px;
+  }
+  #auth-logo {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 28px;
+    color: var(--ocean);
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+  }
+  #auth-tagline { font-size: 14px; color: var(--gray-400); margin-bottom: 36px; font-weight: 600; }
+  .auth-card {
+    width: 100%;
+    max-width: 380px;
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 18px;
+    padding: 28px 24px;
+    box-shadow: var(--shadow-md);
+  }
+  .auth-tabs {
+    display: flex;
+    background: var(--gray-100);
+    border-radius: 10px;
+    padding: 3px;
+    margin-bottom: 22px;
+  }
+  .auth-tab {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--gray-400);
+    transition: background 0.15s, color 0.15s;
+  }
+  .auth-tab.active { background: var(--white); color: var(--ocean); box-shadow: var(--shadow); }
+  .auth-input-group { margin-bottom: 14px; }
+  .auth-label { font-size: 12px; font-weight: 700; color: var(--gray-500); margin-bottom: 5px; display: block; }
+  .auth-input {
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: var(--gray-50);
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .auth-input:focus { border-color: var(--ocean); }
+  .auth-btn {
+    width: 100%;
+    padding: 13px;
+    border-radius: 11px;
+    border: none;
+    background: var(--ocean);
+    color: var(--white);
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 6px;
+    transition: background 0.15s;
+  }
+  .auth-btn:hover { background: var(--ocean-dark); }
+  .auth-divider {
+    display: flex; align-items: center; gap: 10px;
+    margin: 18px 0;
+    color: var(--gray-300); font-size: 13px; font-weight: 600;
+  }
+  .auth-divider::before, .auth-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  .google-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 11px;
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    transition: background 0.15s;
+  }
+  .google-btn:hover { background: var(--gray-50); }
+  .google-icon { width: 20px; height: 20px; }
+  .guest-btn {
+    width: 100%;
+    margin-top: 14px;
+    padding: 11px;
+    border-radius: 11px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--gray-500);
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .guest-btn:hover { background: var(--gray-100); }
+  .auth-error { color: #C0392B; font-size: 13px; margin-top: 8px; font-weight: 600; }
+
+  /* UPLOAD MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(26,48,72,0.45);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--white);
+    border-radius: 18px;
+    width: 100%;
+    max-width: 440px;
+    padding: 24px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+  }
+  .modal-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 16px; }
+  .modal-close {
+    position: absolute; top: 16px; right: 16px;
+    background: none; border: none;
+    color: var(--gray-400); cursor: pointer;
+    display: flex;
+  }
+  .modal-close svg { width: 22px; height: 22px; }
+  .upload-drop-area {
+    border: 2px dashed var(--ocean-light);
+    border-radius: 14px;
+    padding: 32px;
+    text-align: center;
+    cursor: pointer;
+    color: var(--gray-400);
+    background: var(--gray-50);
+    transition: background 0.15s;
+    margin-bottom: 14px;
+  }
+  .upload-drop-area:hover { background: var(--ocean-pale); }
+  .upload-drop-area svg { width: 40px; height: 40px; color: var(--ocean-light); margin-bottom: 10px; }
+  .upload-drop-area p { font-size: 14px; font-weight: 600; }
+  .upload-drop-area small { font-size: 12px; color: var(--gray-300); }
+  #upload-preview { width: 100%; border-radius: 10px; margin-bottom: 12px; max-height: 220px; object-fit: cover; display: none; }
+  .upload-caption-input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: var(--gray-50);
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    outline: none;
+    margin-bottom: 14px;
+    transition: border-color 0.15s;
+    resize: none;
+  }
+  .upload-caption-input:focus { border-color: var(--ocean); }
+  #upload-progress-bar {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--gray-200);
+    margin-bottom: 12px;
+    display: none;
+    overflow: hidden;
+  }
+  #upload-progress-fill {
+    height: 100%;
+    background: var(--ocean);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.2s;
+  }
+
+  /* SEARCH MODAL */
+  #search-modal .modal-box { max-width: 400px; }
+  #search-input {
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: var(--gray-50);
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    outline: none;
+    margin-bottom: 14px;
+    transition: border-color 0.15s;
+  }
+  #search-input:focus { border-color: var(--ocean); }
+  #search-result {
+    min-height: 60px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: var(--gray-400);
+  }
+  .search-user-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 4px;
+    border-top: 1px solid var(--border);
+  }
+  .search-user-avatar {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: var(--ocean-pale);
+    border: 2px solid var(--ocean-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; color: var(--ocean);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .search-user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .search-user-info { flex: 1; }
+  .search-user-name { font-weight: 700; font-size: 15px; color: var(--text); }
+  .search-user-un { font-size: 13px; color: var(--gray-400); }
+  .search-user-id { font-size: 11px; color: var(--gray-300); }
+
+  /* EDIT PROFILE MODAL */
+  #edit-profile-modal .modal-box { max-width: 440px; }
+
+  /* TOAST */
+  #toast {
+    position: fixed;
+    bottom: 78px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--gray-700);
+    color: var(--white);
+    padding: 10px 20px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* GUEST BANNER */
+  #guest-banner {
+    background: var(--ocean-pale);
+    border: 1.5px solid var(--ocean-light);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--ocean-dark);
+    font-weight: 600;
+  }
+  #guest-banner svg { width: 20px; height: 20px; flex-shrink: 0; }
+  #guest-login-btn {
+    margin-left: auto;
+    padding: 7px 14px;
+    border-radius: 9px;
+    background: var(--ocean);
+    color: var(--white);
+    border: none;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  /* PAGE HEADER */
+  .page-header {
+    padding: 14px 16px 8px;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    border-bottom: 1.5px solid var(--border);
+    background: var(--white);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  /* LOCK OVERLAY */
+  .locked-overlay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    gap: 12px;
+    color: var(--gray-400);
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .locked-overlay svg { width: 40px; height: 40px; color: var(--gray-300); }
+
+  /* EMPTY STATE */
+  .empty-state {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 48px 20px; gap: 10px;
+    color: var(--gray-400); font-size: 14px; font-weight: 600;
+    text-align: center;
+  }
+  .empty-state svg { width: 44px; height: 44px; color: var(--gray-300); }
+
+  /* Spinner */
+  .spinner {
+    width: 28px; height: 28px;
+    border: 3px solid var(--ocean-pale);
+    border-top: 3px solid var(--ocean);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 30px auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- AUTH PAGE -->
+<div id="auth-page">
+  <div id="auth-logo">Nexa</div>
+  <div id="auth-tagline">Terhubung. Berbagi. Nyata.</div>
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Masuk</div>
+      <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Daftar</div>
+    </div>
+    <!-- LOGIN -->
+    <div id="login-form">
+      <div class="auth-input-group">
+        <label class="auth-label">Email</label>
+        <input class="auth-input" id="login-email" type="email" placeholder="email@contoh.com">
+      </div>
+      <div class="auth-input-group">
+        <label class="auth-label">Password</label>
+        <input class="auth-input" id="login-pass" type="password" placeholder="Password">
+      </div>
+      <div class="auth-error" id="login-error"></div>
+      <button class="auth-btn" onclick="doLogin()">Masuk</button>
+      <div class="auth-divider">atau</div>
+      <button class="google-btn" onclick="doGoogleLogin()">
+        <svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Lanjutkan dengan Google
+      </button>
+      <button class="guest-btn" onclick="doGuest()">Lanjutkan sebagai Tamu</button>
+    </div>
+    <!-- REGISTER -->
+    <div id="register-form" style="display:none">
+      <div class="auth-input-group">
+        <label class="auth-label">Nama Lengkap</label>
+        <input class="auth-input" id="reg-name" type="text" placeholder="Nama kamu">
+      </div>
+      <div class="auth-input-group">
+        <label class="auth-label">Username</label>
+        <input class="auth-input" id="reg-username" type="text" placeholder="username_unik">
+      </div>
+      <div class="auth-input-group">
+        <label class="auth-label">Email</label>
+        <input class="auth-input" id="reg-email" type="email" placeholder="email@contoh.com">
+      </div>
+      <div class="auth-input-group">
+        <label class="auth-label">Password</label>
+        <input class="auth-input" id="reg-pass" type="password" placeholder="Minimal 6 karakter">
+      </div>
+      <div class="auth-error" id="reg-error"></div>
+      <button class="auth-btn" onclick="doRegister()">Daftar</button>
+      <div class="auth-divider">atau</div>
+      <button class="google-btn" onclick="doGoogleLogin()">
+        <svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Daftar dengan Google
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none; flex-direction:column; height:100vh; overflow:hidden; display:none;">
+
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <span id="logo">Nexa</span>
+    <div id="topbar-spacer"></div>
+    <div class="topbar-btn" id="btn-search" onclick="openSearchModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+    <div class="topbar-btn" id="btn-upload" onclick="openUploadModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </div>
+    <div class="topbar-btn" id="btn-settings" onclick="showSettings()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div id="main">
+
+    <!-- FEED PAGE -->
+    <div id="feed-page" class="page active">
+      <div id="feed-guest-banner" style="display:none">
+        <div id="guest-banner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>Masuk untuk berinteraksi dengan postingan</span>
+          <button id="guest-login-btn" onclick="logoutToAuth()">Masuk</button>
+        </div>
+      </div>
+      <div id="feed-list"><div class="spinner"></div></div>
+    </div>
+
+    <!-- CHAT PAGE -->
+    <div id="chat-page" class="page">
+      <div class="page-header">Obrolan Publik</div>
+      <div id="chat-locked" class="locked-overlay" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span>Masuk untuk bergabung di obrolan publik</span>
+      </div>
+      <div id="chat-messages"></div>
+      <div id="chat-input-bar">
+        <input id="chat-input" placeholder="Tulis pesan..." maxlength="500" onkeydown="if(event.key==='Enter')sendChat()">
+        <button id="chat-send-btn" onclick="sendChat()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- COMMUNITY PAGE -->
+    <div id="community-page" class="page">
+      <div class="page-header">Komunitas</div>
+      <div id="community-locked" class="locked-overlay" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span>Masuk untuk bergabung dengan komunitas</span>
+      </div>
+      <div id="community-list"></div>
+    </div>
+
+    <!-- PROFILE PAGE -->
+    <div id="profile-page" class="page">
+      <div id="profile-locked" class="locked-overlay" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span>Masuk untuk melihat profil kamu</span>
+      </div>
+      <div id="profile-content" style="display:none">
+        <div id="profile-banner" onclick="triggerBannerUpload()">
+          <img id="profile-banner-img" src="" alt="" style="display:none">
+          <div id="banner-edit-overlay">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </div>
+        </div>
+        <div id="profile-avatar-wrap" onclick="triggerAvatarUpload()">
+          <div id="profile-avatar"><span id="profile-avatar-letter"></span><img id="profile-avatar-img" src="" style="display:none"></div>
+          <div id="avatar-edit-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </div>
+        </div>
+        <div id="profile-info">
+          <div id="profile-display-name">-</div>
+          <div id="profile-username-show">@-</div>
+          <div id="profile-id-row">
+            <span id="profile-id-text">ID: -</span>
+            <button id="copy-id-btn" onclick="copyUserId()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+        </div>
+        <div id="profile-stats">
+          <div class="stat-item"><div class="stat-num" id="stat-posts">0</div><div class="stat-label">Postingan</div></div>
+          <div class="stat-item"><div class="stat-num" id="stat-followers">0</div><div class="stat-label">Pengikut</div></div>
+          <div class="stat-item"><div class="stat-num" id="stat-following">0</div><div class="stat-label">Diikuti</div></div>
+        </div>
+        <div id="profile-actions">
+          <button class="profile-action-btn primary" onclick="openEditProfile()">Edit Profil</button>
+          <button class="profile-action-btn" onclick="logoutToAuth()">Keluar</button>
+        </div>
+        <div id="profile-privacy-toggle">
+          <span>Akun Privat</span>
+          <div class="toggle-switch" id="privacy-toggle" onclick="togglePrivacy()">
+            <div class="toggle-knob"></div>
+          </div>
+          <span id="privacy-label">Publik</span>
+        </div>
+        <div id="profile-posts-grid"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div id="settings-page" class="page">
+      <div class="settings-back" onclick="backFromSettings()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Kembali
+      </div>
+      <div class="settings-title">Pengaturan</div>
+
+      <div class="settings-section">
+        <div class="settings-section-label">Akun</div>
+        <div class="settings-group">
+          <div class="settings-row" onclick="openEditProfile()">
+            <div class="settings-row-icon" style="background:#4A90D9">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <span class="settings-row-label">Edit Profil</span>
+            <span class="settings-row-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+          <div class="settings-row" onclick="togglePrivacy()">
+            <div class="settings-row-icon" style="background:#5BA85C">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <span class="settings-row-label">Privasi Akun</span>
+            <span class="settings-row-value" id="settings-privacy-val">Publik</span>
+            <span class="settings-row-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-icon" style="background:#D4763B">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <span class="settings-row-label">Notifikasi</span>
+            <span class="settings-row-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-label">Informasi</div>
+        <div class="settings-group">
+          <div class="settings-row">
+            <div class="settings-row-icon" style="background:#7B61D6">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <span class="settings-row-label">Tentang Nexa</span>
+            <span class="settings-row-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-icon" style="background:#4A90D9">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <span class="settings-row-label">Kebijakan Privasi</span>
+            <span class="settings-row-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-icon" style="background:#4A90D9">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <span class="settings-row-label">Versi</span>
+            <span class="settings-row-value">1.0.0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-label">Sesi</div>
+        <div class="settings-group">
+          <div class="settings-row" onclick="logoutToAuth()" style="color:#C0392B">
+            <div class="settings-row-icon" style="background:#C0392B">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </div>
+            <span class="settings-row-label" style="color:#C0392B">Keluar</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div id="bottomnav">
+    <div class="nav-item active" id="nav-feed" onclick="switchPage('feed')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Beranda
+    </div>
+    <div class="nav-item" id="nav-chat" onclick="switchPage('chat')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Chat Publik
+    </div>
+    <div class="nav-item" id="nav-community" onclick="switchPage('community')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Komunitas
+    </div>
+    <div class="nav-item" id="nav-profile" onclick="switchPage('profile')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Profil
+    </div>
+  </div>
+</div>
+
+<!-- UPLOAD MODAL -->
+<div class="modal-overlay" id="upload-modal">
+  <div class="modal-box">
+    <div class="modal-title">Upload Foto/Video</div>
+    <button class="modal-close" onclick="closeUploadModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="upload-drop-area" id="upload-drop" onclick="document.getElementById('upload-file-input').click()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+      <p>Klik untuk pilih foto/video</p>
+      <small>Maksimal 100MB | JPG, PNG, MP4, MOV</small>
+    </div>
+    <input type="file" id="upload-file-input" accept="image/*,video/*" style="display:none" onchange="handleFileSelect(this)">
+    <img id="upload-preview" alt="preview">
+    <video id="upload-video-preview" controls style="display:none;width:100%;border-radius:10px;margin-bottom:12px;max-height:220px;"></video>
+    <textarea class="upload-caption-input" id="upload-caption" placeholder="Tulis caption..." rows="2"></textarea>
+    <div id="upload-progress-bar"><div id="upload-progress-fill"></div></div>
+    <button class="auth-btn" id="upload-submit-btn" onclick="submitUpload()">Bagikan</button>
+  </div>
+</div>
+
+<!-- SEARCH MODAL -->
+<div class="modal-overlay" id="search-modal">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-title">Cari Pengguna</div>
+    <button class="modal-close" onclick="closeSearchModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <input type="text" id="search-input" placeholder="Masukkan ID pengguna..." oninput="searchByIdDebounce()">
+    <div id="search-result"><span>Masukkan ID untuk mencari pengguna</span></div>
+  </div>
+</div>
+
+<!-- EDIT PROFILE MODAL -->
+<div class="modal-overlay" id="edit-profile-modal">
+  <div class="modal-box" style="max-width:440px">
+    <div class="modal-title">Edit Profil</div>
+    <button class="modal-close" onclick="closeEditProfile()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="auth-input-group">
+      <label class="auth-label">Nama Tampilan</label>
+      <input class="auth-input" id="edit-name" type="text">
+    </div>
+    <div class="auth-input-group">
+      <label class="auth-label">Username</label>
+      <input class="auth-input" id="edit-username" type="text">
+    </div>
+    <div class="auth-error" id="edit-error"></div>
+    <button class="auth-btn" onclick="saveEditProfile()">Simpan</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- HIDDEN INPUTS -->
+<input type="file" id="avatar-file-input" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)">
+<input type="file" id="banner-file-input" accept="image/*" style="display:none" onchange="handleBannerUpload(this)">
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getDatabase, ref, set, get, push, onValue, off, update, remove, query, orderByChild, equalTo, serverTimestamp, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC1r8LyxNMpeVFIH2uHBGDcjPvLnTQCo08",
+  authDomain: "nexa-0.firebaseapp.com",
+  databaseURL: "https://nexa-0-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "nexa-0",
+  storageBucket: "nexa-0.firebasestorage.app",
+  messagingSenderId: "543993419686",
+  appId: "1:543993419686:web:46a34d4724826dfbe76167"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+const googleProvider = new GoogleAuthProvider();
+
+// STATE
+let currentUser = null;
+let isGuest = false;
+let currentPage = 'feed';
+let prevPage = 'feed';
+let isPrivate = false;
+let feedListener = null;
+let chatListener = null;
+let searchTimeout = null;
+let uploadFile = null;
+
+// INIT
+window._fb = { auth, db, ref, set, get, push, onValue, off, update, remove, query, orderByChild, equalTo, serverTimestamp, onChildAdded, signOut, updateProfile, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, googleProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword };
+
+getRedirectResult(auth).then(result => {
+  if (result && result.user) handleUserLogin(result.user, true);
+}).catch(() => {});
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    isGuest = false;
+    currentUser = user;
+    await ensureUserProfile(user);
+    showApp();
+  } else if (!isGuest) {
+    showAuthPage();
+  }
+});
+
+async function ensureUserProfile(user) {
+  const userRef = ref(db, 'users/' + user.uid);
+  const snap = await get(userRef);
+  if (!snap.exists()) {
+    const username = (user.displayName || 'user').toLowerCase().replace(/\s+/g,'') + '_' + user.uid.slice(0,5);
+    await set(userRef, {
+      uid: user.uid,
+      displayName: user.displayName || 'Pengguna Baru',
+      username: username,
+      email: user.email || '',
+      photoBase64: '',
+      bannerBase64: '',
+      isPrivate: false,
+      createdAt: Date.now(),
+      followers: 0,
+      following: 0
+    });
+  }
+}
+
+function showApp() {
+  document.getElementById('auth-page').style.display = 'none';
+  const appEl = document.getElementById('app');
+  appEl.style.display = 'flex';
+  appEl.style.flexDirection = 'column';
+  loadFeed();
+  loadProfile();
+  initChat();
+  initCommunity();
+}
+
+function showAuthPage() {
+  document.getElementById('auth-page').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  currentUser = null;
+  isGuest = false;
+}
+
+// EXPOSE GLOBALLY
+window.doLogin = async () => {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  document.getElementById('login-error').textContent = '';
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch(e) {
+    document.getElementById('login-error').textContent = getAuthError(e.code);
+  }
+};
+
+window.doRegister = async () => {
+  const name = document.getElementById('reg-name').value.trim();
+  const username = document.getElementById('reg-username').value.trim().toLowerCase().replace(/\s+/g,'');
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  document.getElementById('reg-error').textContent = '';
+  if (!name || !username || !email || !pass) { document.getElementById('reg-error').textContent = 'Semua kolom wajib diisi'; return; }
+  if (pass.length < 6) { document.getElementById('reg-error').textContent = 'Password minimal 6 karakter'; return; }
+  try {
+    const usernameSnap = await get(query(ref(db, 'users'), orderByChild('username'), equalTo(username)));
+    if (usernameSnap.exists()) { document.getElementById('reg-error').textContent = 'Username sudah dipakai'; return; }
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    await updateProfile(cred.user, { displayName: name });
+    await set(ref(db, 'users/' + cred.user.uid), {
+      uid: cred.user.uid,
+      displayName: name,
+      username: username,
+      email: email,
+      photoBase64: '',
+      bannerBase64: '',
+      isPrivate: false,
+      createdAt: Date.now(),
+      followers: 0,
+      following: 0
+    });
+  } catch(e) {
+    document.getElementById('reg-error').textContent = getAuthError(e.code);
+  }
+};
+
+window.doGoogleLogin = async () => {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    await handleUserLogin(result.user, true);
+  } catch(e) {
+    if (e.code === 'auth/popup-blocked') {
+      await signInWithRedirect(auth, googleProvider);
+    }
+  }
+};
+
+async function handleUserLogin(user, isNew) {
+  await ensureUserProfile(user);
+}
+
+window.doGuest = () => {
+  isGuest = true;
+  document.getElementById('auth-page').style.display = 'none';
+  const appEl = document.getElementById('app');
+  appEl.style.display = 'flex';
+  appEl.style.flexDirection = 'column';
+  document.getElementById('feed-guest-banner').style.display = 'block';
+  loadFeed();
+  initCommunity();
+  renderGuestChat();
+  renderGuestProfile();
+};
+
+window.logoutToAuth = async () => {
+  if (!isGuest) await signOut(auth);
+  if (feedListener) { off(ref(db, 'posts')); feedListener = null; }
+  if (chatListener) { off(ref(db, 'publicChat')); chatListener = null; }
+  isGuest = false;
+  currentUser = null;
+  showAuthPage();
+};
+
+function getAuthError(code) {
+  const map = {
+    'auth/user-not-found': 'Email tidak ditemukan',
+    'auth/wrong-password': 'Password salah',
+    'auth/email-already-in-use': 'Email sudah dipakai',
+    'auth/invalid-email': 'Format email tidak valid',
+    'auth/weak-password': 'Password terlalu lemah',
+    'auth/invalid-credential': 'Email atau password salah',
+  };
+  return map[code] || 'Terjadi kesalahan. Coba lagi.';
+}
+
+window.switchAuthTab = (tab) => {
+  document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+};
+
+// PAGES
+window.switchPage = (page) => {
+  if (currentPage === page) return;
+  prevPage = currentPage;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  currentPage = page;
+  if (page === 'settings') {
+    document.getElementById('settings-page').classList.add('active');
+  } else {
+    document.getElementById(page + '-page').classList.add('active');
+    document.getElementById('nav-' + page)?.classList.add('active');
+  }
+};
+
+window.showSettings = () => {
+  prevPage = currentPage;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('settings-page').classList.add('active');
+  currentPage = 'settings';
+};
+
+window.backFromSettings = () => {
+  switchPage(prevPage === 'settings' ? 'feed' : prevPage);
+};
+
+// FEED
+function loadFeed() {
+  const feedList = document.getElementById('feed-list');
+  if (feedListener) off(ref(db, 'posts'));
+  onValue(ref(db, 'posts'), (snap) => {
+    feedList.innerHTML = '';
+    if (!snap.exists()) {
+      feedList.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2" ry="2"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg><span>Belum ada postingan</span></div>';
+      return;
+    }
+    const posts = [];
+    snap.forEach(child => posts.push({ id: child.key, ...child.val() }));
+    posts.reverse().forEach(post => renderPost(post, feedList));
+  });
+  feedListener = true;
+}
+
+function renderPost(post, container) {
+  const el = document.createElement('div');
+  el.className = 'post-card';
+  el.id = 'post-' + post.id;
+  const avatarHTML = post.authorPhoto
+    ? `<div class="post-avatar"><img src="${post.authorPhoto}" loading="lazy"></div>`
+    : `<div class="post-avatar">${(post.authorName||'U')[0].toUpperCase()}</div>`;
+  let mediaHTML = '';
+  if (post.mediaBase64 && post.mediaType === 'video') {
+    mediaHTML = `<div class="post-media"><video src="${post.mediaBase64}" controls preload="none" playsinline></video></div>`;
+  } else if (post.mediaBase64) {
+    mediaHTML = `<img class="post-media" src="${post.mediaBase64}" loading="lazy" alt="post">`;
+  }
+  const liked = currentUser && post.likes && post.likes[currentUser.uid];
+  const likeCount = post.likes ? Object.keys(post.likes).length : 0;
+  const commentCount = post.comments ? Object.keys(post.comments).length : 0;
+  el.innerHTML = `
+    <div class="post-header">
+      ${avatarHTML}
+      <div class="post-meta">
+        <div class="post-name">${escHtml(post.authorName||'Pengguna')}</div>
+        <div class="post-username">@${escHtml(post.authorUsername||'user')}</div>
+      </div>
+      <div class="post-time">${timeAgo(post.createdAt)}</div>
+    </div>
+    ${mediaHTML}
+    ${post.caption ? `<div class="post-caption">${escHtml(post.caption)}</div>` : ''}
+    <div class="post-actions">
+      <button class="post-action-btn ${liked?'liked':''}" onclick="toggleLike('${post.id}', ${liked})">
+        <svg viewBox="0 0 24 24" fill="${liked?'#E05252':'none'}" stroke="${liked?'#E05252':'currentColor'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        ${likeCount}
+      </button>
+      <button class="post-action-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        ${commentCount}
+      </button>
+    </div>`;
+  container.appendChild(el);
+}
+
+window.toggleLike = async (postId, liked) => {
+  if (!currentUser) { showToast('Masuk untuk menyukai postingan'); return; }
+  const likeRef = ref(db, `posts/${postId}/likes/${currentUser.uid}`);
+  if (liked) await remove(likeRef);
+  else await set(likeRef, true);
+};
+
+// UPLOAD
+window.openUploadModal = () => {
+  if (isGuest) { showToast('Masuk untuk mengupload'); return; }
+  document.getElementById('upload-modal').classList.add('open');
+};
+window.closeUploadModal = () => {
+  document.getElementById('upload-modal').classList.remove('open');
+  document.getElementById('upload-preview').style.display = 'none';
+  document.getElementById('upload-video-preview').style.display = 'none';
+  document.getElementById('upload-drop').style.display = 'block';
+  document.getElementById('upload-progress-bar').style.display = 'none';
+  document.getElementById('upload-progress-fill').style.width = '0%';
+  document.getElementById('upload-caption').value = '';
+  document.getElementById('upload-file-input').value = '';
+  uploadFile = null;
+};
+
+window.handleFileSelect = (input) => {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 100 * 1024 * 1024) { showToast('File melebihi batas 100MB'); return; }
+  uploadFile = file;
+  document.getElementById('upload-drop').style.display = 'none';
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = document.getElementById('upload-preview');
+      img.src = e.target.result;
+      img.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  } else if (file.type.startsWith('video/')) {
+    const vid = document.getElementById('upload-video-preview');
+    vid.src = URL.createObjectURL(file);
+    vid.style.display = 'block';
+  }
+};
+
+window.submitUpload = async () => {
+  if (!uploadFile || !currentUser) return;
+  const btn = document.getElementById('upload-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Mengupload...';
+  document.getElementById('upload-progress-bar').style.display = 'block';
+  try {
+    const reader = new FileReader();
+    reader.onprogress = (e) => {
+      if (e.lengthComputable) {
+        const pct = Math.round(e.loaded / e.total * 80);
+        document.getElementById('upload-progress-fill').style.width = pct + '%';
+      }
+    };
+    reader.onload = async (e) => {
+      document.getElementById('upload-progress-fill').style.width = '90%';
+      const userData = await getUserData(currentUser.uid);
+      const postRef = push(ref(db, 'posts'));
+      await set(postRef, {
+        authorUid: currentUser.uid,
+        authorName: userData.displayName || currentUser.displayName || 'Pengguna',
+        authorUsername: userData.username || 'user',
+        authorPhoto: userData.photoBase64 || '',
+        caption: document.getElementById('upload-caption').value.trim(),
+        mediaBase64: e.target.result,
+        mediaType: uploadFile.type.startsWith('video/') ? 'video' : 'image',
+        createdAt: Date.now(),
+        likes: {},
+        comments: {}
+      });
+      // save to user's posts index
+      await set(ref(db, `userPosts/${currentUser.uid}/${postRef.key}`), true);
+      document.getElementById('upload-progress-fill').style.width = '100%';
+      setTimeout(() => {
+        closeUploadModal();
+        showToast('Postingan berhasil dibagikan');
+        btn.disabled = false;
+        btn.textContent = 'Bagikan';
+      }, 400);
+    };
+    reader.readAsDataURL(uploadFile);
+  } catch(e) {
+    showToast('Gagal mengupload. Coba lagi.');
+    btn.disabled = false;
+    btn.textContent = 'Bagikan';
+  }
+};
+
+// CHAT
+function initChat() {
+  if (isGuest) { renderGuestChat(); return; }
+  if (chatListener) return;
+  const chatEl = document.getElementById('chat-messages');
+  let first = true;
+  onChildAdded(ref(db, 'publicChat'), (snap) => {
+    const msg = { id: snap.key, ...snap.val() };
+    appendChatMsg(msg, chatEl);
+    if (!first) chatEl.scrollTop = chatEl.scrollHeight;
+    first = false;
+  });
+  chatListener = true;
+  setTimeout(() => { chatEl.scrollTop = chatEl.scrollHeight; }, 600);
+}
+
+function renderGuestChat() {
+  document.getElementById('chat-locked').style.display = 'flex';
+  document.getElementById('chat-input-bar').style.display = 'none';
+}
+
+function appendChatMsg(msg, container) {
+  const isMe = currentUser && msg.uid === currentUser.uid;
+  const el = document.createElement('div');
+  el.className = 'chat-msg' + (isMe ? ' mine' : '');
+  const avatarHTML = msg.photo
+    ? `<div class="chat-avatar-sm"><img src="${msg.photo}"></div>`
+    : `<div class="chat-avatar-sm">${(msg.name||'U')[0].toUpperCase()}</div>`;
+  el.innerHTML = `
+    ${isMe ? '' : avatarHTML}
+    <div class="chat-bubble-wrap">
+      ${isMe ? '' : `<div class="chat-sender">${escHtml(msg.name||'Pengguna')}</div>`}
+      <div class="chat-bubble">${escHtml(msg.text)}</div>
+      <div class="chat-time">${timeAgo(msg.ts)}</div>
+    </div>
+    ${isMe ? avatarHTML : ''}`;
+  container.appendChild(el);
+}
+
+window.sendChat = async () => {
+  if (!currentUser) return;
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  const userData = await getUserData(currentUser.uid);
+  await push(ref(db, 'publicChat'), {
+    uid: currentUser.uid,
+    name: userData.displayName || currentUser.displayName || 'Pengguna',
+    photo: userData.photoBase64 || '',
+    text: text,
+    ts: Date.now()
+  });
+  input.value = '';
+  const chatEl = document.getElementById('chat-messages');
+  chatEl.scrollTop = chatEl.scrollHeight;
+};
+
+// COMMUNITY
+function initCommunity() {
+  const list = document.getElementById('community-list');
+  if (isGuest) {
+    document.getElementById('community-locked').style.display = 'flex';
+    return;
+  }
+  onValue(ref(db, 'communities'), (snap) => {
+    list.innerHTML = '';
+    if (!snap.exists()) {
+      // seed default communities
+      seedCommunities();
+      return;
+    }
+    snap.forEach(child => {
+      const c = { id: child.key, ...child.val() };
+      const card = document.createElement('div');
+      card.className = 'community-card';
+      const memberCount = c.members ? Object.keys(c.members).length : 0;
+      const joined = currentUser && c.members && c.members[currentUser.uid];
+      card.innerHTML = `
+        <div class="community-name">${escHtml(c.name)}</div>
+        <div class="community-desc">${escHtml(c.desc||'')}</div>
+        <div class="community-meta">
+          <span class="community-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            ${memberCount} anggota
+          </span>
+        </div>
+        <button class="comm-join-btn ${joined?'joined':''}" onclick="toggleJoinCommunity('${c.id}', ${!!joined})">${joined ? 'Bergabung' : 'Gabung'}</button>`;
+      list.appendChild(card);
+    });
+  });
+}
+
+window.toggleJoinCommunity = async (commId, joined) => {
+  if (!currentUser) return;
+  const memberRef = ref(db, `communities/${commId}/members/${currentUser.uid}`);
+  if (joined) await remove(memberRef);
+  else await set(memberRef, true);
+};
+
+async function seedCommunities() {
+  const defaults = [
+    { name: 'Teknologi', desc: 'Diskusi seputar dunia teknologi dan inovasi terkini' },
+    { name: 'Seni & Kreativitas', desc: 'Berbagi karya seni, desain, dan ekspresi kreatif' },
+    { name: 'Olahraga', desc: 'Komunitas pecinta olahraga dan kebugaran' },
+    { name: 'Kuliner', desc: 'Resep, restoran, dan pengalaman kuliner nusantara' },
+  ];
+  for (const c of defaults) {
+    await push(ref(db, 'communities'), { ...c, createdAt: Date.now(), members: {} });
+  }
+}
+
+// PROFILE
+async function loadProfile() {
+  if (isGuest) { renderGuestProfile(); return; }
+  if (!currentUser) return;
+  document.getElementById('profile-locked').style.display = 'none';
+  document.getElementById('profile-content').style.display = 'block';
+  onValue(ref(db, 'users/' + currentUser.uid), (snap) => {
+    if (!snap.exists()) return;
+    const data = snap.val();
+    document.getElementById('profile-display-name').textContent = data.displayName || 'Pengguna';
+    document.getElementById('profile-username-show').textContent = '@' + (data.username || 'user');
+    document.getElementById('profile-id-text').textContent = 'ID: ' + currentUser.uid;
+    isPrivate = !!data.isPrivate;
+    const toggle = document.getElementById('privacy-toggle');
+    const label = document.getElementById('privacy-label');
+    toggle.classList.toggle('on', isPrivate);
+    label.textContent = isPrivate ? 'Privat' : 'Publik';
+    document.getElementById('settings-privacy-val').textContent = isPrivate ? 'Privat' : 'Publik';
+    if (data.photoBase64) {
+      document.getElementById('profile-avatar-img').src = data.photoBase64;
+      document.getElementById('profile-avatar-img').style.display = 'block';
+      document.getElementById('profile-avatar-letter').style.display = 'none';
+    } else {
+      document.getElementById('profile-avatar-letter').textContent = (data.displayName||'U')[0].toUpperCase();
+      document.getElementById('profile-avatar-img').style.display = 'none';
+      document.getElementById('profile-avatar-letter').style.display = '';
+    }
+    if (data.bannerBase64) {
+      document.getElementById('profile-banner-img').src = data.bannerBase64;
+      document.getElementById('profile-banner-img').style.display = 'block';
+    }
+  });
+  // load user posts
+  onValue(ref(db, 'userPosts/' + currentUser.uid), async (snap) => {
+    document.getElementById('stat-posts').textContent = snap.exists() ? Object.keys(snap.val()).length : 0;
+    loadProfileGrid(snap);
+  });
+}
+
+function renderGuestProfile() {
+  document.getElementById('profile-locked').style.display = 'flex';
+  document.getElementById('profile-content').style.display = 'none';
+}
+
+async function loadProfileGrid(snap) {
+  const grid = document.getElementById('profile-posts-grid');
+  grid.innerHTML = '';
+  if (!snap.exists()) return;
+  const postIds = Object.keys(snap.val()).reverse().slice(0, 30);
+  for (const pid of postIds) {
+    const postSnap = await get(ref(db, 'posts/' + pid));
+    if (!postSnap.exists()) continue;
+    const post = postSnap.val();
+    const thumb = document.createElement('div');
+    thumb.className = 'profile-post-thumb';
+    if (post.mediaBase64) {
+      if (post.mediaType === 'video') {
+        thumb.innerHTML = `<video src="${post.mediaBase64}" preload="none"></video><div class="profile-post-video-badge"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`;
+      } else {
+        thumb.innerHTML = `<img src="${post.mediaBase64}" loading="lazy">`;
+      }
+    } else {
+      thumb.style.background = 'var(--gray-200)';
+    }
+    grid.appendChild(thumb);
+  }
+}
+
+window.togglePrivacy = async () => {
+  if (!currentUser) return;
+  isPrivate = !isPrivate;
+  await update(ref(db, 'users/' + currentUser.uid), { isPrivate });
+  showToast(isPrivate ? 'Akun diatur ke Privat' : 'Akun diatur ke Publik');
+};
+
+window.copyUserId = () => {
+  navigator.clipboard.writeText(currentUser.uid).then(() => showToast('ID disalin ke clipboard'));
+};
+
+// AVATAR/BANNER UPLOAD
+window.triggerAvatarUpload = () => document.getElementById('avatar-file-input').click();
+window.triggerBannerUpload = () => document.getElementById('banner-file-input').click();
+
+window.handleAvatarUpload = (input) => {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { showToast('Foto profil maksimal 5MB'); return; }
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const compressed = await compressImage(e.target.result, 400, 400, 0.7);
+    await update(ref(db, 'users/' + currentUser.uid), { photoBase64: compressed });
+    // update all posts by this user
+    const postsSnap = await get(ref(db, 'userPosts/' + currentUser.uid));
+    if (postsSnap.exists()) {
+      const updates = {};
+      Object.keys(postsSnap.val()).forEach(pid => { updates[`posts/${pid}/authorPhoto`] = compressed; });
+      await update(ref(db), updates);
+    }
+    showToast('Foto profil diperbarui');
+  };
+  reader.readAsDataURL(file);
+};
+
+window.handleBannerUpload = (input) => {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) { showToast('Banner maksimal 10MB'); return; }
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const compressed = await compressImage(e.target.result, 900, 300, 0.75);
+    await update(ref(db, 'users/' + currentUser.uid), { bannerBase64: compressed });
+    showToast('Banner diperbarui');
+  };
+  reader.readAsDataURL(file);
+};
+
+function compressImage(dataUrl, maxW, maxH, quality) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = h * maxW / w; w = maxW; }
+      if (h > maxH) { w = w * maxH / h; h = maxH; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = dataUrl;
+  });
+}
+
+// EDIT PROFILE
+window.openEditProfile = async () => {
+  if (!currentUser) return;
+  const data = await getUserData(currentUser.uid);
+  document.getElementById('edit-name').value = data.displayName || '';
+  document.getElementById('edit-username').value = data.username || '';
+  document.getElementById('edit-error').textContent = '';
+  document.getElementById('edit-profile-modal').classList.add('open');
+};
+window.closeEditProfile = () => document.getElementById('edit-profile-modal').classList.remove('open');
+
+window.saveEditProfile = async () => {
+  const name = document.getElementById('edit-name').value.trim();
+  const username = document.getElementById('edit-username').value.trim().toLowerCase().replace(/\s+/g,'');
+  document.getElementById('edit-error').textContent = '';
+  if (!name || !username) { document.getElementById('edit-error').textContent = 'Semua kolom wajib diisi'; return; }
+  const data = await getUserData(currentUser.uid);
+  if (username !== data.username) {
+    const snap = await get(query(ref(db, 'users'), orderByChild('username'), equalTo(username)));
+    if (snap.exists()) { document.getElementById('edit-error').textContent = 'Username sudah dipakai'; return; }
+  }
+  await update(ref(db, 'users/' + currentUser.uid), { displayName: name, username });
+  const postsSnap = await get(ref(db, 'userPosts/' + currentUser.uid));
+  if (postsSnap.exists()) {
+    const updates = {};
+    Object.keys(postsSnap.val()).forEach(pid => {
+      updates[`posts/${pid}/authorName`] = name;
+      updates[`posts/${pid}/authorUsername`] = username;
+    });
+    await update(ref(db), updates);
+  }
+  closeEditProfile();
+  showToast('Profil berhasil diperbarui');
+};
+
+// SEARCH
+window.openSearchModal = () => {
+  document.getElementById('search-modal').classList.add('open');
+  document.getElementById('search-input').value = '';
+  document.getElementById('search-result').innerHTML = '<span>Masukkan ID untuk mencari pengguna</span>';
+  document.getElementById('search-input').focus();
+};
+window.closeSearchModal = () => document.getElementById('search-modal').classList.remove('open');
+
+window.searchByIdDebounce = () => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(doSearchById, 500);
+};
+
+async function doSearchById() {
+  const id = document.getElementById('search-input').value.trim();
+  const resultEl = document.getElementById('search-result');
+  if (!id) { resultEl.innerHTML = '<span>Masukkan ID untuk mencari pengguna</span>'; return; }
+  resultEl.innerHTML = '<div class="spinner" style="margin:12px auto"></div>';
+  try {
+    const snap = await get(ref(db, 'users/' + id));
+    if (!snap.exists()) {
+      resultEl.innerHTML = '<span>Pengguna tidak ditemukan</span>';
+      return;
+    }
+    const u = snap.val();
+    const isUserPrivate = u.isPrivate && (!currentUser || currentUser.uid !== id);
+    resultEl.innerHTML = `
+      <div class="search-user-card">
+        <div class="search-user-avatar">${u.photoBase64 ? `<img src="${u.photoBase64}">` : (u.displayName||'U')[0].toUpperCase()}</div>
+        <div class="search-user-info">
+          <div class="search-user-name">${escHtml(u.displayName||'Pengguna')}</div>
+          <div class="search-user-un">@${escHtml(u.username||'user')}</div>
+          <div class="search-user-id">${isUserPrivate ? 'Akun Privat' : 'Akun Publik'}</div>
+        </div>
+      </div>`;
+  } catch(e) {
+    resultEl.innerHTML = '<span>Terjadi kesalahan</span>';
+  }
+}
+
+// HELPERS
+async function getUserData(uid) {
+  const snap = await get(ref(db, 'users/' + uid));
+  return snap.exists() ? snap.val() : {};
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function timeAgo(ts) {
+  if (!ts) return '';
+  const diff = Date.now() - ts;
+  if (diff < 60000) return 'Baru saja';
+  if (diff < 3600000) return Math.floor(diff/60000) + ' mnt';
+  if (diff < 86400000) return Math.floor(diff/3600000) + ' jam';
+  return Math.floor(diff/86400000) + ' hari';
+}
+
+window.showToast = (msg) => {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+};
+
+</script>
+</body>
+</html>
