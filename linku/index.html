@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linku - Share Link & File</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: { extend: { fontFamily: { sans: ['Outfit', 'sans-serif'] } } }
+  }
+</script>
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<style>
+  * { -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Outfit', sans-serif; transition: background-color 0.3s, color 0.3s; }
+  
+  .glass {
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+  .dark .glass-panel {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.09);
+  }
+  html:not(.dark) .glass-panel {
+    background: rgba(255,255,255,0.92);
+    border: 1px solid rgba(0,0,0,0.07);
+    box-shadow: 0 4px 24px -4px rgba(0,0,0,0.06);
+  }
+
+  .page-view { display: none; animation: fadeUp 0.35s cubic-bezier(0.4,0,0.2,1); }
+  .page-view.active { display: block; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .logo-svg { transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+  .logo-svg:hover { transform: rotate(15deg) scale(1.1); }
+
+  ::-webkit-scrollbar { width: 0; background: transparent; }
+
+  /* Audio Player */
+  .audio-bar {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.15);
+    outline: none;
+    cursor: pointer;
+  }
+  html:not(.dark) .audio-bar { background: rgba(0,0,0,0.12); }
+  .audio-bar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #2563eb;
+    cursor: pointer;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.25);
+  }
+  .audio-bar::-moz-range-thumb {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #2563eb;
+    cursor: pointer;
+    border: none;
+  }
+
+  /* Spinner */
+  .spinner {
+    border: 3px solid rgba(255,255,255,0.15);
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Toast */
+  #toast {
+    transform: translateY(100px);
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+    opacity: 0;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+
+  /* Progress bar */
+  #upload-progress-bar { transition: width 0.2s ease; }
+
+  /* Sidebar animation */
+  #sidebar { transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); }
+  #sidebar-overlay { transition: opacity 0.4s ease; }
+
+  /* Pulse on new post */
+  @keyframes pulse-blue {
+    0%,100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
+    50%      { box-shadow: 0 0 0 8px rgba(37,99,235,0.15); }
+  }
+  .new-post { animation: pulse-blue 1.5s ease 2; }
+</style>
+</head>
+
+<body class="bg-gray-50 text-gray-900 dark:bg-[#0a0a0a] dark:text-white font-sans min-h-screen flex flex-col antialiased">
+
+<!-- SIDEBAR OVERLAY -->
+<div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm opacity-0 pointer-events-none" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="glass fixed top-0 left-0 h-full w-[85%] max-w-sm z-50 transform -translate-x-full flex flex-col dark:bg-[#0f0f0f]/90 bg-white/95 border-r dark:border-white/10 border-black/5">
+  <div class="p-6 flex-1 flex flex-col overflow-y-auto">
+    <div class="flex items-center justify-between mb-8">
+      <div class="flex items-center gap-3">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-9 h-9 logo-svg">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M30 20C18.9543 20 10 28.9543 10 40C10 51.0457 18.9543 60 30 60H40V80H30C7.90861 80 -10 62.0914 -10 40C-10 17.9086 7.90861 0 30 0H45C61.5685 0 75 13.4315 75 30V40H55V30C55 24.4772 50.5228 20 45 20H30ZM70 80C81.0457 80 90 71.0457 90 60C90 48.9543 81.0457 40 70 40H60V20H70C92.0914 20 110 37.9086 110 60C110 82.0914 92.0914 100 70 100H55C38.4315 100 25 86.5685 25 70V60H45V70C45 75.5228 49.4772 80 55 80H70Z" fill="#2563EB"/>
+        </svg>
+        <span class="text-xl font-bold text-blue-600">Linku</span>
+      </div>
+      <button onclick="toggleSidebar()" class="p-2 rounded-full dark:hover:bg-white/10 hover:bg-black/5 transition-colors">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <div class="space-y-4 flex-1">
+      <!-- User Info -->
+      <div id="sidebar-user" class="hidden p-4 rounded-2xl dark:bg-white/5 bg-blue-50 flex items-center gap-4">
+        <div id="sidebar-avatar" class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">?</div>
+        <div class="min-w-0">
+          <p id="sidebar-name" class="font-bold truncate">-</p>
+          <p id="sidebar-email" class="text-xs dark:text-gray-400 text-gray-500 truncate">-</p>
+        </div>
+      </div>
+
+      <!-- About -->
+      <div class="p-4 rounded-2xl dark:bg-white/5 bg-blue-50">
+        <h3 class="font-bold text-sm flex items-center gap-2 mb-2"><i data-lucide="info" class="w-4 h-4 text-blue-500"></i> Tentang Linku</h3>
+        <p class="text-xs dark:text-gray-400 text-gray-500 leading-relaxed">Platform untuk berbagi tautan, file XML, dan audio secara realtime. Upload, explore, dan berinteraksi bersama komunitas.</p>
+      </div>
+
+      <!-- Theme -->
+      <button onclick="toggleTheme()" class="w-full flex items-center justify-between p-4 rounded-2xl glass glass-panel transition-all dark:hover:bg-white/10 hover:bg-gray-50">
+        <span class="flex items-center gap-3 font-semibold text-sm" id="theme-label">
+          <i data-lucide="moon" class="w-4 h-4"></i> Tema Gelap
+        </span>
+        <div class="w-11 h-6 rounded-full p-0.5 transition-colors bg-blue-600" id="theme-bg">
+          <div class="w-5 h-5 rounded-full bg-white transform transition-transform translate-x-5" id="theme-dot"></div>
+        </div>
+      </button>
+
+      <!-- Logout -->
+      <button id="logout-btn" onclick="handleLogout()" class="hidden w-full flex items-center gap-3 p-4 rounded-2xl text-red-500 dark:hover:bg-red-500/10 hover:bg-red-50 transition-colors font-semibold text-sm">
+        <i data-lucide="log-out" class="w-4 h-4"></i> Keluar
+      </button>
+    </div>
+
+    <div class="mt-6 p-4 rounded-2xl text-center dark:bg-white/5 bg-gray-100">
+      <p class="text-xs text-gray-500 mb-0.5">Dikembangkan oleh</p>
+      <p class="font-bold text-blue-600">Fikri Everly</p>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="max-w-2xl mx-auto w-full flex-1 flex flex-col relative">
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-30 px-4 py-3 flex items-center justify-between glass glass-panel border-b dark:border-white/5 border-black/5">
+    <div class="flex items-center gap-3">
+      <button onclick="toggleSidebar()" class="p-2.5 rounded-xl transition-colors dark:bg-white/5 dark:hover:bg-white/10 bg-white border border-gray-200 hover:bg-gray-50 shadow-sm">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </button>
+      <div class="flex items-center gap-2 logo-svg cursor-default">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-7 h-7">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M30 20C18.9543 20 10 28.9543 10 40C10 51.0457 18.9543 60 30 60H40V80H30C7.90861 80 -10 62.0914 -10 40C-10 17.9086 7.90861 0 30 0H45C61.5685 0 75 13.4315 75 30V40H55V30C55 24.4772 50.5228 20 45 20H30ZM70 80C81.0457 80 90 71.0457 90 60C90 48.9543 81.0457 40 70 40H60V20H70C92.0914 20 110 37.9086 110 60C110 82.0914 92.0914 100 70 100H55C38.4315 100 25 86.5685 25 70V60H45V70C45 75.5228 49.4772 80 55 80H70Z" fill="#2563EB"/>
+        </svg>
+        <span class="text-xl font-bold">Linku</span>
+      </div>
+    </div>
+    <button onclick="navigate('profile')" id="header-avatar-btn" class="w-10 h-10 rounded-full overflow-hidden border-2 dark:border-white/15 border-gray-200 bg-blue-600 shadow-sm flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+      <span id="header-avatar-char">?</span>
+    </button>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 p-4 pb-28">
+
+    <!-- ===== LOGIN PAGE ===== -->
+    <div id="view-auth" class="page-view active">
+      <div class="min-h-[70vh] flex flex-col items-center justify-center">
+        <div class="w-full max-w-sm">
+          <div class="text-center mb-8">
+            <div class="flex justify-center mb-4">
+              <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 logo-svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M30 20C18.9543 20 10 28.9543 10 40C10 51.0457 18.9543 60 30 60H40V80H30C7.90861 80 -10 62.0914 -10 40C-10 17.9086 7.90861 0 30 0H45C61.5685 0 75 13.4315 75 30V40H55V30C55 24.4772 50.5228 20 45 20H30ZM70 80C81.0457 80 90 71.0457 90 60C90 48.9543 81.0457 40 70 40H60V20H70C92.0914 20 110 37.9086 110 60C110 82.0914 92.0914 100 70 100H55C38.4315 100 25 86.5685 25 70V60H45V70C45 75.5228 49.4772 80 55 80H70Z" fill="#2563EB"/>
+              </svg>
+            </div>
+            <h1 class="text-3xl font-black mb-1">Linku</h1>
+            <p class="text-sm dark:text-gray-400 text-gray-500">Masuk untuk berbagi & menjelajahi</p>
+          </div>
+
+          <div class="p-6 rounded-3xl glass glass-panel space-y-4">
+            <!-- Tab -->
+            <div class="flex gap-1 p-1 rounded-2xl dark:bg-black/30 bg-gray-100">
+              <button id="tab-login" onclick="switchAuthTab('login')" class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all bg-blue-600 text-white shadow-md">Masuk</button>
+              <button id="tab-register" onclick="switchAuthTab('register')" class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all dark:text-gray-400 text-gray-500">Daftar</button>
+            </div>
+
+            <!-- Name field (register only) -->
+            <div id="field-name" class="hidden">
+              <label class="block text-xs font-bold mb-1.5 ml-1">Nama Lengkap</label>
+              <div class="relative">
+                <i data-lucide="user" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 dark:text-gray-500 text-gray-400"></i>
+                <input id="auth-name" type="text" placeholder="Nama kamu" class="w-full pl-10 pr-4 py-3.5 rounded-2xl outline-none transition-all dark:bg-white/5 dark:border-white/10 bg-white border border-gray-200 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 text-sm font-semibold dark:text-white text-gray-900 dark:placeholder-gray-600 placeholder-gray-400">
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label class="block text-xs font-bold mb-1.5 ml-1">Email</label>
+              <div class="relative">
+                <i data-lucide="mail" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 dark:text-gray-500 text-gray-400"></i>
+                <input id="auth-email" type="email" placeholder="email@kamu.com" class="w-full pl-10 pr-4 py-3.5 rounded-2xl outline-none transition-all dark:bg-white/5 dark:border-white/10 bg-white border border-gray-200 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 text-sm font-semibold dark:text-white text-gray-900 dark:placeholder-gray-600 placeholder-gray-400">
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div>
+              <label class="block text-xs font-bold mb-1.5 ml-1">Password</label>
+              <div class="relative">
+                <i data-lucide="lock" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 dark:text-gray-500 text-gray-400"></i>
+                <input id="auth-password" type="password" placeholder="••••••••" class="w-full pl-10 pr-4 py-3.5 rounded-2xl outline-none transition-all dark:bg-white/5 dark:border-white/10 bg-white border border-gray-200 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 text-sm font-semibold dark:text-white text-gray-900 dark:placeholder-gray-600 placeholder-gray-400">
+              </div>
+            </div>
+
+            <!-- Error msg -->
+            <p id="auth-error" class="hidden text-xs text-red-500 font-semibold px-1"></p>
+
+            <!-- Submit -->
+            <button id="auth-submit" onclick="handleAuth()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-2xl font-bold text-sm transition-all shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2">
+              <span id="auth-btn-text">Masuk</span>
+              <div id="auth-spinner" class="hidden w-4 h-4 spinner"></div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== HOME PAGE ===== -->
+    <div id="view-home" class="page-view space-y-5">
+      <div class="flex items-center justify-between px-1 pt-3 pb-1">
+        <h2 class="text-2xl font-black">Jelajahi <span class="text-blue-600">Linku</span></h2>
+        <div id="posts-count" class="text-xs dark:text-gray-500 text-gray-400 font-bold"></div>
+      </div>
+      <!-- Loading state -->
+      <div id="home-loading" class="flex flex-col items-center justify-center py-16 gap-3">
+        <div class="w-8 h-8 spinner"></div>
+        <p class="text-sm dark:text-gray-500 text-gray-400 font-semibold">Memuat postingan...</p>
+      </div>
+      <!-- Empty state -->
+      <div id="home-empty" class="hidden flex flex-col items-center justify-center py-20 gap-4 text-center">
+        <div class="w-16 h-16 rounded-3xl dark:bg-white/5 bg-gray-100 flex items-center justify-center">
+          <i data-lucide="inbox" class="w-8 h-8 dark:text-gray-600 text-gray-300"></i>
+        </div>
+        <p class="font-bold dark:text-gray-400 text-gray-500">Belum ada postingan</p>
+        <p class="text-sm dark:text-gray-600 text-gray-400">Jadilah yang pertama upload!</p>
+      </div>
+      <div id="posts-container" class="space-y-5"></div>
+    </div>
+
+    <!-- ===== UPLOAD PAGE ===== -->
+    <div id="view-upload" class="page-view">
+      <div class="p-6 rounded-3xl glass glass-panel mt-2">
+        <div class="flex items-center gap-4 mb-6">
+          <div class="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/25 flex-shrink-0">
+            <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h2 class="text-2xl font-black">Upload Baru</h2>
+            <p class="text-xs dark:text-gray-400 text-gray-500 mt-0.5">Bagikan ke publik secara realtime</p>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Title -->
+          <div>
+            <label class="block text-xs font-bold mb-1.5 ml-1">Judul Postingan <span class="text-blue-500">*</span></label>
+            <input required id="up-title" type="text" placeholder="Contoh: Preset Transisi JJ Keren" class="w-full p-4 rounded-2xl outline-none transition-all dark:bg-white/5 dark:border-white/10 bg-white border border-gray-200 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 text-sm font-semibold dark:text-white text-gray-900 dark:placeholder-gray-600 placeholder-gray-400">
+          </div>
+
+          <!-- Link -->
+          <div>
+            <label class="block text-xs font-bold mb-1.5 ml-1">Tautan Utama <span class="text-blue-500">*</span></label>
+            <div class="relative">
+              <i data-lucide="link" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 dark:text-gray-500 text-gray-400"></i>
+              <input id="up-link" type="url" placeholder="https://..." class="w-full pl-10 pr-4 py-4 rounded-2xl outline-none transition-all dark:bg-white/5 dark:border-white/10 bg-white border border-gray-200 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 text-sm font-semibold dark:text-white text-gray-900 dark:placeholder-gray-600 placeholder-gray-400">
+            </div>
+          </div>
+
+          <!-- XML Upload -->
+          <div>
+            <label class="block text-xs font-bold mb-1.5 ml-1">File XML <span class="text-xs dark:text-gray-500 text-gray-400 font-normal">(Opsional)</span></label>
+            <div onclick="document.getElementById('up-xml').click()" class="relative flex items-center gap-3 p-4 rounded-2xl border-2 border-dashed dark:border-white/15 border-gray-300 dark:bg-white/5 dark:hover:bg-white/8 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer group">
+              <div class="w-9 h-9 rounded-xl bg-blue-600/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-600/20 transition-colors">
+                <i data-lucide="file-code" class="w-5 h-5 text-blue-500"></i>
+              </div>
+              <span id="xml-name" class="text-sm font-semibold dark:text-gray-400 text-gray-500 truncate">Pilih file .xml...</span>
+              <input type="file" id="up-xml" accept=".xml" class="hidden" onchange="updateFileName('up-xml','xml-name','Pilih file .xml...')">
+            </div>
+          </div>
+
+          <!-- Audio Upload -->
+          <div>
+            <label class="block text-xs font-bold mb-1.5 ml-1">File Audio <span class="text-xs dark:text-gray-500 text-gray-400 font-normal">(Opsional)</span></label>
+            <div onclick="document.getElementById('up-sound').click()" class="relative flex items-center gap-3 p-4 rounded-2xl border-2 border-dashed dark:border-white/15 border-gray-300 dark:bg-white/5 dark:hover:bg-white/8 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer group">
+              <div class="w-9 h-9 rounded-xl bg-blue-600/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-600/20 transition-colors">
+                <i data-lucide="music-2" class="w-5 h-5 text-blue-500"></i>
+              </div>
+              <span id="sound-name" class="text-sm font-semibold dark:text-gray-400 text-gray-500 truncate">Pilih file audio...</span>
+              <input type="file" id="up-sound" accept="audio/*" class="hidden" onchange="updateFileName('up-sound','sound-name','Pilih file audio...')">
+            </div>
+          </div>
+
+          <!-- Progress -->
+          <div id="upload-progress-wrap" class="hidden">
+            <div class="flex justify-between text-xs font-bold mb-1.5">
+              <span id="upload-progress-label" class="dark:text-gray-400 text-gray-500">Mengupload...</span>
+              <span id="upload-progress-pct" class="text-blue-600">0%</span>
+            </div>
+            <div class="w-full h-2 rounded-full dark:bg-white/10 bg-gray-200 overflow-hidden">
+              <div id="upload-progress-bar" class="h-full bg-blue-600 rounded-full w-0"></div>
+            </div>
+          </div>
+
+          <!-- Error -->
+          <p id="upload-error" class="hidden text-xs text-red-500 font-semibold px-1"></p>
+
+          <!-- Submit -->
+          <button id="up-submit" onclick="handleUpload()" class="w-full py-4 mt-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-2 shadow-xl shadow-blue-600/25">
+            <i data-lucide="send" class="w-5 h-5"></i>
+            <span id="up-btn-text">Publikasikan</span>
+            <div id="up-spinner" class="hidden w-4 h-4 spinner"></div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PROFILE PAGE ===== -->
+    <div id="view-profile" class="page-view space-y-4">
+      <div class="p-8 rounded-3xl glass glass-panel flex flex-col items-center text-center mt-2">
+        <div id="profile-avatar" class="w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center text-white text-3xl font-black mb-4 shadow-xl shadow-blue-600/20 border-4 dark:border-white/10 border-white">?</div>
+        <h2 id="profile-name" class="text-2xl font-black mb-1">-</h2>
+        <p id="profile-email" class="text-sm dark:text-gray-400 text-gray-500 mb-6">-</p>
+        <div class="flex gap-3 w-full justify-center">
+          <div class="flex-1 max-w-[120px] p-4 rounded-2xl dark:bg-black/40 bg-gray-50 border dark:border-white/5 border-black/5 flex flex-col items-center">
+            <span id="profile-uploads" class="text-2xl font-black text-blue-600">0</span>
+            <span class="text-xs font-bold dark:text-gray-500 text-gray-400 mt-0.5">Uploads</span>
+          </div>
+          <div class="flex-1 max-w-[120px] p-4 rounded-2xl dark:bg-black/40 bg-gray-50 border dark:border-white/5 border-black/5 flex flex-col items-center">
+            <span id="profile-comments" class="text-2xl font-black text-blue-600">0</span>
+            <span class="text-xs font-bold dark:text-gray-500 text-gray-400 mt-0.5">Komentar</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- My Posts -->
+      <div>
+        <h3 class="font-black text-lg px-1 mb-3">Postinganku</h3>
+        <div id="my-posts-loading" class="flex justify-center py-8"><div class="w-6 h-6 spinner"></div></div>
+        <div id="my-posts-empty" class="hidden text-center py-8 text-sm dark:text-gray-500 text-gray-400 font-semibold">Belum ada postingan.</div>
+        <div id="my-posts-container" class="space-y-4"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="fixed bottom-5 left-1/2 -translate-x-1/2 w-[92%] max-w-xs rounded-[2rem] p-1.5 flex justify-around items-center z-40 glass glass-panel shadow-2xl dark:shadow-black/50">
+    <button onclick="navigate('home')" id="nav-home" class="nav-btn flex flex-col items-center justify-center py-2.5 px-5 rounded-2xl transition-all duration-300 bg-blue-600 text-white shadow-md shadow-blue-600/30">
+      <i data-lucide="home" class="w-5 h-5 mb-0.5"></i>
+      <span class="text-[10px] font-bold">Beranda</span>
+    </button>
+    <button onclick="navigate('upload')" id="nav-upload" class="nav-btn flex flex-col items-center justify-center py-2.5 px-5 rounded-2xl transition-all duration-300 dark:text-gray-500 text-gray-400 hover:text-blue-600">
+      <i data-lucide="upload" class="w-5 h-5 mb-0.5"></i>
+      <span class="text-[10px] font-bold">Upload</span>
+    </button>
+    <button onclick="navigate('profile')" id="nav-profile" class="nav-btn flex flex-col items-center justify-center py-2.5 px-5 rounded-2xl transition-all duration-300 dark:text-gray-500 text-gray-400 hover:text-blue-600">
+      <i data-lucide="user" class="w-5 h-5 mb-0.5"></i>
+      <span class="text-[10px] font-bold">Profil</span>
+    </button>
+  </nav>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl font-bold text-sm shadow-xl pointer-events-none text-white bg-gray-900 dark:bg-white dark:text-gray-900 whitespace-nowrap"></div>
+
+<!-- Hidden copy helper -->
+<textarea id="copy-helper" class="fixed -top-full opacity-0 pointer-events-none" aria-hidden="true"></textarea>
+
+<!-- ================= FIREBASE + APP LOGIC ================= -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getDatabase, ref, push, set, onValue, off, serverTimestamp, get } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
+
+// ---- FIREBASE INIT ----
+const firebaseConfig = {
+  apiKey: "AIzaSyC1r8LyxNMpeVFIH2uHBGDcjPvLnTQCo08",
+  authDomain: "nexa-0.firebaseapp.com",
+  databaseURL: "https://nexa-0-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "nexa-0",
+  storageBucket: "nexa-0.firebasestorage.app",
+  messagingSenderId: "543993419686",
+  appId: "1:543993419686:web:46a34d4724826dfbe76167"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+const storage = getStorage(app);
+
+// ---- STATE ----
+let currentUser = null;
+let isDark = true;
+let isSidebar = false;
+let postsListener = null;
+let audioPlayers = {}; // postId → HTMLAudioElement
+
+// Expose globals needed by inline onclick handlers
+window.toggleSidebar = toggleSidebar;
+window.toggleTheme = toggleTheme;
+window.navigate = navigate;
+window.switchAuthTab = switchAuthTab;
+window.handleAuth = handleAuth;
+window.handleLogout = handleLogout;
+window.handleUpload = handleUpload;
+window.updateFileName = updateFileName;
+
+// ---- INIT ----
+lucide.createIcons();
+applyTheme();
+
+onAuthStateChanged(auth, user => {
+  currentUser = user;
+  updateUserUI();
+  if (user) {
+    navigate('home');
+    startPostsListener();
+  } else {
+    navigate('auth');
+    stopPostsListener();
+  }
+});
+
+// ---- AUTH TAB ----
+function switchAuthTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('tab-login').className = `flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${isLogin ? 'bg-blue-600 text-white shadow-md' : 'dark:text-gray-400 text-gray-500'}`;
+  document.getElementById('tab-register').className = `flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${!isLogin ? 'bg-blue-600 text-white shadow-md' : 'dark:text-gray-400 text-gray-500'}`;
+  document.getElementById('field-name').classList.toggle('hidden', isLogin);
+  document.getElementById('auth-btn-text').textContent = isLogin ? 'Masuk' : 'Daftar';
+  document.getElementById('auth-error').classList.add('hidden');
+  window._authTab = tab;
+}
+window._authTab = 'login';
+
+// ---- AUTH HANDLE ----
+async function handleAuth() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const name = document.getElementById('auth-name').value.trim();
+  const errEl = document.getElementById('auth-error');
+  const spinner = document.getElementById('auth-spinner');
+  const btnText = document.getElementById('auth-btn-text');
+
+  errEl.classList.add('hidden');
+  if (!email || !password) { showErr(errEl, 'Email dan password wajib diisi.'); return; }
+  if (window._authTab === 'register' && !name) { showErr(errEl, 'Nama wajib diisi.'); return; }
+  if (password.length < 6) { showErr(errEl, 'Password minimal 6 karakter.'); return; }
+
+  spinner.classList.remove('hidden');
+  btnText.textContent = window._authTab === 'login' ? 'Masuk...' : 'Daftar...';
+
+  try {
+    if (window._authTab === 'login') {
+      await signInWithEmailAndPassword(auth, email, password);
+    } else {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(cred.user, { displayName: name });
+    }
+  } catch(e) {
+    let msg = 'Terjadi kesalahan.';
+    if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') msg = 'Email atau password salah.';
+    else if (e.code === 'auth/email-already-in-use') msg = 'Email sudah terdaftar.';
+    else if (e.code === 'auth/invalid-email') msg = 'Format email tidak valid.';
+    showErr(errEl, msg);
+  } finally {
+    spinner.classList.add('hidden');
+    btnText.textContent = window._authTab === 'login' ? 'Masuk' : 'Daftar';
+  }
+}
+
+function showErr(el, msg) {
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+async function handleLogout() {
+  await signOut(auth);
+  toggleSidebar();
+}
+
+// ---- USER UI ----
+function updateUserUI() {
+  const user = currentUser;
+  const name = user?.displayName || user?.email?.split('@')[0] || '?';
+  const email = user?.email || '';
+  const char = name[0].toUpperCase();
+
+  // Header avatar
+  document.getElementById('header-avatar-char').textContent = char;
+
+  // Sidebar
+  if (user) {
+    document.getElementById('sidebar-user').classList.remove('hidden');
+    document.getElementById('sidebar-avatar').textContent = char;
+    document.getElementById('sidebar-name').textContent = name;
+    document.getElementById('sidebar-email').textContent = email;
+    document.getElementById('logout-btn').classList.remove('hidden');
+  } else {
+    document.getElementById('sidebar-user').classList.add('hidden');
+    document.getElementById('logout-btn').classList.add('hidden');
+  }
+
+  // Profile page
+  document.getElementById('profile-avatar').textContent = char;
+  document.getElementById('profile-name').textContent = name;
+  document.getElementById('profile-email').textContent = email;
+
+  // Bottom nav: show/hide upload
+  document.getElementById('nav-upload').style.display = user ? '' : 'none';
+}
+
+// ---- REALTIME POSTS LISTENER ----
+function startPostsListener() {
+  stopPostsListener();
+  const postsRef = ref(db, 'posts');
+  postsListener = onValue(postsRef, snapshot => {
+    const data = snapshot.val() || {};
+    const posts = Object.entries(data)
+      .map(([id, p]) => ({ id, ...p }))
+      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+    renderPosts(posts);
+    renderMyPosts(posts);
+
+    document.getElementById('home-loading').classList.add('hidden');
+    document.getElementById('posts-count').textContent = `${posts.length} post`;
+
+    if (posts.length === 0) {
+      document.getElementById('home-empty').classList.remove('hidden');
+    } else {
+      document.getElementById('home-empty').classList.add('hidden');
+    }
+  });
+}
+
+function stopPostsListener() {
+  if (postsListener) {
+    off(ref(db, 'posts'));
+    postsListener = null;
+  }
+}
+
+// ---- RENDER POSTS ----
+function renderPosts(posts) {
+  const container = document.getElementById('posts-container');
+  container.innerHTML = posts.map(post => buildPostCard(post)).join('');
+  lucide.createIcons();
+  // Re-attach audio players
+  posts.forEach(post => {
+    if (post.audioUrl) setupAudioPlayer(post.id, post.audioUrl);
+  });
+  // Realtime comments listeners per post
+  posts.forEach(post => listenComments(post.id));
+}
+
+function renderMyPosts(posts) {
+  const myPosts = posts.filter(p => p.uid === currentUser?.uid);
+  const container = document.getElementById('my-posts-container');
+  const empty = document.getElementById('my-posts-empty');
+  const loading = document.getElementById('my-posts-loading');
+
+  loading.classList.add('hidden');
+  document.getElementById('profile-uploads').textContent = myPosts.length;
+
+  if (myPosts.length === 0) { empty.classList.remove('hidden'); container.innerHTML = ''; return; }
+  empty.classList.add('hidden');
+  container.innerHTML = myPosts.map(post => buildPostCard(post, true)).join('');
+  lucide.createIcons();
+  myPosts.forEach(post => {
+    if (post.audioUrl) setupAudioPlayer(post.id, post.audioUrl);
+    listenComments(post.id);
+  });
+}
+
+function buildPostCard(post, mini = false) {
+  const name = post.uploaderName || 'Pengguna';
+  const dateStr = post.createdAt ? new Date(post.createdAt).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}) : '-';
+
+  // Link display
+  let linkShort = '';
+  try { linkShort = new URL(post.link).hostname; } catch { linkShort = post.link || ''; }
+
+  // XML row
+  const xmlRow = post.xmlUrl ? `
+    <div class="flex items-center justify-between p-3 rounded-2xl border dark:border-white/8 dark:bg-white/3 border-black/5 bg-white">
+      <div class="flex items-center gap-2.5 overflow-hidden">
+        <div class="w-8 h-8 rounded-xl bg-orange-500/10 flex items-center justify-center flex-shrink-0">
+          <i data-lucide="file-code" class="w-4 h-4 text-orange-500"></i>
+        </div>
+        <span class="text-xs font-bold truncate dark:text-gray-300 text-gray-700">${post.xmlName || 'file.xml'}</span>
+      </div>
+      <a href="${post.xmlUrl}" target="_blank" download="${post.xmlName || 'file.xml'}" class="ml-2 flex-shrink-0 w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center transition-colors" title="Download XML">
+        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+      </a>
+    </div>` : '';
+
+  // Audio player row
+  const audioRow = post.audioUrl ? `
+    <div class="p-3 rounded-2xl border dark:border-white/8 dark:bg-white/3 border-black/5 bg-white">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-8 h-8 rounded-xl bg-purple-500/10 flex items-center justify-center flex-shrink-0">
+          <i data-lucide="music-2" class="w-4 h-4 text-purple-500"></i>
+        </div>
+        <span class="text-xs font-bold truncate dark:text-gray-300 text-gray-700 flex-1">${post.audioName || 'audio'}</span>
+        <a href="${post.audioUrl}" target="_blank" download="${post.audioName || 'audio'}" class="flex-shrink-0 w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center transition-colors" title="Download Audio">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+        </a>
+      </div>
+      <!-- Custom audio player -->
+      <div class="flex items-center gap-2.5">
+        <button onclick="togglePlay('${post.id}')" id="play-btn-${post.id}" class="w-9 h-9 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors flex-shrink-0 shadow-md shadow-blue-600/25">
+          <i data-lucide="play" class="w-4 h-4" id="play-icon-${post.id}"></i>
+        </button>
+        <div class="flex-1 flex flex-col gap-1">
+          <input type="range" id="audio-seek-${post.id}" class="audio-bar w-full" value="0" min="0" max="100" step="0.1" oninput="seekAudio('${post.id}', this.value)">
+          <div class="flex justify-between text-[10px] font-bold dark:text-gray-600 text-gray-400">
+            <span id="audio-time-${post.id}">0:00</span>
+            <span id="audio-dur-${post.id}">0:00</span>
+          </div>
+        </div>
+      </div>
+    </div>` : '';
+
+  return `
+    <div id="card-${post.id}" class="p-5 rounded-3xl glass glass-panel">
+      <!-- Header -->
+      <div class="flex items-start justify-between mb-4">
+        <div class="min-w-0 flex-1 pr-3">
+          <h3 class="font-black text-base leading-tight mb-1">${escHtml(post.title)}</h3>
+          <p class="text-xs text-blue-600 font-bold">${escHtml(name)} <span class="dark:text-gray-600 text-gray-400 font-semibold">· ${dateStr}</span></p>
+        </div>
+        ${post.uid === currentUser?.uid ? `<button onclick="deletePost('${post.id}')" class="p-2 rounded-xl dark:hover:bg-red-500/15 hover:bg-red-50 text-red-400 transition-colors flex-shrink-0" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+      </div>
+
+      <!-- Link -->
+      ${post.link ? `
+      <div class="flex items-center gap-2.5 p-3 rounded-2xl dark:bg-white/3 bg-gray-50 border dark:border-white/8 border-black/5 mb-4">
+        <i data-lucide="link" class="w-4 h-4 text-blue-500 flex-shrink-0"></i>
+        <a href="${escHtml(post.link)}" target="_blank" rel="noopener" class="text-xs font-bold text-blue-600 hover:underline truncate flex-1">${escHtml(linkShort)}</a>
+        <button onclick="copyLink('${escHtml(post.link)}')" class="flex-shrink-0 w-8 h-8 rounded-xl dark:hover:bg-white/10 hover:bg-gray-200 transition-colors flex items-center justify-center" title="Salin link">
+          <i data-lucide="copy" class="w-3.5 h-3.5 dark:text-gray-400 text-gray-500"></i>
+        </button>
+      </div>` : ''}
+
+      <!-- Files -->
+      ${xmlRow || audioRow ? `<div class="space-y-2 mb-4">${xmlRow}${audioRow}</div>` : ''}
+
+      <!-- Comment toggle -->
+      <div class="flex items-center justify-between pt-3 border-t dark:border-white/8 border-black/5">
+        <button onclick="toggleComments('${post.id}')" class="flex items-center gap-2 text-xs font-bold dark:text-gray-400 text-gray-500 hover:text-blue-600 transition-colors">
+          <i data-lucide="message-circle" class="w-4 h-4"></i>
+          <span id="comment-count-${post.id}">0 komentar</span>
+        </button>
+        <button onclick="toggleComments('${post.id}')" class="p-2 rounded-xl dark:hover:bg-white/8 hover:bg-gray-100 transition-colors">
+          <i data-lucide="chevron-down" class="w-4 h-4 dark:text-gray-500 text-gray-400 transition-transform" id="comment-chevron-${post.id}"></i>
+        </button>
+      </div>
+
+      <!-- Comments section -->
+      <div id="comments-${post.id}" class="hidden mt-3 pt-3 border-t dark:border-white/8 border-black/5">
+        <div id="comments-list-${post.id}" class="space-y-2 mb-3 max-h-52 overflow-y-auto">
+          <p class="text-xs text-center dark:text-gray-600 text-gray-400 font-semibold py-2">Memuat...</p>
+        </div>
+        ${currentUser ? `
+        <div class="flex gap-2">
+          <input type="text" id="comment-input-${post.id}" placeholder="Tulis komentar..." maxlength="300"
+            class="flex-1 px-4 py-3 rounded-2xl outline-none transition-all dark:bg-white/5 dark:border-white/10 bg-gray-50 border border-gray-200 focus:border-blue-600 text-xs font-semibold dark:text-white text-gray-900 dark:placeholder-gray-600 placeholder-gray-400"
+            onkeydown="if(event.key==='Enter')submitComment('${post.id}')">
+          <button onclick="submitComment('${post.id}')" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl flex items-center justify-center flex-shrink-0 transition-colors shadow-md shadow-blue-600/25">
+            <i data-lucide="send" class="w-4 h-4"></i>
+          </button>
+        </div>` : `<p class="text-xs text-center dark:text-gray-500 text-gray-400 font-semibold">Masuk untuk berkomentar.</p>`}
+      </div>
+    </div>`;
+}
+
+// ---- AUDIO PLAYER ----
+function setupAudioPlayer(postId, url) {
+  if (audioPlayers[postId]) audioPlayers[postId].pause();
+  const audio = new Audio(url);
+  audioPlayers[postId] = audio;
+
+  audio.addEventListener('loadedmetadata', () => {
+    const durEl = document.getElementById(`audio-dur-${postId}`);
+    if (durEl) durEl.textContent = formatTime(audio.duration);
+  });
+
+  audio.addEventListener('timeupdate', () => {
+    const seekEl = document.getElementById(`audio-seek-${postId}`);
+    const timeEl = document.getElementById(`audio-time-${postId}`);
+    if (!seekEl || !timeEl) return;
+    const pct = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
+    seekEl.value = pct;
+    seekEl.style.background = `linear-gradient(to right, #2563eb ${pct}%, transparent ${pct}%)`;
+    timeEl.textContent = formatTime(audio.currentTime);
+  });
+
+  audio.addEventListener('ended', () => {
+    setPlayIcon(postId, false);
+    const seekEl = document.getElementById(`audio-seek-${postId}`);
+    if (seekEl) { seekEl.value = 0; seekEl.style.background = ''; }
+    const timeEl = document.getElementById(`audio-time-${postId}`);
+    if (timeEl) timeEl.textContent = '0:00';
+  });
+}
+
+window.togglePlay = function(postId) {
+  const audio = audioPlayers[postId];
+  if (!audio) return;
+  if (audio.paused) {
+    // Pause all others
+    Object.entries(audioPlayers).forEach(([id, a]) => { if (id !== postId && !a.paused) { a.pause(); setPlayIcon(id, false); } });
+    audio.play().catch(() => {});
+    setPlayIcon(postId, true);
+  } else {
+    audio.pause();
+    setPlayIcon(postId, false);
+  }
+};
+
+window.seekAudio = function(postId, val) {
+  const audio = audioPlayers[postId];
+  if (!audio || !audio.duration) return;
+  audio.currentTime = (val / 100) * audio.duration;
+};
+
+function setPlayIcon(postId, playing) {
+  const iconEl = document.getElementById(`play-icon-${postId}`);
+  if (!iconEl) return;
+  iconEl.setAttribute('data-lucide', playing ? 'pause' : 'play');
+  lucide.createIcons();
+}
+
+function formatTime(sec) {
+  if (isNaN(sec)) return '0:00';
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+// ---- COMMENTS REALTIME ----
+const commentListeners = {};
+
+function listenComments(postId) {
+  if (commentListeners[postId]) return;
+  const commRef = ref(db, `comments/${postId}`);
+  commentListeners[postId] = onValue(commRef, snap => {
+    const data = snap.val() || {};
+    const comments = Object.entries(data)
+      .map(([id, c]) => ({ id, ...c }))
+      .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+    const countEl = document.getElementById(`comment-count-${postId}`);
+    if (countEl) countEl.textContent = `${comments.length} komentar`;
+
+    const listEl = document.getElementById(`comments-list-${postId}`);
+    if (!listEl) return;
+
+    if (comments.length === 0) {
+      listEl.innerHTML = `<p class="text-xs text-center dark:text-gray-600 text-gray-400 font-semibold py-2">Belum ada komentar.</p>`;
+      return;
+    }
+
+    listEl.innerHTML = comments.map(c => `
+      <div class="flex gap-2.5 items-start">
+        <div class="w-7 h-7 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-600 text-xs font-black flex-shrink-0">${(c.userName || '?')[0].toUpperCase()}</div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-baseline gap-2">
+            <span class="text-xs font-black text-blue-600">${escHtml(c.userName || 'Pengguna')}</span>
+            <span class="text-[10px] dark:text-gray-600 text-gray-400 font-semibold">${c.createdAt ? new Date(c.createdAt).toLocaleDateString('id-ID', {day:'numeric',month:'short'}) : ''}</span>
+          </div>
+          <p class="text-xs font-semibold mt-0.5 dark:text-gray-300 text-gray-700 break-words">${escHtml(c.text)}</p>
+        </div>
+        ${c.uid === currentUser?.uid ? `<button onclick="deleteComment('${postId}','${c.id}')" class="p-1 rounded-lg dark:hover:bg-white/10 hover:bg-gray-100 text-red-400 transition-colors flex-shrink-0"><i data-lucide="x" class="w-3 h-3"></i></button>` : ''}
+      </div>
+    `).join('');
+    lucide.createIcons();
+
+    // Update profile comment count
+    if (currentUser) {
+      const myComments = comments.filter(c => c.uid === currentUser.uid).length;
+      // (simple accumulation - count from all posts in profile is handled separately)
+    }
+  });
+}
+
+window.toggleComments = function(postId) {
+  const el = document.getElementById(`comments-${postId}`);
+  const chevron = document.getElementById(`comment-chevron-${postId}`);
+  const isHidden = el.classList.contains('hidden');
+  el.classList.toggle('hidden', !isHidden);
+  if (chevron) chevron.style.transform = isHidden ? 'rotate(180deg)' : '';
+};
+
+window.submitComment = async function(postId) {
+  if (!currentUser) { showToast('Masuk dulu untuk berkomentar!'); return; }
+  const input = document.getElementById(`comment-input-${postId}`);
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  const commRef = ref(db, `comments/${postId}`);
+  const newRef = push(commRef);
+  await set(newRef, {
+    uid: currentUser.uid,
+    userName: currentUser.displayName || currentUser.email.split('@')[0],
+    text,
+    createdAt: Date.now()
+  });
+};
+
+window.deleteComment = async function(postId, commentId) {
+  const { remove } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+  await remove(ref(db, `comments/${postId}/${commentId}`));
+};
+
+// ---- UPLOAD ----
+async function handleUpload() {
+  if (!currentUser) { navigate('auth'); return; }
+
+  const title = document.getElementById('up-title').value.trim();
+  const link = document.getElementById('up-link').value.trim();
+  const xmlFile = document.getElementById('up-xml').files[0];
+  const audioFile = document.getElementById('up-sound').files[0];
+  const errEl = document.getElementById('upload-error');
+
+  errEl.classList.add('hidden');
+  if (!title) { showUploadErr('Judul wajib diisi.'); return; }
+  if (!link) { showUploadErr('Tautan utama wajib diisi.'); return; }
+
+  // Validate URL
+  try { new URL(link); } catch { showUploadErr('Format tautan tidak valid.'); return; }
+
+  setUploadLoading(true);
+
+  try {
+    const postData = {
+      title,
+      link,
+      uid: currentUser.uid,
+      uploaderName: currentUser.displayName || currentUser.email.split('@')[0],
+      createdAt: Date.now()
+    };
+
+    // Upload XML
+    if (xmlFile) {
+      showProgress(`Mengupload XML...`, 0);
+      const xmlUrl = await uploadFile(xmlFile, `xml/${currentUser.uid}/${Date.now()}_${xmlFile.name}`, pct => setProgress(pct, 'Mengupload XML...'));
+      postData.xmlUrl = xmlUrl;
+      postData.xmlName = xmlFile.name;
+    }
+
+    // Upload Audio
+    if (audioFile) {
+      showProgress(`Mengupload audio...`, 0);
+      const audioUrl = await uploadFile(audioFile, `audio/${currentUser.uid}/${Date.now()}_${audioFile.name}`, pct => setProgress(pct, 'Mengupload audio...'));
+      postData.audioUrl = audioUrl;
+      postData.audioName = audioFile.name;
+    }
+
+    // Save to DB
+    showProgress('Menyimpan...', 95);
+    const postsRef = ref(db, 'posts');
+    const newPost = push(postsRef);
+    await set(newPost, postData);
+
+    // Reset
+    document.getElementById('up-title').value = '';
+    document.getElementById('up-link').value = '';
+    document.getElementById('up-xml').value = '';
+    document.getElementById('up-sound').value = '';
+    document.getElementById('xml-name').textContent = 'Pilih file .xml...';
+    document.getElementById('sound-name').textContent = 'Pilih file audio...';
+    document.getElementById('xml-name').classList.remove('text-blue-600');
+    document.getElementById('sound-name').classList.remove('text-blue-600');
+    hideProgress();
+    showToast('✓ Berhasil dipublikasikan!');
+    navigate('home');
+
+  } catch(e) {
+    console.error(e);
+    showUploadErr('Gagal upload: ' + e.message);
+    hideProgress();
+  } finally {
+    setUploadLoading(false);
+  }
+}
+
+function uploadFile(file, path, onProgress) {
+  return new Promise((resolve, reject) => {
+    const storageRef = sRef(storage, path);
+    const task = uploadBytesResumable(storageRef, file);
+    task.on('state_changed',
+      snap => { const pct = (snap.bytesTransferred / snap.totalBytes) * 100; onProgress(pct); },
+      reject,
+      async () => { resolve(await getDownloadURL(task.snapshot.ref)); }
+    );
+  });
+}
+
+function showUploadErr(msg) {
+  const el = document.getElementById('upload-error');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+function setUploadLoading(on) {
+  document.getElementById('up-submit').disabled = on;
+  document.getElementById('up-spinner').classList.toggle('hidden', !on);
+  document.getElementById('up-btn-text').textContent = on ? 'Mengupload...' : 'Publikasikan';
+}
+
+function showProgress(label, pct) {
+  document.getElementById('upload-progress-wrap').classList.remove('hidden');
+  document.getElementById('upload-progress-label').textContent = label;
+  setProgress(pct, label);
+}
+
+function setProgress(pct, label) {
+  document.getElementById('upload-progress-bar').style.width = pct + '%';
+  document.getElementById('upload-progress-pct').textContent = Math.round(pct) + '%';
+  if (label) document.getElementById('upload-progress-label').textContent = label;
+}
+
+function hideProgress() {
+  document.getElementById('upload-progress-wrap').classList.add('hidden');
+  document.getElementById('upload-progress-bar').style.width = '0%';
+}
+
+window.updateFileName = function(inputId, spanId, placeholder) {
+  const file = document.getElementById(inputId).files[0];
+  const span = document.getElementById(spanId);
+  if (file) {
+    span.textContent = file.name;
+    span.classList.add('text-blue-600');
+  } else {
+    span.textContent = placeholder;
+    span.classList.remove('text-blue-600');
+  }
+};
+
+// ---- DELETE POST ----
+window.deletePost = async function(postId) {
+  if (!confirm('Hapus postingan ini?')) return;
+  const { remove } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+  await remove(ref(db, `posts/${postId}`));
+  await remove(ref(db, `comments/${postId}`));
+  showToast('Postingan dihapus.');
+};
+
+// ---- COPY LINK ----
+window.copyLink = function(text) {
+  try {
+    navigator.clipboard.writeText(text).then(() => showToast('Link disalin!'));
+  } catch {
+    const ta = document.getElementById('copy-helper');
+    ta.value = text; ta.select(); document.execCommand('copy');
+    showToast('Link disalin!');
+  }
+};
+
+// ---- NAVIGATE ----
+function navigate(pageId) {
+  // Guard: non-auth pages require login
+  if (pageId !== 'auth' && !currentUser) { navigate('auth'); return; }
+  if (pageId === 'auth' && currentUser) { navigate('home'); return; }
+
+  document.querySelectorAll('.page-view').forEach(el => el.classList.remove('active'));
+  const target = document.getElementById(`view-${pageId}`);
+  if (target) target.classList.add('active');
+
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.className = 'nav-btn flex flex-col items-center justify-center py-2.5 px-5 rounded-2xl transition-all duration-300 dark:text-gray-500 text-gray-400 hover:text-blue-600';
+  });
+
+  const activeNav = document.getElementById(`nav-${pageId}`);
+  if (activeNav) activeNav.className = 'nav-btn flex flex-col items-center justify-center py-2.5 px-5 rounded-2xl transition-all duration-300 bg-blue-600 text-white shadow-md shadow-blue-600/30';
+
+  // Hide nav when auth
+  document.querySelector('nav').style.display = pageId === 'auth' ? 'none' : '';
+  document.querySelector('header').style.display = pageId === 'auth' ? 'none' : '';
+
+  if (pageId === 'profile' && currentUser) {
+    // Count my comments
+    countMyComments();
+  }
+}
+
+async function countMyComments() {
+  const commentsRef = ref(db, 'comments');
+  const snap = await get(commentsRef);
+  const data = snap.val() || {};
+  let total = 0;
+  Object.values(data).forEach(postComments => {
+    Object.values(postComments).forEach(c => {
+      if (c.uid === currentUser?.uid) total++;
+    });
+  });
+  document.getElementById('profile-comments').textContent = total;
+}
+
+// ---- SIDEBAR ----
+function toggleSidebar() {
+  isSidebar = !isSidebar;
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  if (isSidebar) {
+    sidebar.classList.remove('-translate-x-full');
+    overlay.classList.remove('opacity-0', 'pointer-events-none');
+    overlay.classList.add('opacity-100');
+  } else {
+    sidebar.classList.add('-translate-x-full');
+    overlay.classList.remove('opacity-100');
+    overlay.classList.add('opacity-0', 'pointer-events-none');
+  }
+}
+
+// ---- THEME ----
+let darkMode = true;
+
+function toggleTheme() {
+  darkMode = !darkMode;
+  applyTheme();
+}
+
+function applyTheme() {
+  const html = document.documentElement;
+  if (darkMode) {
+    html.classList.add('dark'); html.classList.remove('light');
+    document.getElementById('theme-label').innerHTML = '<i data-lucide="moon" class="w-4 h-4"></i> Tema Gelap';
+    document.getElementById('theme-bg').classList.replace('bg-gray-300', 'bg-blue-600');
+    document.getElementById('theme-dot').classList.replace('translate-x-0', 'translate-x-5');
+  } else {
+    html.classList.remove('dark'); html.classList.add('light');
+    document.getElementById('theme-label').innerHTML = '<i data-lucide="sun" class="w-4 h-4 text-orange-500"></i> Tema Terang';
+    document.getElementById('theme-bg').classList.replace('bg-blue-600', 'bg-gray-300');
+    document.getElementById('theme-dot').classList.replace('translate-x-5', 'translate-x-0');
+  }
+  lucide.createIcons();
+}
+
+// ---- TOAST ----
+let toastTimeout;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ---- UTILS ----
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Initial nav state
+document.querySelector('nav').style.display = 'none';
+document.querySelector('header').style.display = 'none';
+</script>
+</body>
+</html>
