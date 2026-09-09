@@ -44,47 +44,11 @@
         }
 
         /* ===== PER-THEME OVERRIDES ===== */
-        /* DEFAULT (no data-theme or "default") */
+        /* Default (always blue — seasonal themes removed) */
         body, body[data-theme="default"] {
             --bg-primary:#060a12; --bg-secondary:#0a1220; --bg-tertiary:#07101c;
             --accent:#2f7bff; --accent-alt:#1a5ce0; --accent-rgb:47,123,255;
             --logo-v:#8fc0ff; --logo-td:#2f7bff;
-        }
-
-        body[data-theme="valentine"] {
-            --bg-primary:#150610; --bg-secondary:#2a0918; --bg-tertiary:#1a0810;
-            --accent:#ff1744; --accent-alt:#c9003a; --accent-rgb:255,23,68;
-            --logo-v:#ff8fa3; --logo-td:#ff1744;
-        }
-        body[data-theme="ramadan"] {
-            --bg-primary:#07071a; --bg-secondary:#0f0d2e; --bg-tertiary:#09091e;
-            --accent:#7c4dff; --accent-alt:#5c35c9; --accent-rgb:124,77,255;
-            --logo-v:#c5b8ff; --logo-td:#7c4dff;
-        }
-        body[data-theme="idul-fitri"] {
-            --bg-primary:#051205; --bg-secondary:#0b2210; --bg-tertiary:#071508;
-            --accent:#00c853; --accent-alt:#009624; --accent-rgb:0,200,83;
-            --logo-v:#a5f5c5; --logo-td:#00c853;
-        }
-        body[data-theme="natal"] {
-            --bg-primary:#120505; --bg-secondary:#220a0a; --bg-tertiary:#160606;
-            --accent:#e53935; --accent-alt:#b71c1c; --accent-rgb:229,57,53;
-            --logo-v:#ffcdd2; --logo-td:#e53935;
-        }
-        body[data-theme="halloween"] {
-            --bg-primary:#100805; --bg-secondary:#1f1005; --bg-tertiary:#140a05;
-            --accent:#ff6d00; --accent-alt:#c54400; --accent-rgb:255,109,0;
-            --logo-v:#ffcc80; --logo-td:#ff6d00;
-        }
-        body[data-theme="musim-gugur"] {
-            --bg-primary:#100904; --bg-secondary:#201505; --bg-tertiary:#140b04;
-            --accent:#f57c00; --accent-alt:#bf5000; --accent-rgb:245,124,0;
-            --logo-v:#ffcc80; --logo-td:#f57c00;
-        }
-        body[data-theme="tahun-baru"] {
-            --bg-primary:#0f0f04; --bg-secondary:#1e1e06; --bg-tertiary:#131304;
-            --accent:#ffd600; --accent-alt:#c7a600; --accent-rgb:255,214,0;
-            --logo-v:#fff9c4; --logo-td:#ffd600;
         }
 
         /* ===== BODY ===== */
@@ -219,6 +183,106 @@
         .nav-logo .logo-v { color: var(--logo-v); transition: color 0.4s ease; }
         .nav-logo .logo-td { color: var(--logo-td); transition: color 0.4s ease; }
 
+        /* ===== DOWNLOADER PILL BUTTON ===== */
+        .downloader-btn {
+            display: flex; align-items: center; gap: 6px;
+            padding: 9px 14px;
+            background: rgba(var(--accent-rgb),0.14);
+            border: 1px solid rgba(var(--accent-rgb),0.35);
+            border-radius: var(--radius-pill);
+            color: var(--accent);
+            font-size: 11.5px; font-weight: 700; letter-spacing: 0.6px;
+            cursor: pointer; transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .downloader-btn:hover { background: rgba(var(--accent-rgb),0.26); }
+        .downloader-btn svg { width: 15px; height: 15px; fill: currentColor; flex-shrink: 0; }
+        .nav-right-group { display: flex; align-items: center; gap: 8px; }
+
+        /* ===== DOWNLOADER TYPE MODAL ===== */
+        .downloader-modal-overlay {
+            position: fixed; inset: 0; background: rgba(2,6,14,0.65);
+            z-index: 6000; display: none; align-items: flex-start; justify-content: center;
+            padding-top: 90px;
+        }
+        .downloader-modal-box {
+            width: 88%; max-width: 340px;
+            background: var(--container-bg); border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg); overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+        .downloader-modal-title {
+            padding: 16px 18px 8px; font-size: 14px; font-weight: 700; color: var(--text-primary);
+        }
+        .downloader-modal-list { padding: 6px 10px 14px; display: flex; flex-direction: column; gap: 4px; }
+        .downloader-modal-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 12px; border-radius: 12px;
+            color: var(--text-primary); font-size: 14px; font-weight: 600;
+            cursor: pointer; transition: all 0.18s ease;
+        }
+        .downloader-modal-item:hover { background: rgba(var(--accent-rgb),0.12); }
+        .downloader-modal-item svg { width: 20px; height: 20px; fill: var(--accent); flex-shrink: 0; }
+
+        /* ===== FLOATING '+' POST BUTTON ===== */
+        .fab-post-btn {
+            position: fixed; right: 18px; bottom: 22px; z-index: 3000;
+            width: 52px; height: 52px; border-radius: var(--radius-md);
+            background: var(--accent); border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: var(--shadow-md);
+            transition: all 0.2s ease;
+        }
+        .fab-post-btn:hover { background: var(--accent-alt); transform: translateY(-2px); }
+        .fab-post-btn svg { width: 26px; height: 26px; fill: #fff; }
+
+        /* ===== FEED (Home) ===== */
+        .feed-post {
+            background: var(--input-bg); border: 1px solid var(--border-color);
+            border-radius: var(--radius-md); padding: 14px;
+        }
+        .feed-post-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .feed-post-avatar {
+            width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
+            background: rgba(var(--accent-rgb),0.2); color: var(--accent);
+            display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700;
+        }
+        .feed-post-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .feed-post-name { font-size: 13.5px; font-weight: 700; color: var(--text-primary); }
+        .feed-post-time { font-size: 11px; color: var(--text-tertiary); }
+        .feed-post-text { font-size: 14px; line-height: 1.6; color: var(--text-primary); white-space: pre-wrap; word-break: break-word; margin-bottom: 10px; }
+        .feed-post-actions { display: flex; gap: 18px; padding-top: 8px; border-top: 1px solid var(--border-color); }
+        .feed-action-btn {
+            display: flex; align-items: center; gap: 6px; background: none; border: none;
+            color: var(--text-secondary); font-size: 12.5px; font-weight: 600; cursor: pointer; padding: 4px 2px;
+            transition: color 0.2s;
+        }
+        .feed-action-btn svg { width: 17px; height: 17px; fill: currentColor; }
+        .feed-action-btn.liked { color: #ff3b5c; }
+        .feed-comments { margin-top: 10px; display: none; flex-direction: column; gap: 8px; }
+        .feed-comments.open { display: flex; }
+        .feed-comment-row { display: flex; gap: 8px; }
+        .feed-comment-avatar {
+            width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
+            background: rgba(var(--accent-rgb),0.2); color: var(--accent);
+            display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
+        }
+        .feed-comment-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .feed-comment-bubble { background: var(--bg-tertiary); border-radius: 12px; padding: 7px 11px; flex: 1; min-width: 0; }
+        .feed-comment-name { font-size: 11.5px; font-weight: 700; color: var(--text-primary); }
+        .feed-comment-text { font-size: 12.5px; color: var(--text-primary); line-height: 1.5; word-break: break-word; }
+        .feed-comment-reply-btn { font-size: 10.5px; color: var(--accent); cursor: pointer; font-weight: 600; margin-top: 2px; display: inline-block; }
+        .feed-comment-input-row { display: flex; gap: 8px; margin-top: 4px; align-items: center; }
+        .feed-comment-input {
+            flex: 1; padding: 8px 12px; background: var(--bg-tertiary); border: 1px solid var(--input-border);
+            border-radius: 20px; color: var(--text-primary); font-size: 12.5px; outline: none; font-family: inherit;
+        }
+        .feed-comment-send-btn {
+            width: 32px; height: 32px; border-radius: 50%; background: var(--accent); border: none;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+        }
+        .feed-comment-send-btn svg { width: 15px; height: 15px; fill: #fff; }
+
         /* ===== HAMBURGER BUTTON ===== */
         .hamburger-btn {
             width: 42px; height: 42px;
@@ -241,7 +305,7 @@
         .hamburger-menu {
             position: fixed; top: 56px; right: 0;
             width: 200px;
-            background: rgba(18,18,18,0.98);
+            background: var(--navbar-bg);
             backdrop-filter: blur(22px);
             -webkit-backdrop-filter: blur(22px);
             border: 1px solid rgba(var(--accent-rgb),0.18);
@@ -370,6 +434,17 @@
         .chat-bubble-wrap.right { align-items: flex-end; }
         .chat-bubble-wrap.left  { align-items: flex-start; }
 
+        .chat-row-inner { display: flex; align-items: flex-end; gap: 8px; max-width: 100%; }
+        .chat-row-inner.right { flex-direction: row-reverse; }
+        .chat-bubble-col { display: flex; flex-direction: column; min-width: 0; }
+        .chat-avatar-sm {
+            width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+            background: rgba(var(--accent-rgb),0.2); color: var(--accent);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700; overflow: hidden;
+        }
+        .chat-avatar-sm img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
         .chat-bubble {
             max-width: 80%; padding: 9px 13px;
             border-radius: 16px; font-size: 13px; line-height: 1.5;
@@ -459,7 +534,9 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 17px; font-weight: 700;
             color: var(--accent); flex-shrink: 0;
+            overflow: hidden;
         }
+        .dev-inbox-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
         .dev-inbox-info { flex: 1; min-width: 0; }
         .dev-inbox-name { color: var(--text-primary); font-size: 14px; font-weight: 600; margin-bottom: 2px; }
         .dev-inbox-preview {
@@ -522,20 +599,20 @@
             font-family: 'Courier New', monospace;
         }
         .profile-stat-row {
-            display: flex; gap: 10px; margin-bottom: 20px;
+            display: flex; gap: 7px; margin-bottom: 20px;
         }
         .profile-stat-box {
             flex: 1; background: var(--input-bg);
             border: 1px solid var(--border-color);
-            border-radius: 12px; padding: 14px 10px;
+            border-radius: 12px; padding: 12px 6px;
             text-align: center;
         }
         .profile-stat-num {
-            font-size: 22px; font-weight: 800;
+            font-size: 19px; font-weight: 800;
             color: var(--accent); display: block; margin-bottom: 3px;
         }
         .profile-stat-label {
-            font-size: 11px; color: var(--text-secondary); font-weight: 500;
+            font-size: 10px; color: var(--text-secondary); font-weight: 500;
         }
         .profile-edit-row { display: flex; gap: 8px; align-items: center; }
         .profile-edit-input { flex: 1; }
@@ -1027,11 +1104,46 @@
     <div class="nav-logo">
         <span class="logo-v">V</span><span class="logo-td">TD</span>
     </div>
-    <!-- Hamburger menu button -->
-    <button class="hamburger-btn" id="hamburger-btn" onclick="toggleHamburgerMenu()" title="Menu">
-        <span></span><span></span><span></span>
-    </button>
+    <div class="nav-right-group">
+        <button class="downloader-btn" id="downloader-nav-btn" onclick="toggleDownloaderModal()" title="Downloader">
+            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            <span>DOWNLOADER</span>
+        </button>
+        <!-- Hamburger menu button -->
+        <button class="hamburger-btn" id="hamburger-btn" onclick="toggleHamburgerMenu()" title="Menu">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
 </nav>
+
+<!-- ===== DOWNLOADER TYPE MODAL ===== -->
+<div class="downloader-modal-overlay" id="downloader-modal-overlay" onclick="closeDownloaderModal(event)">
+    <div class="downloader-modal-box" onclick="event.stopPropagation()">
+        <div class="downloader-modal-title">Pilih Jenis Downloader</div>
+        <div class="downloader-modal-list">
+            <div class="downloader-modal-item" onclick="openDownloaderPage('video')">
+                <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+                <span>Video</span>
+            </div>
+            <div class="downloader-modal-item" onclick="openDownloaderPage('audio')">
+                <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                <span>Audio</span>
+            </div>
+            <div class="downloader-modal-item" onclick="openDownloaderPage('slide')">
+                <svg viewBox="0 0 24 24"><path d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zM11 12l1.5 2 2.5-3 3.5 4.5H7l2.5-3z"/><path d="M2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z"/></svg>
+                <span>Slide</span>
+            </div>
+            <div class="downloader-modal-item" onclick="openDownloaderPage('stories')">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                <span>Stories</span>
+            </div>
+            <div class="downloader-modal-item" onclick="openDownloaderPage('profile')">
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+                <span>Profil</span>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- ===== HAMBURGER DROPDOWN MENU ===== -->
 <div class="hamburger-menu" id="hamburger-menu">
@@ -1070,8 +1182,37 @@
 </div>
 <div class="hamburger-overlay" id="hamburger-overlay" onclick="closeHamburgerMenu()"></div>
 
-<!-- ===== HOME PAGE ===== -->
+<!-- ===== HOME PAGE (Feed) ===== -->
 <div class="page active" id="page-home">
+    <div class="page-header">
+        <div><div class="page-header-title">Beranda</div><div class="page-header-sub">Apa yang kamu pikirkan?</div></div>
+    </div>
+    <div class="page-card" style="padding:14px;">
+        <div id="feed-empty" class="chat-empty" style="display:none;">Belum ada postingan. Jadilah yang pertama menulis sesuatu!</div>
+        <div id="feed-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+    </div>
+</div>
+
+<!-- ===== FLOATING '+' POST BUTTON ===== -->
+<button class="fab-post-btn" id="fab-post-btn" onclick="openPostComposer()" title="Buat Postingan">
+    <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+</button>
+
+<!-- ===== POST COMPOSER MODAL ===== -->
+<div class="downloader-modal-overlay" id="post-composer-overlay" onclick="closePostComposer(event)" style="align-items:center;">
+    <div class="downloader-modal-box" onclick="event.stopPropagation()" style="max-width:380px;">
+        <div class="downloader-modal-title">Buat Postingan</div>
+        <div style="padding:0 16px 16px;">
+            <textarea id="post-composer-text" maxlength="1000" placeholder="Tulis sesuatu..." style="width:100%;min-height:110px;padding:12px 14px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:14px;color:var(--text-primary);font-size:14px;font-family:inherit;resize:vertical;outline:none;"></textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+                <button class="download-btn" style="width:auto;padding:10px 22px;" onclick="submitPost()">Posting</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== DOWNLOADER PAGE ===== -->
+<div class="page" id="page-downloader">
     <div style="display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 70px);">
     <div class="container">
         <h1><span class="h1-v">V</span><span class="h1-td">TD</span></h1>
@@ -1310,24 +1451,6 @@
                     <div class="input-group"><label style="margin-bottom:7px;font-size:12px;color:var(--text-secondary);">Jeda antar kemunculan (detik)</label><input type="number" id="notification-interval" min="5" max="300" value="15"></div>
                     <button class="download-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;" onclick="saveNotificationSettings()"><svg style="width:17px;height:17px;fill:currentColor;" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Simpan Notifikasi</button>
                 </div>
-                <!-- Theme -->
-                <div class="admin-section">
-                    <div class="admin-section-title"><svg viewBox="0 0 24 24"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>Tema Musiman</div>
-                    <p class="setting-description">Ubah tema untuk semua pengguna. Setiap tema mengubah warna background, aksen, dan logo secara otomatis.</p>
-                    <div class="input-group">
-                        <select id="theme-select" style="width:100%;padding:12px 14px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:12px;color:var(--text-primary);font-size:14px;outline:none;cursor:pointer;">
-                            <option value="default">Default (Biru)</option>
-                            <option value="valentine">Valentine (Merah Muda)</option>
-                            <option value="ramadan">Ramadan (Ungu)</option>
-                            <option value="idul-fitri">Idul Fitri (Hijau)</option>
-                            <option value="natal">Natal (Merah)</option>
-                            <option value="halloween">Halloween (Oranye)</option>
-                            <option value="musim-gugur">Musim Gugur (Coklat)</option>
-                            <option value="tahun-baru">Tahun Baru (Emas)</option>
-                        </select>
-                    </div>
-                    <button class="download-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;" onclick="saveThemeSettings()"><svg style="width:17px;height:17px;fill:currentColor;" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Terapkan Tema</button>
-                </div>
                 <!-- News Management -->
                 <div class="admin-section">
                     <div class="admin-section-title"><svg viewBox="0 0 24 24"><path d="M20 11H4V8h16m0 7H4v-3h16m0 7H4v-3h16M3 5v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/></svg>Kelola Berita & Event</div>
@@ -1510,13 +1633,17 @@
                 <span class="profile-stat-num" id="profile-dl-count">0</span>
                 <span class="profile-stat-label">Download Saya</span>
             </div>
-            <div class="profile-stat-box" style="cursor:pointer;" onclick="openFollowersModal()">
+            <div class="profile-stat-box" style="cursor:pointer;" onclick="openFollowModal('followers')">
                 <span class="profile-stat-num" id="profile-followers-count">0</span>
                 <span class="profile-stat-label">Pengikut</span>
             </div>
-            <div class="profile-stat-box" style="cursor:pointer;" onclick="openFollowingModal()">
+            <div class="profile-stat-box" style="cursor:pointer;" onclick="openFollowModal('following')">
                 <span class="profile-stat-num" id="profile-following-count">0</span>
                 <span class="profile-stat-label">Mengikuti</span>
+            </div>
+            <div class="profile-stat-box" style="cursor:pointer;" onclick="openFollowModal('friends')">
+                <span class="profile-stat-num" id="profile-friends-count">0</span>
+                <span class="profile-stat-label">Teman</span>
             </div>
         </div>
 
@@ -1540,6 +1667,24 @@
             </div>
             <div id="search-user-result" style="margin-top:12px;"></div>
         </div>
+    </div>
+</div>
+
+<!-- ===== FOLLOW LIST MODAL (Teman / Mengikuti / Pengikut) ===== -->
+<div class="modal-overlay" id="follow-modal-overlay" onclick="closeFollowModal(event)" style="display:none;position:fixed;inset:0;background:rgba(2,6,14,0.65);z-index:6000;align-items:center;justify-content:center;padding:20px;">
+    <div class="modal-box" id="follow-modal-box" onclick="event.stopPropagation()" style="max-width:420px;width:92%;max-height:78vh;display:flex;flex-direction:column;background:var(--container-bg);border:1px solid var(--border-color);border-radius:20px;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px;">
+            <div style="font-size:15px;font-weight:700;color:var(--text-primary);">Daftar Relasi</div>
+            <div onclick="closeFollowModal()" style="cursor:pointer;padding:4px;color:var(--text-secondary);">
+                <svg style="width:20px;height:20px;fill:currentColor;" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </div>
+        </div>
+        <div style="display:flex;gap:6px;padding:0 14px 12px;">
+            <button class="follow-tab-btn" id="follow-tab-friends" onclick="switchFollowTab('friends')" style="flex:1;padding:8px 4px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:10px;color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;">Teman</button>
+            <button class="follow-tab-btn" id="follow-tab-following" onclick="switchFollowTab('following')" style="flex:1;padding:8px 4px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:10px;color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;">Mengikuti</button>
+            <button class="follow-tab-btn" id="follow-tab-followers" onclick="switchFollowTab('followers')" style="flex:1;padding:8px 4px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:10px;color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;">Pengikut</button>
+        </div>
+        <div id="follow-modal-list" style="flex:1;overflow-y:auto;padding:4px 14px 16px;display:flex;flex-direction:column;gap:8px;"></div>
     </div>
 </div>
 
@@ -1867,6 +2012,7 @@ auth.onAuthStateChanged(user => {
         checkDevLogin();
         loadNotificationSettings();
         startBgBadgeListener();
+        loadFeed();
 
     } else {
         currentUser = null;
@@ -1877,6 +2023,7 @@ auth.onAuthStateChanged(user => {
             applyGuestRestrictions();
             loadThemeSettings();
             loadNotificationSettings();
+            loadFeed();
         } else {
             // No session and no guest — show login screen
             isGuestMode = false;
@@ -2005,7 +2152,7 @@ function navigateTo(pageId) {
     if (pageId === 'chat') onChatPageOpen();
     if (pageId === 'profile') onProfilePageOpen();
     if (pageId === 'settings') populateSettingsAccount();
-    if (pageId === 'profile') onProfilePageOpen();
+    if (pageId === 'home') loadFeed();
     window.scrollTo(0, 0);
 }
 
@@ -2209,32 +2356,11 @@ function loadNotificationSettingsForAdmin() {
     loadThemeSettingsForAdmin();
 }
 
-// ===== THEME =====
-function loadThemeSettings() {
-    database.ref('settings/theme').once('value').then(snap => {
-        const d = snap.val();
-        if (d && d.activeTheme) applyTheme(d.activeTheme);
-    });
-}
-
-function applyTheme(theme) {
-    document.body.setAttribute('data-theme', theme || 'default');
-}
-
-function saveThemeSettings() {
-    if (!isDevLoggedIn) { showToast('Error','Harus login sebagai developer','error'); return; }
-    const theme = document.getElementById('theme-select').value;
-    database.ref('settings/theme').set({ activeTheme:theme, updatedAt:new Date().toISOString() })
-        .then(() => { showToast('Berhasil','Tema diubah untuk semua pengguna','success'); applyTheme(theme); })
-        .catch(() => showToast('Error','Gagal menyimpan tema','error'));
-}
-
-function loadThemeSettingsForAdmin() {
-    database.ref('settings/theme').once('value').then(snap => {
-        const d = snap.val();
-        if (d && d.activeTheme) document.getElementById('theme-select').value = d.activeTheme;
-    });
-}
+// ===== THEME (seasonal themes removed — app is always default blue) =====
+function loadThemeSettings() { /* no-op: seasonal themes removed */ }
+function applyTheme() { document.body.setAttribute('data-theme', 'default'); }
+function saveThemeSettings() { /* no-op: seasonal themes removed */ }
+function loadThemeSettingsForAdmin() { /* no-op: seasonal themes removed */ }
 
 // ===== NEWS =====
 function loadNewsList() {
@@ -3118,10 +3244,24 @@ function startLiveChat() {
             const nameLabel = !isMe
                 ? `<div class="chat-sender-label" style="display:flex;align-items:center;gap:3px;">${escapeHtml(msg.name||'Pengguna')}${devBadge}</div>`
                 : '';
-            wrap.innerHTML = nameLabel +
+            const initials = (msg.name || 'P').charAt(0).toUpperCase();
+            const avatarId = 'live-avatar-' + msg.id;
+            const avatarHtml = !isMe ? `<div id="${avatarId}" class="chat-avatar-sm">${initials}</div>` : '';
+            const rowHtml = `<div class="chat-row-inner ${isMe?'right':'left'}">` +
+                (avatarHtml) +
+                `<div class="chat-bubble-col">` + nameLabel +
                 `<div class="chat-bubble ${isMe?'right':'left'}">${escapeHtml(msg.text)}</div>` +
-                `<div class="chat-meta">${time}</div>`;
+                `</div></div>`;
+            wrap.innerHTML = rowHtml + `<div class="chat-meta">${time}</div>`;
             container.appendChild(wrap);
+            if (!isMe && msg.uid) {
+                getPublicAvatar(msg.uid).then(src => {
+                    if (!src) return;
+                    const el = document.getElementById(avatarId);
+                    if (!el) return;
+                    el.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.textContent='${initials}'">`;
+                });
+            }
         });
         setTimeout(() => { container.scrollTop = container.scrollHeight; }, 50);
 
@@ -3365,9 +3505,13 @@ function loadUserChatRealtime() {
             const label = !isRight
                 ? `<div class="chat-sender-label" style="display:flex;align-items:center;">Developer${devBadge}</div>`
                 : '';
-            wrap.innerHTML = label +
+            const avatarHtml = !isRight ? `<div class="chat-avatar-sm" style="background:linear-gradient(135deg,#7c4dff,#448aff);color:#fff;">D</div>` : '';
+            const rowHtml = `<div class="chat-row-inner ${isRight?'right':'left'}">` +
+                avatarHtml +
+                `<div class="chat-bubble-col">` + label +
                 '<div class="chat-bubble ' + (isRight ? 'right' : 'left') + '">' + escapeHtml(msg.text) + '</div>' +
-                '<div class="chat-meta">' + date + ' ' + time + '</div>';
+                `</div></div>`;
+            wrap.innerHTML = rowHtml + '<div class="chat-meta">' + date + ' ' + time + '</div>';
             container.appendChild(wrap);
         });
         setTimeout(() => { container.scrollTop = container.scrollHeight; }, 50);
@@ -3458,8 +3602,9 @@ function renderDevInbox(data) {
         // Show "#N" in avatar from display name like "User #3"
         const numMatch = thread.name.match(/#(\d+)/);
         const avatarLabel = numMatch ? '#' + numMatch[1] : escapeHtml(initial);
+        const avatarId = 'dev-inbox-av-' + thread.uid.substr(0,8);
         item.innerHTML =
-            '<div class="dev-inbox-avatar">' + avatarLabel + '</div>' +
+            '<div class="dev-inbox-avatar" id="' + avatarId + '">' + avatarLabel + '</div>' +
             '<div class="dev-inbox-info">' +
                 '<div class="dev-inbox-name">' + escapeHtml(thread.name) + '</div>' +
                 '<div class="dev-inbox-preview">' + escapeHtml(preview) + '</div>' +
@@ -3471,6 +3616,13 @@ function renderDevInbox(data) {
 
         item.onclick = () => openDevThread(thread.uid, thread.name, msgs);
         list.appendChild(item);
+
+        getPublicAvatar(thread.uid).then(src => {
+            if (!src) return;
+            const el = document.getElementById(avatarId);
+            if (!el) return;
+            el.innerHTML = `<img src="${src}" onerror="this.parentElement.textContent='${avatarLabel}'">`;
+        });
     });
 }
 
@@ -3534,10 +3686,26 @@ function renderDevThread(uid, msgs) {
         const label = isDevMsg
             ? `<div class="chat-sender-label" style="display:flex;align-items:center;justify-content:flex-end;">Developer${devBadge}</div>`
             : `<div class="chat-sender-label" style="color:#28a745;">${escapeHtml(msg.name||'Pengguna')}</div>`;
-        wrap.innerHTML = label +
+        const initials = (msg.name || 'P').charAt(0).toUpperCase();
+        const avatarId = 'devthread-avatar-' + msg.id;
+        const avatarHtml = isDevMsg
+            ? `<div class="chat-avatar-sm" style="background:linear-gradient(135deg,#7c4dff,#448aff);color:#fff;">D</div>`
+            : `<div id="${avatarId}" class="chat-avatar-sm">${initials}</div>`;
+        const rowHtml = `<div class="chat-row-inner ${isDevMsg?'right':'left'}">` +
+            avatarHtml +
+            `<div class="chat-bubble-col">` + label +
             `<div class="chat-bubble ${isDevMsg ? 'right' : 'left'}">${escapeHtml(msg.text)}</div>` +
-            `<div class="chat-meta">${date} ${time}</div>`;
+            `</div></div>`;
+        wrap.innerHTML = rowHtml + `<div class="chat-meta">${date} ${time}</div>`;
         container.appendChild(wrap);
+        if (!isDevMsg) {
+            getPublicAvatar(uid).then(src => {
+                if (!src) return;
+                const el = document.getElementById(avatarId);
+                if (!el) return;
+                el.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.textContent='${initials}'">`;
+            });
+        }
     });
     setTimeout(() => { container.scrollTop = container.scrollHeight; }, 50);
 }
@@ -3613,6 +3781,257 @@ function escapeHtml(str) {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ===== DOWNLOADER NAV BUTTON + MODAL =====
+function toggleDownloaderModal() {
+    const overlay = document.getElementById('downloader-modal-overlay');
+    overlay.style.display = overlay.style.display === 'flex' ? 'none' : 'flex';
+}
+function closeDownloaderModal(e) {
+    if (e && e.target !== e.currentTarget) return;
+    document.getElementById('downloader-modal-overlay').style.display = 'none';
+}
+function openDownloaderPage(type) {
+    closeDownloaderModal();
+    navigateTo('downloader');
+    // Select the matching type tab inside the downloader page
+    const typeBtns = document.querySelectorAll('#page-downloader .type-selector .type-btn');
+    const idx = ['video','audio','slide','stories','profile'].indexOf(type);
+    if (idx >= 0 && typeBtns[idx]) {
+        selectType(type, typeBtns[idx]);
+    }
+}
+
+// ===== POST COMPOSER ('+' button) =====
+function openPostComposer() {
+    if (isGuestMode) { showToast('Mode Tamu', 'Login dengan Google untuk membuat postingan', 'error'); return; }
+    if (!currentUser) { showToast('Error', 'Kamu harus login untuk membuat postingan', 'error'); return; }
+    document.getElementById('post-composer-overlay').style.display = 'flex';
+    document.getElementById('post-composer-text').value = '';
+    setTimeout(() => document.getElementById('post-composer-text').focus(), 100);
+}
+function closePostComposer(e) {
+    if (e && e.target !== e.currentTarget) return;
+    document.getElementById('post-composer-overlay').style.display = 'none';
+}
+async function submitPost() {
+    const textEl = document.getElementById('post-composer-text');
+    const text = (textEl.value || '').trim();
+    if (!text) { showToast('Error', 'Tulis sesuatu terlebih dahulu', 'error'); return; }
+    if (!currentUser) { showToast('Error', 'Kamu harus login untuk membuat postingan', 'error'); return; }
+    try {
+        const uid = currentUser.uid;
+        const profileSnap = await database.ref('userProfiles/' + uid).once('value');
+        const profile = profileSnap.val() || {};
+        const username = profile.username || currentUser.displayName || 'Pengguna VTD';
+        await database.ref('posts').push({
+            uid, name: username, text,
+            createdAt: Date.now(),
+            likeCount: 0
+        });
+        closePostComposer();
+        showToast('Berhasil', 'Postingan berhasil dibuat', 'success');
+        loadFeed();
+    } catch(e) {
+        showToast('Error', 'Gagal membuat postingan: ' + e.message, 'error');
+    }
+}
+
+// ===== HOME FEED =====
+let feedListenerAttached = false;
+function loadFeed() {
+    const listEl = document.getElementById('feed-list');
+    const emptyEl = document.getElementById('feed-empty');
+    if (!listEl) return;
+    listEl.innerHTML = '<div class="chat-empty">Memuat postingan...</div>';
+
+    database.ref('posts').orderByChild('createdAt').once('value').then(async snap => {
+        const data = snap.val();
+        if (!data) {
+            listEl.innerHTML = '';
+            if (emptyEl) emptyEl.style.display = 'block';
+            return;
+        }
+        if (emptyEl) emptyEl.style.display = 'none';
+        const posts = Object.keys(data).map(k => ({ id:k, ...data[k] })).sort((a,b) => b.createdAt - a.createdAt);
+        listEl.innerHTML = '';
+        for (const post of posts) {
+            await renderFeedPost(listEl, post);
+        }
+    }).catch(e => {
+        listEl.innerHTML = '<div class="chat-empty">Gagal memuat postingan</div>';
+    });
+}
+
+function timeAgo(ts) {
+    const diff = Math.floor((Date.now() - ts) / 1000);
+    if (diff < 60) return 'Baru saja';
+    if (diff < 3600) return Math.floor(diff/60) + ' menit lalu';
+    if (diff < 86400) return Math.floor(diff/3600) + ' jam lalu';
+    if (diff < 604800) return Math.floor(diff/86400) + ' hari lalu';
+    return new Date(ts).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'});
+}
+
+async function renderFeedPost(container, post) {
+    const myUid = currentUser ? currentUser.uid : null;
+    const initials = (post.name || 'P').charAt(0).toUpperCase();
+    const avatarId = 'feedav-' + post.id;
+
+    // Check if I've liked this post
+    let liked = false;
+    if (myUid) {
+        const likeSnap = await database.ref('postLikes/' + post.id + '/' + myUid).once('value');
+        liked = !!likeSnap.val();
+    }
+    const likesSnap = await database.ref('postLikes/' + post.id).once('value');
+    const likeCount = likesSnap.val() ? Object.keys(likesSnap.val()).length : 0;
+    const commentsSnap = await database.ref('postComments/' + post.id).once('value');
+    const commentData = commentsSnap.val() || {};
+    const commentCount = Object.keys(commentData).length;
+
+    const el = document.createElement('div');
+    el.className = 'feed-post';
+    el.id = 'feedpost-' + post.id;
+    el.innerHTML = `
+        <div class="feed-post-head">
+            <div class="feed-post-avatar" id="${avatarId}">${initials}</div>
+            <div style="flex:1;min-width:0;">
+                <div class="feed-post-name">${escapeHtml(post.name || 'Pengguna VTD')}</div>
+                <div class="feed-post-time">${timeAgo(post.createdAt)}</div>
+            </div>
+        </div>
+        <div class="feed-post-text">${escapeHtml(post.text)}</div>
+        <div class="feed-post-actions">
+            <button class="feed-action-btn ${liked ? 'liked' : ''}" id="like-btn-${post.id}" onclick="toggleLikePost('${post.id}')">
+                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                <span id="like-count-${post.id}">${likeCount}</span>
+            </button>
+            <button class="feed-action-btn" onclick="toggleCommentsPanel('${post.id}')">
+                <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+                <span id="comment-count-${post.id}">${commentCount}</span>
+            </button>
+        </div>
+        <div class="feed-comments" id="comments-${post.id}">
+            <div id="comments-list-${post.id}" style="display:flex;flex-direction:column;gap:8px;"></div>
+            <div class="feed-comment-input-row">
+                <input type="text" class="feed-comment-input" id="comment-input-${post.id}" placeholder="Tulis komentar..." onkeypress="if(event.key==='Enter')submitComment('${post.id}')">
+                <button class="feed-comment-send-btn" onclick="submitComment('${post.id}')">
+                    <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
+            </div>
+        </div>`;
+    container.appendChild(el);
+
+    getPublicAvatar(post.uid).then(src => {
+        if (!src) return;
+        const avEl = document.getElementById(avatarId);
+        if (!avEl) return;
+        avEl.innerHTML = `<img src="${src}" onerror="this.parentElement.textContent='${initials}'">`;
+    });
+}
+
+async function toggleLikePost(postId) {
+    if (!currentUser) { showToast('Error', 'Login untuk menyukai postingan', 'error'); return; }
+    const uid = currentUser.uid;
+    const ref = database.ref('postLikes/' + postId + '/' + uid);
+    const snap = await ref.once('value');
+    const btn = document.getElementById('like-btn-' + postId);
+    const countEl = document.getElementById('like-count-' + postId);
+    if (snap.val()) {
+        await ref.remove();
+        if (btn) btn.classList.remove('liked');
+    } else {
+        await ref.set(true);
+        if (btn) btn.classList.add('liked');
+    }
+    const allLikes = await database.ref('postLikes/' + postId).once('value');
+    const count = allLikes.val() ? Object.keys(allLikes.val()).length : 0;
+    if (countEl) countEl.textContent = count;
+}
+
+function toggleCommentsPanel(postId) {
+    const panel = document.getElementById('comments-' + postId);
+    if (!panel) return;
+    const wasOpen = panel.classList.contains('open');
+    panel.classList.toggle('open');
+    if (!wasOpen) loadComments(postId);
+}
+
+async function loadComments(postId) {
+    const listEl = document.getElementById('comments-list-' + postId);
+    if (!listEl) return;
+    listEl.innerHTML = '<div style="color:var(--text-secondary);font-size:12px;">Memuat komentar...</div>';
+    const snap = await database.ref('postComments/' + postId).once('value');
+    const data = snap.val() || {};
+    const comments = Object.keys(data).map(k => ({ id:k, ...data[k] })).sort((a,b) => a.createdAt - b.createdAt);
+    listEl.innerHTML = '';
+    if (comments.length === 0) {
+        listEl.innerHTML = '<div style="color:var(--text-secondary);font-size:12px;">Belum ada komentar</div>';
+        return;
+    }
+    // Top-level comments first, then their replies nested
+    const topLevel = comments.filter(c => !c.parentId);
+    const replies = comments.filter(c => c.parentId);
+    topLevel.forEach(c => {
+        renderCommentRow(listEl, postId, c, false);
+        replies.filter(r => r.parentId === c.id).forEach(r => renderCommentRow(listEl, postId, r, true));
+    });
+}
+
+function renderCommentRow(container, postId, comment, isReply) {
+    const initials = (comment.name || 'P').charAt(0).toUpperCase();
+    const avatarId = 'cmtav-' + comment.id;
+    const row = document.createElement('div');
+    row.className = 'feed-comment-row';
+    if (isReply) row.style.marginLeft = '30px';
+    row.innerHTML = `
+        <div class="feed-comment-avatar" id="${avatarId}">${initials}</div>
+        <div class="feed-comment-bubble">
+            <div class="feed-comment-name">${escapeHtml(comment.name || 'Pengguna VTD')}</div>
+            <div class="feed-comment-text">${escapeHtml(comment.text)}</div>
+            ${!isReply ? `<div class="feed-comment-reply-btn" onclick="showReplyInput('${postId}','${comment.id}','${escapeHtml(comment.name||'Pengguna VTD').replace(/'/g,"&#39;")}')">Balas</div>` : ''}
+        </div>`;
+    container.appendChild(row);
+    getPublicAvatar(comment.uid).then(src => {
+        if (!src) return;
+        const el = document.getElementById(avatarId);
+        if (!el) return;
+        el.innerHTML = `<img src="${src}" onerror="this.parentElement.textContent='${initials}'">`;
+    });
+}
+
+function showReplyInput(postId, parentCommentId, parentName) {
+    const input = document.getElementById('comment-input-' + postId);
+    if (!input) return;
+    input.setAttribute('data-reply-to', parentCommentId);
+    input.value = '@' + parentName + ' ';
+    input.focus();
+}
+
+async function submitComment(postId) {
+    if (!currentUser) { showToast('Error', 'Login untuk berkomentar', 'error'); return; }
+    const input = document.getElementById('comment-input-' + postId);
+    const text = (input.value || '').trim();
+    if (!text) return;
+    const parentId = input.getAttribute('data-reply-to') || null;
+    try {
+        const uid = currentUser.uid;
+        const profileSnap = await database.ref('userProfiles/' + uid).once('value');
+        const profile = profileSnap.val() || {};
+        const username = profile.username || currentUser.displayName || 'Pengguna VTD';
+        await database.ref('postComments/' + postId).push({
+            uid, name: username, text, createdAt: Date.now(),
+            parentId: parentId || null
+        });
+        input.value = '';
+        input.removeAttribute('data-reply-to');
+        loadComments(postId);
+        const countEl = document.getElementById('comment-count-' + postId);
+        if (countEl) countEl.textContent = (parseInt(countEl.textContent||'0') + 1);
+    } catch(e) {
+        showToast('Error', 'Gagal mengirim komentar: ' + e.message, 'error');
+    }
+}
+
 // ===== PROFILE SYSTEM =====
 function onProfilePageOpen() {
     if (!currentUser) return;
@@ -3658,20 +4077,31 @@ function onProfilePageOpen() {
     const myEl = document.getElementById('profile-dl-count');
     if (myEl) myEl.textContent = myCount.toLocaleString('id-ID');
 
-    // Followers/Following count from Firebase
+    refreshProfileFollowCounts();
+}
+
+// Recomputes Followers / Following / Friends (mutual) counts for the current user
+function refreshProfileFollowCounts() {
+    if (!currentUser) return;
+    const uid = currentUser.uid;
     database.ref('follows').once('value').then(snap => {
         const data = snap.val() || {};
-        let followers = 0, following = 0;
-        // Followers: count all entries where targetUid == uid
+        const followerUids = [];
+        const followingUids = data[uid] ? Object.keys(data[uid]) : [];
         Object.keys(data).forEach(followerUid => {
-            if (data[followerUid] && data[followerUid][uid]) followers++;
+            if (data[followerUid] && data[followerUid][uid]) followerUids.push(followerUid);
         });
-        // Following: count all entries where uid follows others
-        if (data[uid]) following = Object.keys(data[uid]).length;
+        const friendUids = followingUids.filter(u => followerUids.includes(u));
+
         const fcEl = document.getElementById('profile-followers-count');
         const fgEl = document.getElementById('profile-following-count');
-        if (fcEl) fcEl.textContent = followers.toLocaleString('id-ID');
-        if (fgEl) fgEl.textContent = following.toLocaleString('id-ID');
+        const frEl = document.getElementById('profile-friends-count');
+        if (fcEl) fcEl.textContent = followerUids.length.toLocaleString('id-ID');
+        if (fgEl) fgEl.textContent = followingUids.length.toLocaleString('id-ID');
+        if (frEl) frEl.textContent = friendUids.length.toLocaleString('id-ID');
+
+        // Cache for modal use
+        window._followCache = { followerUids, followingUids, friendUids };
     });
 }
 
@@ -3686,67 +4116,70 @@ function copyProfileId() {
     });
 }
 
-function openFollowersModal() { showToast('Info', 'Fitur lihat daftar pengikut segera hadir', 'info'); }
-function openFollowingModal() { showToast('Info', 'Fitur lihat daftar mengikuti segera hadir', 'info'); }
+// ===== FOLLOW LIST MODAL (Teman / Mengikuti / Pengikut) =====
+let currentFollowTab = 'friends';
+function openFollowModal(tab) {
+    if (!currentUser) return;
+    document.getElementById('follow-modal-overlay').style.display = 'flex';
+    switchFollowTab(tab || 'friends');
+}
+function closeFollowModal(e) {
+    if (e && e.target !== e.currentTarget) return;
+    document.getElementById('follow-modal-overlay').style.display = 'none';
+}
+async function switchFollowTab(tab) {
+    currentFollowTab = tab;
+    ['friends','following','followers'].forEach(t => {
+        const btn = document.getElementById('follow-tab-' + t);
+        if (!btn) return;
+        const active = t === tab;
+        btn.style.background = active ? 'rgba(var(--accent-rgb),0.28)' : 'var(--input-bg)';
+        btn.style.color = active ? 'var(--accent)' : 'var(--text-secondary)';
+        btn.style.borderColor = active ? 'rgba(var(--accent-rgb),0.45)' : 'var(--input-border)';
+    });
+    const listEl = document.getElementById('follow-modal-list');
+    listEl.innerHTML = '<div style="text-align:center;color:var(--text-secondary);font-size:13px;padding:20px;">Memuat...</div>';
 
-// ===== SEARCH USER =====
-async function searchUser() {
-    const query = (document.getElementById('search-user-input').value || '').trim();
-    const resultEl = document.getElementById('search-user-result');
-    if (!query) { showToast('Error', 'Masukkan ID atau username untuk dicari', 'error'); return; }
-    if (!resultEl) return;
-    resultEl.innerHTML = '<div style="text-align:center;color:var(--text-secondary);font-size:13px;padding:14px;">Mencari...</div>';
+    if (!window._followCache) await new Promise(resolve => {
+        refreshProfileFollowCounts();
+        setTimeout(resolve, 400);
+    });
+    const cache = window._followCache || { followerUids:[], followingUids:[], friendUids:[] };
+    const uids = tab === 'friends' ? cache.friendUids : tab === 'following' ? cache.followingUids : cache.followerUids;
 
-    try {
-        // Search by exact username (case-insensitive via scan)
-        const snap = await database.ref('userProfiles').once('value');
-        const data = snap.val() || {};
-        let found = null;
-        let foundUid = null;
+    if (!uids || uids.length === 0) {
+        const emptyLabel = tab === 'friends' ? 'Belum ada teman' : tab === 'following' ? 'Belum mengikuti siapa pun' : 'Belum ada pengikut';
+        listEl.innerHTML = `<div style="text-align:center;color:var(--text-secondary);font-size:13px;padding:20px;">${emptyLabel}</div>`;
+        return;
+    }
 
-        // Try exact ID match first
-        if (data[query]) {
-            found = data[query];
-            foundUid = query;
-        }
-        // Try D#1 -> dev email
-        if (!found && query === 'D#1') {
-            // Find dev profile by email match
-            Object.keys(data).forEach(uid => {
-                const p = data[uid];
-                if (!found && p.email === DEV_EMAIL) { found = p; foundUid = uid; }
-            });
-            // If dev profile exists with uid, mark as dev
-            if (!found) {
-                // search all, look for dev uid from auth isn't accessible here;
-                // fallback: show dev placeholder
-                renderSearchResult(resultEl, null, null, true);
-                return;
-            }
-        }
-        // Try username search
-        if (!found) {
-            const queryLower = query.replace(/^@/, '').toLowerCase();
-            Object.keys(data).forEach(uid => {
-                const p = data[uid];
-                if (!found && p.username && p.username.toLowerCase() === queryLower) {
-                    found = p;
-                    foundUid = uid;
-                }
-            });
-        }
-
-        if (found) {
-            const isDev = foundUid && data[foundUid] && currentUser && foundUid === (await getDevUid());
-            renderSearchResult(resultEl, found, foundUid, isDev);
-        } else {
-            resultEl.innerHTML = '<div style="text-align:center;color:var(--text-secondary);font-size:13px;padding:20px;">Pengguna tidak ditemukan</div>';
-        }
-    } catch(e) {
-        resultEl.innerHTML = '<div style="text-align:center;color:#ff3b30;font-size:13px;padding:14px;">Terjadi kesalahan saat mencari</div>';
+    const snap = await database.ref('userProfiles').once('value');
+    const profiles = snap.val() || {};
+    listEl.innerHTML = '';
+    for (const uid of uids) {
+        const profile = profiles[uid] || {};
+        const username = profile.username || 'Pengguna VTD';
+        const initials = username.charAt(0).toUpperCase();
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:12px;background:var(--input-bg);border:1px solid var(--border-color);border-radius:14px;padding:10px 12px;';
+        const avatarId = 'followlist-avatar-' + uid;
+        row.innerHTML = `
+            <div id="${avatarId}" style="width:42px;height:42px;border-radius:50%;background:rgba(var(--accent-rgb),0.2);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:var(--accent);flex-shrink:0;overflow:hidden;">${initials}</div>
+            <div style="flex:1;min-width:0;">
+                <div style="color:var(--text-primary);font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(username)}</div>
+                <div style="color:var(--text-tertiary);font-size:11px;">ID: ${uid.substr(0,10)}</div>
+            </div>`;
+        listEl.appendChild(row);
+        getPublicAvatar(uid).then(src => {
+            if (!src) return;
+            const el = document.getElementById(avatarId);
+            if (!el) return;
+            el.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.innerHTML='${initials}'">`;
+        });
     }
 }
 
+// ===== SEARCH USER =====
 async function getDevUid() {
     // Get dev UID from userProfiles by looking for DEV_EMAIL in stored email or checking auth
     // We store email in syncGoogleProfile if available
@@ -3793,13 +4226,25 @@ function renderSearchResult(container, profile, uid, isDev) {
         ${canFollow ? `<button onclick="toggleFollow('${uid}',this)" id="follow-btn-${uid}" style="padding:7px 14px;background:rgba(var(--accent-rgb),0.18);border:1px solid rgba(var(--accent-rgb),0.4);border-radius:9px;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0;transition:all 0.2s;">Ikuti</button>` : ''}
     </div>`;
 
-    // Check follow status
+    // Check follow status + mutual (friend) status
     if (canFollow) {
-        database.ref('follows/' + currentUser.uid + '/' + uid).once('value').then(snap => {
+        Promise.all([
+            database.ref('follows/' + currentUser.uid + '/' + uid).once('value'),
+            database.ref('follows/' + uid + '/' + currentUser.uid).once('value')
+        ]).then(([meFollowsThem, theyFollowMe]) => {
             const btn = document.getElementById('follow-btn-' + uid);
-            if (snap.val() && btn) {
+            if (!btn) return;
+            const iFollow = !!meFollowsThem.val();
+            const followsMe = !!theyFollowMe.val();
+            if (iFollow && followsMe) {
+                btn.textContent = 'Teman';
+                btn.style.background = 'rgba(var(--accent-rgb),0.35)';
+            } else if (iFollow) {
                 btn.textContent = 'Mengikuti';
                 btn.style.background = 'rgba(var(--accent-rgb),0.35)';
+            } else {
+                btn.textContent = 'Ikuti';
+                btn.style.background = 'rgba(var(--accent-rgb),0.18)';
             }
         });
     }
@@ -3824,6 +4269,8 @@ async function toggleFollow(targetUid, btn) {
     if (!currentUser) return;
     const ref = database.ref('follows/' + currentUser.uid + '/' + targetUid);
     const snap = await ref.once('value');
+    const theyFollowMeSnap = await database.ref('follows/' + targetUid + '/' + currentUser.uid).once('value');
+    const followsMe = !!theyFollowMeSnap.val();
     if (snap.val()) {
         await ref.remove();
         btn.textContent = 'Ikuti';
@@ -3831,10 +4278,17 @@ async function toggleFollow(targetUid, btn) {
         showToast('Berhenti Mengikuti', 'Kamu berhenti mengikuti pengguna ini', 'info');
     } else {
         await ref.set({ followedAt: Date.now() });
-        btn.textContent = 'Mengikuti';
-        btn.style.background = 'rgba(var(--accent-rgb),0.35)';
-        showToast('Mengikuti', 'Kamu sekarang mengikuti pengguna ini', 'success');
+        if (followsMe) {
+            btn.textContent = 'Teman';
+            btn.style.background = 'rgba(var(--accent-rgb),0.35)';
+            showToast('Berteman', 'Kamu dan pengguna ini sekarang berteman (saling mengikuti)', 'success');
+        } else {
+            btn.textContent = 'Mengikuti';
+            btn.style.background = 'rgba(var(--accent-rgb),0.35)';
+            showToast('Mengikuti', 'Kamu sekarang mengikuti pengguna ini', 'success');
+        }
     }
+    if (typeof refreshProfileFollowCounts === 'function') refreshProfileFollowCounts();
 }
 
 async function saveProfileUsername() {
@@ -4033,7 +4487,7 @@ function loadNotificationSettingsForAdmin() {
     loadThemeSettingsForAdmin();
 }
 
-// ===== SEARCH USER FIX - using scan all profiles =====
+// ===== SEARCH USER — partial username match, multi-result =====
 async function searchUser() {
     const raw = (document.getElementById('search-user-input').value || '').trim();
     const resultEl = document.getElementById('search-user-result');
@@ -4046,45 +4500,66 @@ async function searchUser() {
     try {
         const snap = await database.ref('userProfiles').once('value');
         const data = snap.val() || {};
-        let foundUid = null, foundProfile = null;
+        const matches = []; // { uid, profile, isDev, exact }
 
         // 1. Match D#1 -> find dev by email
         if (raw === 'D#1' || query === 'd#1') {
+            let devUid = null, devProfile = null;
             Object.keys(data).forEach(uid => {
-                if (!foundUid && data[uid].email === DEV_EMAIL) { foundUid = uid; foundProfile = data[uid]; }
+                if (!devUid && data[uid].email === DEV_EMAIL) { devUid = uid; devProfile = data[uid]; }
             });
-            if (!foundUid) {
-                // Dev hasn't synced yet, show placeholder
-                renderSearchResult(resultEl, { username: 'Developer' }, null, true);
-                return;
+            if (devUid) matches.push({ uid: devUid, profile: devProfile, isDev: true, exact: true });
+            else { renderSearchResults(resultEl, [{ uid: null, profile: { username: 'Developer' }, isDev: true, exact: true }]); return; }
+        }
+
+        // 2. Exact UID (short ID) match
+        Object.keys(data).forEach(uid => {
+            if (matches.some(m => m.uid === uid)) return;
+            if (uid.substr(0,10).toLowerCase() === query) {
+                matches.push({ uid, profile: data[uid], isDev: data[uid].email === DEV_EMAIL, exact: true });
             }
-        }
+        });
 
-        // 2. Exact UID match (short ID)
-        if (!foundUid) {
-            Object.keys(data).forEach(uid => {
-                if (!foundUid && uid.substr(0,10).toLowerCase() === query) { foundUid = uid; foundProfile = data[uid]; }
-            });
-        }
+        // 3. Username match — exact first, then partial/contains (supports searching by username)
+        const exactUsernameMatches = [];
+        const partialUsernameMatches = [];
+        Object.keys(data).forEach(uid => {
+            if (matches.some(m => m.uid === uid)) return;
+            const uname = (data[uid].username || '').toLowerCase();
+            if (!uname) return;
+            if (uname === query) {
+                exactUsernameMatches.push({ uid, profile: data[uid], isDev: data[uid].email === DEV_EMAIL, exact: true });
+            } else if (uname.includes(query)) {
+                partialUsernameMatches.push({ uid, profile: data[uid], isDev: data[uid].email === DEV_EMAIL, exact: false });
+            }
+        });
+        matches.push(...exactUsernameMatches, ...partialUsernameMatches);
 
-        // 3. Username match (case-insensitive)
-        if (!foundUid) {
-            Object.keys(data).forEach(uid => {
-                if (!foundUid && data[uid].username && data[uid].username.toLowerCase() === query) {
-                    foundUid = uid; foundProfile = data[uid];
-                }
-            });
-        }
-
-        if (foundUid && foundProfile) {
-            const isDev = foundProfile.email === DEV_EMAIL;
-            renderSearchResult(resultEl, foundProfile, foundUid, isDev);
+        if (matches.length > 0) {
+            renderSearchResults(resultEl, matches.slice(0, 20));
         } else {
             resultEl.innerHTML = '<div style="text-align:center;color:var(--text-secondary);font-size:13px;padding:20px;">Pengguna tidak ditemukan</div>';
         }
     } catch(e) {
         resultEl.innerHTML = '<div style="text-align:center;color:#ff3b30;font-size:13px;padding:14px;">Terjadi kesalahan: ' + e.message + '</div>';
     }
+}
+
+// Renders one or more search results (supports the multi-match partial username search)
+function renderSearchResults(container, matches) {
+    if (!matches || matches.length === 0) {
+        container.innerHTML = '<div style="text-align:center;color:var(--text-secondary);font-size:13px;padding:20px;">Pengguna tidak ditemukan</div>';
+        return;
+    }
+    container.innerHTML = '';
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.gap = '8px';
+    matches.forEach(m => {
+        const card = document.createElement('div');
+        container.appendChild(card);
+        renderSearchResult(card, m.profile, m.uid, m.isDev);
+    });
 }
 
 // Search on Enter key
