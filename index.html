@@ -1,1338 +1,802 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>iChat</title>
-<link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Caxa GameHub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg-primary: #0a0a0f;
-    --bg-secondary: #111118;
-    --bg-card: #16161f;
-    --bg-input: #1c1c28;
-    --blue-primary: #2563eb;
-    --blue-secondary: #1d4ed8;
-    --blue-light: #3b82f6;
-    --blue-muted: #1e3a8a;
-    --text-primary: #f0f0ff;
-    --text-secondary: #8888aa;
-    --text-muted: #55556a;
-    --border: #1f1f30;
-    --border-light: #2a2a3d;
-    --glass: rgba(22,22,31,0.85);
-    --glass-border: rgba(37,99,235,0.18);
-    --shadow-blue: 0 4px 32px rgba(37,99,235,0.18);
-    --radius: 16px;
-    --radius-sm: 10px;
-    --radius-xs: 6px;
-    --font: 'Nunito', sans-serif;
-    --navbar-height: 72px;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  html,body { height:100%; overflow:hidden; background:var(--bg-primary); font-family:var(--font); color:var(--text-primary); }
+:root{
+  --bg:#000;--line:#2b2b2b;--line2:#555;--tx:#fff;--mu:#a3a3a3;
+  --ok:#5ee08a;--warn:#f5c04a;--bad:#ff6b6b;--max:1200px;
+  --font:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{color-scheme:dark}
+body{background:var(--bg);color:var(--tx);font:400 15px/1.55 var(--font);min-height:100vh;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+img{display:block;max-width:100%}
+:focus-visible{outline:2px solid #fff;outline-offset:2px}
+h1,h2,h3{line-height:1.15;letter-spacing:-.02em;font-weight:800}
+.muted{color:var(--mu)}
+.grow{flex:1}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 
-  /* ===== SCROLLBAR ===== */
-  ::-webkit-scrollbar { width:4px; }
-  ::-webkit-scrollbar-track { background:transparent; }
-  ::-webkit-scrollbar-thumb { background:var(--blue-muted); border-radius:4px; }
+/* header */
+.top{position:sticky;top:0;z-index:30;background:var(--bg);border-bottom:1px solid var(--line)}
+.top-in{max-width:var(--max);margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.logo{font-size:20px;font-weight:800;letter-spacing:-.03em}
+.logo span{font-weight:400;color:var(--mu);margin-left:4px}
+.nav{display:flex;gap:2px}
+.nav a{padding:7px 12px;border-radius:6px;color:var(--mu);font-weight:600;font-size:14px}
+.nav a:hover{color:#fff}
+.nav a.on{color:#000;background:#fff}
+.search{flex:1;max-width:380px;display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:0 12px;height:38px}
+.search:focus-within{border-color:#fff}
+.search input{flex:1;min-width:0;background:none;border:0;outline:0;height:100%}
+.search svg{flex:none;color:var(--mu)}
+.auth{margin-left:auto;display:flex;align-items:center;gap:10px}
+.avatar{width:36px;height:36px;border-radius:50%;border:1px solid var(--line2);overflow:hidden;display:grid;place-items:center;font-weight:800;background:#000;flex:none}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.offline{background:#fff;color:#000;text-align:center;padding:8px 16px;font-weight:600;font-size:14px}
 
-  /* ===== APP SHELL ===== */
-  #app { width:100%; height:100%; display:flex; flex-direction:column; position:relative; max-width:480px; margin:0 auto; background:var(--bg-primary); box-shadow:0 0 80px rgba(0,0,0,0.8); overflow:hidden; }
+/* buttons / inputs */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:8px;border:1px solid var(--line2);background:transparent;cursor:pointer;font-weight:600;font-size:14px;white-space:nowrap;transition:background .15s,border-color .15s}
+.btn:hover{border-color:#fff}
+.btn.primary{background:#fff;color:#000;border-color:#fff}
+.btn.primary:hover{background:#d4d4d4}
+.btn.danger{color:var(--bad);border-color:#5c2b2b}
+.btn.danger:hover{border-color:var(--bad)}
+.btn.danger.fill{background:var(--bad);color:#000;border-color:var(--bad)}
+.btn.sm{padding:6px 12px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.icon-btn{background:none;border:1px solid var(--line);border-radius:8px;width:34px;height:34px;display:grid;place-items:center;cursor:pointer;color:var(--mu)}
+.icon-btn:hover{color:#fff;border-color:#fff}
+.icon-btn.on{color:#000;background:#fff;border-color:#fff}
+input[type=text],input[type=search],textarea,select{width:100%;background:#000;border:1px solid var(--line2);border-radius:8px;padding:10px 12px}
+input[type=text]:focus,textarea:focus,select:focus{border-color:#fff;outline:0}
+input[type=file]{width:100%;border:1px dashed var(--line2);border-radius:8px;padding:10px;background:#000;cursor:pointer}
+select option{background:#000}
+textarea{resize:vertical;min-height:100px}
 
-  /* ===== PAGES ===== */
-  .page { position:absolute; inset:0; bottom:var(--navbar-height); display:flex; flex-direction:column; opacity:0; pointer-events:none; transform:translateY(12px); transition:opacity 0.32s cubic-bezier(.4,0,.2,1), transform 0.32s cubic-bezier(.4,0,.2,1); }
-  .page.active { opacity:1; pointer-events:all; transform:translateY(0); }
-  .page.slide-in { animation:slideInPage 0.35s cubic-bezier(.4,0,.2,1) forwards; }
-  .page.slide-out { animation:slideOutPage 0.3s cubic-bezier(.4,0,.2,1) forwards; }
+/* layout */
+.wrap{max-width:var(--max);margin:0 auto;padding:28px 16px 72px}
+.narrow{max-width:680px}
+.hero{padding:36px 0 28px;border-bottom:1px solid var(--line);margin-bottom:28px}
+.hero h1{font-size:clamp(32px,6vw,60px);max-width:16ch}
+.hero p{color:var(--mu);margin:14px 0 20px;max-width:46ch;font-size:16px}
+.sec{margin-top:36px}
+.sec-head{display:flex;align-items:center;gap:12px;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap}
+.sec-head h2{font-size:22px}
+.sec-head select{width:auto}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:none;border-radius:999px;padding:6px 14px;cursor:pointer;font-weight:600;font-size:14px;color:var(--mu)}
+.chip:hover{color:#fff;border-color:#fff}
+.chip.on{background:#fff;color:#000;border-color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
+.card{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#000;display:flex;flex-direction:column;transition:border-color .15s}
+.card:hover{border-color:#fff}
+.thumb{position:relative;display:block;aspect-ratio:16/9;background:#000;border-bottom:1px solid var(--line);overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.ph{width:100%;height:100%;display:grid;place-items:center;font-size:72px;font-weight:800;color:transparent;-webkit-text-stroke:1.5px #fff;line-height:1}
+.tag{position:absolute;left:8px;top:8px;background:#fff;color:#000;font-size:12px;font-weight:800;padding:2px 8px;border-radius:4px}
+.cbody{padding:12px 14px 14px;display:flex;flex-direction:column;gap:4px;flex:1}
+.ctitle{font-weight:800;font-size:17px;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ctitle:hover{text-decoration:underline}
+.meta{color:var(--mu);font-size:13px;display:flex;flex-direction:column}
+.row{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:10px;font-size:13px}
+.manage{display:flex;gap:8px;align-items:center;margin-top:auto;padding-top:10px;flex-wrap:wrap}
+.reason{margin-top:8px;font-size:13px;color:var(--bad)}
+.badge{font-size:12px;font-weight:600;border:1px solid var(--line2);border-radius:999px;padding:2px 10px}
+.badge.approved{color:var(--ok);border-color:#1f5a35}
+.badge.pending{color:var(--warn);border-color:#6a5420}
+.badge.rejected{color:var(--bad);border-color:#5c2b2b}
+.state{text-align:center;padding:64px 16px;display:flex;flex-direction:column;align-items:center;gap:14px;color:var(--mu)}
+.state h2{color:#fff}
+.empty{border:1px dashed var(--line2);border-radius:10px;padding:32px 16px;text-align:center;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:12px}
+.spin{width:28px;height:28px;border:3px solid var(--line);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation-duration:2s}}
 
-  @keyframes slideInPage { from{opacity:0;transform:translateX(40px)} to{opacity:1;transform:translateX(0)} }
-  @keyframes slideOutPage { from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(-30px)} }
+/* detail */
+.back{display:inline-block;color:var(--mu);margin-bottom:18px;font-weight:600}
+.back:hover{color:#fff}
+.d-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:32px;align-items:start}
+.d-cover{aspect-ratio:16/9;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.d-cover img{width:100%;height:100%;object-fit:cover}
+.d-cover .ph{font-size:140px}
+.d-info h1{font-size:clamp(28px,4vw,42px);margin:6px 0 12px}
+.d-info .facts{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;margin-bottom:18px;font-size:14px}
+.d-info .facts dt{color:var(--mu)}
+.d-info .desc{white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:22px;max-width:62ch}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.notice{border:1px solid var(--line2);border-radius:8px;padding:12px 14px;margin-bottom:18px;font-size:14px}
+.notice.warn{border-color:#6a5420;color:var(--warn)}
+.notice.bad{border-color:#5c2b2b;color:var(--bad)}
+.hint{font-size:13px;color:var(--mu);margin-top:12px}
 
-  /* ===== TOPBAR ===== */
-  .topbar { display:flex; align-items:center; padding:16px 20px 12px; background:var(--bg-secondary); border-bottom:1px solid var(--border); flex-shrink:0; position:relative; z-index:10; }
-  .topbar-title { font-size:22px; font-weight:800; color:var(--text-primary); flex:1; letter-spacing:-0.5px; }
-  .topbar-title span { color:var(--blue-light); }
-  .topbar-actions { display:flex; gap:8px; align-items:center; }
-  .icon-btn { width:38px; height:38px; border-radius:50%; border:none; background:var(--bg-card); color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
-  .icon-btn:hover { background:var(--blue-muted); color:var(--blue-light); transform:scale(1.08); }
-  .icon-btn:active { transform:scale(0.95); }
+/* profile */
+.profile{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-bottom:20px;border-bottom:1px solid var(--line)}
+.profile .avatar{width:72px;height:72px;font-size:28px}
+.profile h1{font-size:28px}
 
-  /* ===== LOGIN PAGE ===== */
-  #login-page { position:fixed; inset:0; background:var(--bg-primary); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1000; padding:40px 32px; transition:opacity 0.4s, transform 0.4s; }
-  #login-page.hidden { opacity:0; pointer-events:none; transform:scale(0.96); }
-  .login-logo { width:80px; height:80px; margin-bottom:28px; animation:logoPop 0.6s cubic-bezier(.34,1.56,.64,1); }
-  @keyframes logoPop { from{opacity:0;transform:scale(0.5) rotate(-10deg)} to{opacity:1;transform:scale(1) rotate(0)} }
-  .login-title { font-size:32px; font-weight:800; color:var(--text-primary); margin-bottom:8px; letter-spacing:-1px; }
-  .login-title span { color:var(--blue-light); }
-  .login-sub { font-size:15px; color:var(--text-secondary); margin-bottom:48px; text-align:center; line-height:1.5; }
-  .google-btn { display:flex; align-items:center; gap:14px; background:var(--bg-card); border:1.5px solid var(--border-light); color:var(--text-primary); font-family:var(--font); font-size:15px; font-weight:700; padding:14px 28px; border-radius:14px; cursor:pointer; transition:all 0.25s cubic-bezier(.4,0,.2,1); width:100%; max-width:320px; justify-content:center; }
-  .google-btn:hover { background:var(--blue-muted); border-color:var(--blue-primary); transform:translateY(-2px); box-shadow:0 8px 24px rgba(37,99,235,0.25); }
-  .google-btn:active { transform:translateY(0); }
-  .google-icon { width:22px; height:22px; flex-shrink:0; }
-  .login-footer { margin-top:32px; font-size:12px; color:var(--text-muted); text-align:center; }
+/* form */
+.form{display:flex;flex-direction:column;gap:18px;margin-top:20px}
+.form label{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:14px}
+.form small{color:var(--mu);font-weight:400}
+.form .check{flex-direction:row;align-items:center;gap:8px;font-weight:400}
+.cover-prev{width:240px;max-width:100%;aspect-ratio:16/9;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.cover-prev img{width:100%;height:100%;object-fit:cover}
 
-  /* ===== CHAT LIST ===== */
-  #chat-list-page { display:flex; flex-direction:column; }
-  .search-bar { padding:10px 16px; background:var(--bg-secondary); flex-shrink:0; }
-  .search-input-wrap { position:relative; }
-  .search-input-wrap svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-muted); pointer-events:none; }
-  .search-input { width:100%; background:var(--bg-input); border:1.5px solid var(--border); border-radius:12px; padding:10px 14px 10px 38px; color:var(--text-primary); font-family:var(--font); font-size:14px; outline:none; transition:border-color 0.2s; }
-  .search-input:focus { border-color:var(--blue-primary); }
-  .search-input::placeholder { color:var(--text-muted); }
-  .chat-list { flex:1; overflow-y:auto; padding:8px 0; }
-  .chat-item { display:flex; align-items:center; gap:14px; padding:12px 18px; cursor:pointer; transition:background 0.18s; position:relative; }
-  .chat-item:hover { background:var(--bg-card); }
-  .chat-item:active { background:var(--bg-input); }
-  .avatar { width:50px; height:50px; border-radius:50%; object-fit:cover; background:var(--blue-muted); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:18px; color:var(--blue-light); border:2px solid var(--border); overflow:hidden; }
-  .avatar img { width:100%; height:100%; object-fit:cover; }
-  .chat-info { flex:1; min-width:0; }
-  .chat-name { font-size:15px; font-weight:700; color:var(--text-primary); margin-bottom:3px; display:flex; align-items:center; gap:6px; }
-  .chat-preview { font-size:13px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .chat-meta { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
-  .chat-time { font-size:11px; color:var(--text-muted); }
-  .unread-badge { background:var(--blue-primary); color:#fff; font-size:11px; font-weight:700; min-width:20px; height:20px; border-radius:10px; display:flex; align-items:center; justify-content:center; padding:0 5px; }
-  .online-dot { width:10px; height:10px; background:#22c55e; border-radius:50%; border:2px solid var(--bg-primary); position:absolute; bottom:14px; left:50px; }
-  .fab { position:absolute; bottom:16px; right:16px; width:56px; height:56px; border-radius:50%; background:var(--blue-primary); border:none; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(37,99,235,0.45); transition:all 0.25s; z-index:5; }
-  .fab:hover { background:var(--blue-light); transform:scale(1.08) rotate(10deg); }
-  .fab:active { transform:scale(0.95); }
-  .dev-badge { background:var(--blue-primary); color:#fff; font-size:9px; font-weight:800; padding:1px 5px; border-radius:4px; text-transform:uppercase; letter-spacing:0.5px; }
+/* overlays */
+.backdrop{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.85);display:grid;place-items:center;padding:16px}
+.dlg{background:#000;border:1px solid var(--line2);border-radius:12px;padding:22px;max-width:420px;width:100%}
+.dlg h3{font-size:20px;margin-bottom:8px}
+.dlg p{color:var(--mu);margin-bottom:20px;overflow-wrap:anywhere}
+.dlg-act{display:flex;gap:10px;justify-content:flex-end}
+.loader{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.7);display:grid;place-items:center}
+.player{position:fixed;inset:0;z-index:70;background:#000;display:flex;flex-direction:column}
+.pbar{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);min-height:52px}
+.pbar strong{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.player iframe{flex:1;width:100%;border:0;background:#000}
+#toasts{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:100;display:flex;flex-direction:column;gap:8px;width:min(92vw,420px)}
+.toast{background:#fff;color:#000;padding:12px 16px;border-radius:8px;font-weight:600;font-size:14px;box-shadow:0 0 0 1px #000}
+.toast.error{background:var(--bad)}
+.toast.ok{background:var(--ok)}
 
-  /* ===== CHAT WINDOW ===== */
-  #chat-window { position:absolute; inset:0; background:var(--bg-primary); z-index:50; display:flex; flex-direction:column; transform:translateX(100%); transition:transform 0.35s cubic-bezier(.4,0,.2,1); }
-  #chat-window.open { transform:translateX(0); }
-  .chat-header { display:flex; align-items:center; gap:12px; padding:14px 16px; background:var(--bg-secondary); border-bottom:1px solid var(--border); flex-shrink:0; }
-  .back-btn { width:36px; height:36px; border-radius:50%; border:none; background:transparent; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; flex-shrink:0; }
-  .back-btn:hover { background:var(--bg-card); color:var(--blue-light); }
-  .chat-header-info { flex:1; min-width:0; }
-  .chat-header-name { font-size:16px; font-weight:700; color:var(--text-primary); }
-  .chat-header-status { font-size:12px; color:var(--blue-light); }
-  .messages-area { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:6px; scroll-behavior:smooth; }
-  .msg-wrap { display:flex; flex-direction:column; animation:msgIn 0.25s cubic-bezier(.4,0,.2,1); }
-  @keyframes msgIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-  .msg-wrap.out { align-items:flex-end; }
-  .msg-wrap.in { align-items:flex-start; }
-  .msg-bubble { max-width:78%; padding:10px 14px; border-radius:18px; font-size:14px; line-height:1.5; word-break:break-word; position:relative; }
-  .msg-wrap.out .msg-bubble { background:var(--blue-primary); color:#fff; border-bottom-right-radius:4px; }
-  .msg-wrap.in .msg-bubble { background:var(--bg-card); color:var(--text-primary); border-bottom-left-radius:4px; border:1px solid var(--border); }
-  .msg-time { font-size:10px; color:var(--text-muted); margin-top:3px; padding:0 4px; }
-  .msg-img { max-width:220px; border-radius:12px; cursor:pointer; transition:opacity 0.2s; }
-  .msg-img:hover { opacity:0.9; }
-  .msg-video { max-width:220px; border-radius:12px; max-height:160px; }
-  .msg-sender { font-size:11px; font-weight:700; color:var(--blue-light); margin-bottom:3px; }
-  .chat-input-area { display:flex; align-items:flex-end; gap:10px; padding:12px 14px; background:var(--bg-secondary); border-top:1px solid var(--border); flex-shrink:0; }
-  .chat-input { flex:1; background:var(--bg-input); border:1.5px solid var(--border); border-radius:22px; padding:10px 16px; color:var(--text-primary); font-family:var(--font); font-size:14px; outline:none; resize:none; max-height:120px; transition:border-color 0.2s; line-height:1.5; }
-  .chat-input:focus { border-color:var(--blue-primary); }
-  .chat-input::placeholder { color:var(--text-muted); }
-  .send-btn { width:44px; height:44px; border-radius:50%; background:var(--blue-primary); border:none; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; flex-shrink:0; }
-  .send-btn:hover { background:var(--blue-light); transform:scale(1.08); }
-  .send-btn:active { transform:scale(0.95); }
-  .attach-btn { width:38px; height:38px; border-radius:50%; border:none; background:var(--bg-card); color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; flex-shrink:0; }
-  .attach-btn:hover { background:var(--blue-muted); color:var(--blue-light); }
-  .date-divider { text-align:center; color:var(--text-muted); font-size:11px; font-weight:600; padding:8px 0; }
-  .typing-indicator { display:flex; align-items:center; gap:4px; padding:10px 14px; background:var(--bg-card); border-radius:18px; border-bottom-left-radius:4px; border:1px solid var(--border); width:fit-content; }
-  .typing-dot { width:7px; height:7px; background:var(--text-muted); border-radius:50%; animation:typingBounce 1.2s infinite; }
-  .typing-dot:nth-child(2) { animation-delay:0.2s; }
-  .typing-dot:nth-child(3) { animation-delay:0.4s; }
-  @keyframes typingBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
-
-  /* ===== STORIES ===== */
-  #stories-page { display:flex; flex-direction:column; }
-  .stories-my { display:flex; align-items:center; gap:14px; padding:16px 18px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.18s; }
-  .stories-my:hover { background:var(--bg-card); }
-  .story-add-btn { width:54px; height:54px; border-radius:50%; border:2.5px dashed var(--blue-primary); background:var(--bg-card); display:flex; align-items:center; justify-content:center; color:var(--blue-light); flex-shrink:0; position:relative; }
-  .story-add-btn .plus { font-size:22px; font-weight:300; }
-  .stories-label { font-size:15px; font-weight:700; color:var(--text-primary); }
-  .stories-label-sub { font-size:12px; color:var(--text-secondary); }
-  .stories-list { flex:1; overflow-y:auto; }
-  .story-item { display:flex; align-items:center; gap:14px; padding:12px 18px; cursor:pointer; transition:background 0.18s; }
-  .story-item:hover { background:var(--bg-card); }
-  .story-ring { width:54px; height:54px; border-radius:50%; padding:3px; background:var(--blue-primary); flex-shrink:0; }
-  .story-ring.viewed { background:var(--border); }
-  .story-avatar { width:48px; height:48px; border-radius:50%; background:var(--bg-input); border:2px solid var(--bg-primary); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:18px; color:var(--blue-light); }
-  .story-info { flex:1; }
-  .story-name { font-size:15px; font-weight:700; color:var(--text-primary); }
-  .story-time { font-size:12px; color:var(--text-secondary); }
-  .section-header { padding:10px 18px 4px; font-size:12px; font-weight:700; color:var(--blue-light); text-transform:uppercase; letter-spacing:0.8px; }
-
-  /* ===== COMMUNITY ===== */
-  #community-page { display:flex; flex-direction:column; }
-  .community-list { flex:1; overflow-y:auto; padding:8px 0; }
-  .community-item { display:flex; align-items:center; gap:14px; padding:14px 18px; cursor:pointer; transition:background 0.18s; border-bottom:1px solid var(--border); }
-  .community-item:hover { background:var(--bg-card); }
-  .community-icon { width:54px; height:54px; border-radius:14px; background:var(--blue-muted); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; }
-  .community-icon img { width:100%; height:100%; object-fit:cover; }
-  .community-name { font-size:15px; font-weight:700; color:var(--text-primary); margin-bottom:3px; }
-  .community-desc { font-size:12px; color:var(--text-secondary); }
-  .community-members { font-size:11px; color:var(--text-muted); margin-top:2px; }
-  .join-btn { background:var(--blue-primary); color:#fff; border:none; border-radius:10px; padding:6px 14px; font-family:var(--font); font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s; }
-  .join-btn:hover { background:var(--blue-light); }
-  .join-btn.joined { background:var(--bg-input); color:var(--text-secondary); }
-
-  /* ===== PROFILE ===== */
-  #profile-page { display:flex; flex-direction:column; overflow-y:auto; }
-  .profile-banner-wrap { position:relative; flex-shrink:0; }
-  .profile-banner { width:100%; height:160px; object-fit:cover; background:var(--blue-muted); display:block; }
-  .banner-edit-btn { position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:rgba(0,0,0,0.6); border:none; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
-  .banner-edit-btn:hover { background:rgba(37,99,235,0.8); }
-  .profile-avatar-wrap { position:absolute; bottom:-30px; left:20px; }
-  .profile-avatar { width:72px; height:72px; border-radius:50%; border:3px solid var(--bg-primary); background:var(--blue-muted); object-fit:cover; display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:700; color:var(--blue-light); }
-  .avatar-edit-btn { position:absolute; bottom:0; right:0; width:24px; height:24px; border-radius:50%; background:var(--blue-primary); border:2px solid var(--bg-primary); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:11px; }
-  .profile-info-section { padding:44px 20px 20px; }
-  .profile-name { font-size:22px; font-weight:800; color:var(--text-primary); margin-bottom:4px; }
-  .profile-username { font-size:14px; color:var(--blue-light); margin-bottom:8px; }
-  .profile-phone { font-size:14px; color:var(--text-secondary); }
-  .profile-edit-section { padding:0 16px 16px; }
-  .settings-group { background:var(--bg-card); border-radius:var(--radius); border:1px solid var(--border); overflow:hidden; margin-bottom:16px; }
-  .settings-item { display:flex; align-items:center; gap:14px; padding:14px 16px; cursor:pointer; transition:background 0.18s; border-bottom:1px solid var(--border); }
-  .settings-item:last-child { border-bottom:none; }
-  .settings-item:hover { background:var(--bg-input); }
-  .settings-item:active { background:var(--bg-secondary); }
-  .settings-icon { width:36px; height:36px; border-radius:10px; background:var(--blue-muted); display:flex; align-items:center; justify-content:center; color:var(--blue-light); flex-shrink:0; }
-  .settings-label { flex:1; font-size:15px; font-weight:600; color:var(--text-primary); }
-  .settings-value { font-size:13px; color:var(--text-secondary); }
-  .settings-arrow { color:var(--text-muted); }
-  .profile-edit-form { display:none; flex-direction:column; gap:12px; padding:0 16px 16px; }
-  .profile-edit-form.open { display:flex; }
-  .input-group { display:flex; flex-direction:column; gap:6px; }
-  .input-group label { font-size:12px; font-weight:700; color:var(--blue-light); text-transform:uppercase; letter-spacing:0.5px; }
-  .form-input { background:var(--bg-input); border:1.5px solid var(--border); border-radius:12px; padding:12px 14px; color:var(--text-primary); font-family:var(--font); font-size:14px; outline:none; transition:border-color 0.2s; width:100%; }
-  .form-input:focus { border-color:var(--blue-primary); }
-  .save-btn { background:var(--blue-primary); color:#fff; border:none; border-radius:12px; padding:13px; font-family:var(--font); font-size:15px; font-weight:700; cursor:pointer; transition:all 0.2s; }
-  .save-btn:hover { background:var(--blue-light); }
-  .save-btn:active { transform:scale(0.98); }
-
-  /* ===== SETTINGS PAGE ===== */
-  #settings-page { position:absolute; inset:0; background:var(--bg-primary); z-index:60; display:flex; flex-direction:column; transform:translateX(100%); transition:transform 0.35s cubic-bezier(.4,0,.2,1); }
-  #settings-page.open { transform:translateX(0); }
-  .settings-topbar { display:flex; align-items:center; gap:12px; padding:16px 16px 12px; background:var(--bg-secondary); border-bottom:1px solid var(--border); flex-shrink:0; }
-  .settings-title { font-size:18px; font-weight:800; color:var(--text-primary); flex:1; }
-  .settings-scroll { flex:1; overflow-y:auto; padding:20px 16px; }
-  .settings-section-title { font-size:12px; font-weight:700; color:var(--blue-light); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px; padding-left:4px; }
-  .lang-option { display:flex; align-items:center; gap:12px; padding:14px 16px; background:var(--bg-card); border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.18s; }
-  .lang-option:first-of-type { border-radius:var(--radius) var(--radius) 0 0; }
-  .lang-option:last-of-type { border-radius:0 0 var(--radius) var(--radius); border-bottom:none; }
-  .lang-option:hover { background:var(--bg-input); }
-  .lang-check { width:20px; height:20px; border-radius:50%; border:2px solid var(--border-light); display:flex; align-items:center; justify-content:center; margin-left:auto; }
-  .lang-check.active { border-color:var(--blue-primary); background:var(--blue-primary); }
-  .about-info { background:var(--bg-card); border-radius:var(--radius); border:1px solid var(--border); padding:20px; margin-bottom:16px; }
-  .about-logo-row { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
-  .about-name { font-size:20px; font-weight:800; color:var(--text-primary); }
-  .about-version { font-size:13px; color:var(--text-secondary); }
-  .about-desc { font-size:13px; color:var(--text-secondary); line-height:1.6; }
-
-  /* ===== NAVBAR ===== */
-  .navbar { height:var(--navbar-height); background:var(--glass); backdrop-filter:blur(24px) saturate(1.4); -webkit-backdrop-filter:blur(24px) saturate(1.4); border-top:1px solid var(--glass-border); display:flex; align-items:center; justify-content:space-around; padding:0 8px; flex-shrink:0; position:relative; z-index:20; }
-  .nav-item { display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; padding:8px 16px; border-radius:14px; transition:all 0.25s cubic-bezier(.4,0,.2,1); flex:1; border:none; background:transparent; color:var(--text-muted); font-family:var(--font); position:relative; }
-  .nav-item.active { color:var(--blue-light); }
-  .nav-item:active { transform:scale(0.92); }
-  .nav-icon { position:relative; display:flex; align-items:center; justify-content:center; }
-  .nav-indicator { position:absolute; bottom:-2px; left:50%; transform:translateX(-50%); width:0; height:3px; background:var(--blue-primary); border-radius:2px; transition:width 0.3s cubic-bezier(.4,0,.2,1); }
-  .nav-item.active .nav-indicator { width:20px; }
-  .nav-label { font-size:10px; font-weight:700; letter-spacing:0.3px; transition:color 0.25s; }
-  .nav-bubble { position:absolute; top:-2px; right:-4px; width:18px; height:18px; background:var(--blue-primary); border-radius:50%; border:2px solid var(--bg-primary); font-size:9px; font-weight:800; color:#fff; display:flex; align-items:center; justify-content:center; }
-
-  /* ===== DROPDOWN MENU ===== */
-  .dropdown { position:absolute; top:56px; right:16px; background:var(--bg-card); border:1px solid var(--border-light); border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,0.5); z-index:200; min-width:180px; overflow:hidden; transform-origin:top right; transform:scale(0.9); opacity:0; transition:all 0.2s cubic-bezier(.4,0,.2,1); pointer-events:none; }
-  .dropdown.open { transform:scale(1); opacity:1; pointer-events:all; }
-  .dropdown-item { display:flex; align-items:center; gap:12px; padding:13px 16px; cursor:pointer; transition:background 0.15s; font-size:14px; font-weight:600; color:var(--text-primary); }
-  .dropdown-item:hover { background:var(--bg-input); }
-  .dropdown-item:active { background:var(--bg-secondary); }
-  .dropdown-divider { height:1px; background:var(--border); }
-
-  /* ===== ADMIN PANEL ===== */
-  #admin-panel { position:absolute; inset:0; background:var(--bg-primary); z-index:70; display:flex; flex-direction:column; transform:translateX(100%); transition:transform 0.35s cubic-bezier(.4,0,.2,1); }
-  #admin-panel.open { transform:translateX(0); }
-  .admin-scroll { flex:1; overflow-y:auto; padding:16px; }
-  .admin-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:16px; }
-  .admin-card-title { font-size:14px; font-weight:800; color:var(--blue-light); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px; }
-  .admin-input { width:100%; background:var(--bg-input); border:1.5px solid var(--border); border-radius:10px; padding:10px 12px; color:var(--text-primary); font-family:var(--font); font-size:13px; outline:none; margin-bottom:10px; resize:vertical; }
-  .admin-input:focus { border-color:var(--blue-primary); }
-  .admin-btn { background:var(--blue-primary); color:#fff; border:none; border-radius:10px; padding:10px 18px; font-family:var(--font); font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:8px; }
-  .admin-btn:hover { background:var(--blue-light); }
-  .admin-btn.red { background:#dc2626; }
-  .admin-btn.red:hover { background:#ef4444; }
-  .user-row { display:flex; align-items:center; gap:10px; padding:10px; background:var(--bg-secondary); border-radius:10px; margin-bottom:8px; }
-  .user-row-avatar { width:36px; height:36px; border-radius:50%; background:var(--blue-muted); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:var(--blue-light); flex-shrink:0; }
-  .user-row-info { flex:1; }
-  .user-row-name { font-size:13px; font-weight:700; color:var(--text-primary); }
-  .user-row-email { font-size:11px; color:var(--text-muted); }
-  .banned-badge { background:#dc2626; color:#fff; font-size:10px; font-weight:700; padding:2px 7px; border-radius:6px; }
-  .media-preview-grid { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
-  .media-preview-item { width:70px; height:70px; border-radius:8px; object-fit:cover; border:1px solid var(--border); }
-  .admin-attach-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
-  .admin-attach-btn { background:var(--bg-input); border:1.5px solid var(--border); border-radius:8px; padding:8px 12px; color:var(--text-secondary); font-size:12px; font-family:var(--font); cursor:pointer; display:flex; align-items:center; gap:6px; }
-  .admin-attach-btn:hover { border-color:var(--blue-primary); color:var(--blue-light); }
-
-  /* ===== IMAGE VIEWER ===== */
-  #image-viewer { position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:200; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.3s; }
-  #image-viewer.open { opacity:1; pointer-events:all; }
-  #image-viewer img { max-width:95%; max-height:90vh; border-radius:10px; object-fit:contain; }
-  #image-viewer .close-viewer { position:absolute; top:20px; right:20px; width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.1); border:none; color:#fff; cursor:pointer; font-size:20px; display:flex; align-items:center; justify-content:center; }
-
-  /* ===== TOAST ===== */
-  #toast { position:fixed; bottom:calc(var(--navbar-height) + 16px); left:50%; transform:translateX(-50%) translateY(20px); background:var(--bg-card); border:1px solid var(--border-light); color:var(--text-primary); font-size:13px; font-weight:600; padding:10px 20px; border-radius:24px; opacity:0; transition:all 0.3s; z-index:300; white-space:nowrap; }
-  #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-
-  /* ===== LOADING ===== */
-  .loading-spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--blue-primary); border-radius:50%; animation:spin 0.8s linear infinite; margin:40px auto; }
-  @keyframes spin { to{transform:rotate(360deg)} }
-  .empty-state { text-align:center; padding:60px 20px; color:var(--text-muted); }
-  .empty-state svg { margin:0 auto 16px; opacity:0.5; }
-  .empty-state p { font-size:14px; }
-
-  /* ===== MEDIA QUERY ===== */
-  @media(max-width:360px) { .nav-label { display:none; } .nav-item { padding:8px 10px; } }
-
-  /* ===== STORY VIEWER ===== */
-  #story-viewer { position:fixed; inset:0; background:#000; z-index:150; display:flex; flex-direction:column; opacity:0; pointer-events:none; transition:opacity 0.3s; }
-  #story-viewer.open { opacity:1; pointer-events:all; }
-  .story-progress { display:flex; gap:4px; padding:12px; }
-  .story-bar { flex:1; height:3px; background:rgba(255,255,255,0.3); border-radius:3px; overflow:hidden; }
-  .story-bar-fill { height:100%; background:#fff; width:0; transition:width linear; }
-  .story-header-info { display:flex; align-items:center; gap:10px; padding:0 12px 12px; }
-  .story-content { flex:1; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
-  .story-content img, .story-content video { max-width:100%; max-height:100%; object-fit:contain; }
-  .story-text-overlay { position:absolute; bottom:20px; left:20px; right:20px; font-size:16px; font-weight:600; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,0.7); }
-  .story-close-btn { position:absolute; top:12px; right:12px; background:transparent; border:none; color:#fff; cursor:pointer; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:50%; transition:background 0.2s; }
-  .story-close-btn:hover { background:rgba(255,255,255,0.1); }
-
-  /* File input hidden */
-  input[type=file] { display:none !important; }
-
-
+@media (max-width:860px){
+  .top-in{gap:10px}
+  .search{order:5;flex:1 1 100%;max-width:none}
+  .nav{order:4;flex:1 1 100%;overflow-x:auto}
+  .d-grid{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .ph{font-size:48px}
+  .d-cover .ph{font-size:96px}
+  .cbody{padding:10px}
+  .ctitle{font-size:15px}
+  .hide-sm{display:none}
+}
 </style>
 </head>
 <body>
 
-<!-- LOGIN PAGE -->
-<div id="login-page">
-  <svg class="login-logo" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="80" height="80" rx="22" fill="#0a0a0f"/>
-    <rect x="2" y="2" width="76" height="76" rx="20" stroke="#2563eb" stroke-width="2"/>
-    <path d="M22 52V28C22 26.9 22.9 26 24 26H56C57.1 26 58 26.9 58 28V44C58 45.1 57.1 46 56 46H34L26 54C24.5 55.5 22 54.4 22 52Z" fill="#2563eb"/>
-    <circle cx="32" cy="37" r="3" fill="white"/>
-    <circle cx="40" cy="37" r="3" fill="white"/>
-    <circle cx="48" cy="37" r="3" fill="white"/>
-  </svg>
-  <div class="login-title">i<span>Chat</span></div>
-  <div class="login-sub">Pesan dengan cepat, aman & elegan.<br>Masuk untuk mulai mengobrol.</div>
-  <button class="google-btn" id="google-login-btn">
-    <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-    </svg>
-    Masuk dengan Google
-  </button>
-  <div class="login-footer">Dengan masuk, kamu menyetujui Syarat & Kebijakan Privasi iChat.</div>
-</div>
-
-<!-- MAIN APP -->
-<div id="app" style="display:none">
-
-  <!-- CHAT LIST PAGE -->
-  <div id="chat-list-page" class="page active">
-    <div class="topbar">
-      <div class="topbar-title">i<span>Chat</span></div>
-      <div class="topbar-actions">
-        <button class="icon-btn" id="menu-btn" title="Menu">
-          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
-        </button>
-      </div>
-    </div>
-    <div class="search-bar">
-      <div class="search-input-wrap">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input class="search-input" type="text" placeholder="Cari percakapan..." id="search-input">
-      </div>
-    </div>
-    <div class="chat-list" id="chat-list"></div>
-    <button class="fab" id="new-chat-fab">
-      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    </button>
-    <!-- Dropdown -->
-    <div class="dropdown" id="main-dropdown">
-      <div class="dropdown-item" id="settings-btn">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        Pengaturan
-      </div>
-      <div class="dropdown-divider"></div>
-      <div class="dropdown-item" id="admin-btn" style="display:none">
-        <svg width="18" height="18" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-        <span style="color:#ef4444">Admin Panel</span>
-      </div>
-      <div class="dropdown-item" id="logout-btn">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Keluar
-      </div>
-    </div>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="#/">Caxa<span>GameHub</span></a>
+    <nav class="nav" aria-label="Navigasi utama">
+      <a href="#/" data-nav="home">Beranda</a>
+      <a href="#/favorites" data-nav="favorites">Favorit</a>
+      <a href="#/upload" data-nav="upload">Unggah game</a>
+    </nav>
+    <label class="search">
+      <span class="sr">Cari game</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Cari nama, deskripsi, atau pembuat" autocomplete="off" maxlength="60">
+    </label>
+    <div class="auth" id="auth"></div>
   </div>
+</header>
+<div id="offline" class="offline" hidden>Tidak terhubung ke database. Mencoba menyambung kembali.</div>
 
-  <!-- STORIES PAGE -->
-  <div id="stories-page" class="page">
-    <div class="topbar">
-      <div class="topbar-title">Stories</div>
-    </div>
-    <div class="stories-my" id="add-story-btn">
-      <div class="story-add-btn"><span class="plus">+</span></div>
-      <div>
-        <div class="stories-label">Status Saya</div>
-        <div class="stories-label-sub">Tambah ke status kamu</div>
-      </div>
-    </div>
-    <div class="section-header">Terbaru</div>
-    <div class="stories-list" id="stories-list"></div>
-    <input type="file" id="story-file-input" accept="image/*,video/*">
-  </div>
+<main id="view"></main>
 
-  <!-- COMMUNITY PAGE -->
-  <div id="community-page" class="page">
-    <div class="topbar">
-      <div class="topbar-title">Komunitas</div>
-    </div>
-    <div class="community-list" id="community-list"></div>
-  </div>
+<div id="toasts" aria-live="polite"></div>
+<div id="loader" class="loader" hidden><div class="spin"></div></div>
 
-  <!-- PROFILE PAGE -->
-  <div id="profile-page" class="page">
-    <div class="topbar" style="position:relative;z-index:2;">
-      <div class="topbar-title">Profil</div>
-      <div class="topbar-actions">
-        <button class="icon-btn" id="edit-profile-toggle">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        </button>
-      </div>
-    </div>
-    <div style="overflow-y:auto;flex:1">
-      <div class="profile-banner-wrap">
-        <div class="profile-banner" id="profile-banner-display" style="height:160px;display:flex;align-items:center;justify-content:center;">
-          <svg width="48" height="48" fill="none" stroke="rgba(59,130,246,0.3)" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        </div>
-        <button class="banner-edit-btn" id="banner-edit-btn">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-        </button>
-        <div class="profile-avatar-wrap">
-          <div class="profile-avatar" id="profile-avatar-display">?</div>
-          <button class="avatar-edit-btn" id="avatar-edit-btn">
-            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          </button>
-        </div>
-      </div>
-      <div class="profile-info-section">
-        <div class="profile-name" id="profile-display-name">...</div>
-        <div class="profile-username" id="profile-display-username">@...</div>
-        <div class="profile-phone" id="profile-display-phone"></div>
-      </div>
-      <div class="profile-edit-form" id="profile-edit-form">
-        <div class="input-group">
-          <label>Nama Tampilan</label>
-          <input class="form-input" id="edit-name" type="text" placeholder="Nama kamu">
-        </div>
-        <div class="input-group">
-          <label>Username</label>
-          <input class="form-input" id="edit-username" type="text" placeholder="@username">
-        </div>
-        <div class="input-group">
-          <label>Nomor Telepon</label>
-          <input class="form-input" id="edit-phone" type="tel" placeholder="+62...">
-        </div>
-        <button class="save-btn" id="save-profile-btn">Simpan Perubahan</button>
-      </div>
-      <div style="padding:0 16px 16px">
-        <div class="settings-group">
-          <div class="settings-item" onclick="openSettings()">
-            <div class="settings-icon"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
-            <span class="settings-label">Pengaturan</span>
-            <span class="settings-arrow"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
-          </div>
-          <div class="settings-item" onclick="doLogout()">
-            <div class="settings-icon" style="background:rgba(220,38,38,0.15)"><svg width="18" height="18" fill="none" stroke="#dc2626" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
-            <span class="settings-label" style="color:#dc2626">Keluar</span>
-            <span class="settings-arrow"><svg width="16" height="16" fill="none" stroke="#dc2626" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <input type="file" id="avatar-file-input" accept="image/*">
-    <input type="file" id="banner-file-input" accept="image/*">
-  </div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+(function () {
+"use strict";
 
-  <!-- NAVBAR -->
-  <nav class="navbar">
-    <button class="nav-item active" data-page="chat-list-page" onclick="switchPage('chat-list-page',this)">
-      <div class="nav-icon">
-        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        <div class="nav-indicator"></div>
-      </div>
-      <span class="nav-label">Chat</span>
-    </button>
-    <button class="nav-item" data-page="stories-page" onclick="switchPage('stories-page',this)">
-      <div class="nav-icon">
-        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
-        <div class="nav-indicator"></div>
-      </div>
-      <span class="nav-label">Stories</span>
-    </button>
-    <button class="nav-item" data-page="community-page" onclick="switchPage('community-page',this)">
-      <div class="nav-icon">
-        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        <div class="nav-indicator"></div>
-      </div>
-      <span class="nav-label">Komunitas</span>
-    </button>
-    <button class="nav-item" data-page="profile-page" onclick="switchPage('profile-page',this)">
-      <div class="nav-icon">
-        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        <div class="nav-indicator"></div>
-      </div>
-      <span class="nav-label">Profil</span>
-    </button>
-  </nav>
-
-  <!-- CHAT WINDOW -->
-  <div id="chat-window">
-    <div class="chat-header">
-      <button class="back-btn" id="close-chat-btn">
-        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
-      <div class="avatar" id="chat-header-avatar">?</div>
-      <div class="chat-header-info">
-        <div class="chat-header-name" id="chat-header-name">...</div>
-        <div class="chat-header-status" id="chat-header-status">online</div>
-      </div>
-    </div>
-    <div class="messages-area" id="messages-area"></div>
-    <div class="chat-input-area">
-      <button class="attach-btn" id="attach-btn">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-      </button>
-      <textarea class="chat-input" id="chat-input" placeholder="Pesan..." rows="1"></textarea>
-      <button class="send-btn" id="send-btn">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-      </button>
-    </div>
-    <input type="file" id="chat-file-input" accept="image/*,video/*">
-  </div>
-
-  <!-- SETTINGS PAGE -->
-  <div id="settings-page">
-    <div class="settings-topbar">
-      <button class="back-btn" onclick="closeSettings()">
-        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
-      <div class="settings-title">Pengaturan</div>
-    </div>
-    <div class="settings-scroll">
-      <div class="settings-section-title">Bahasa</div>
-      <div class="settings-group" style="margin-bottom:20px">
-        <div class="lang-option" onclick="setLang('id')">
-          <span style="font-size:20px">🇮🇩</span>
-          <span style="font-size:14px;font-weight:600;color:var(--text-primary)">Bahasa Indonesia</span>
-          <div class="lang-check active" id="lang-id"><svg width="10" height="10" fill="white" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" stroke="white" stroke-width="3" fill="none"/></svg></div>
-        </div>
-        <div class="lang-option" onclick="setLang('en')">
-          <span style="font-size:20px">🇬🇧</span>
-          <span style="font-size:14px;font-weight:600;color:var(--text-primary)">English</span>
-          <div class="lang-check" id="lang-en"></div>
-        </div>
-      </div>
-      <div class="settings-section-title">Tentang Aplikasi</div>
-      <div class="about-info">
-        <div class="about-logo-row">
-          <svg width="44" height="44" viewBox="0 0 80 80" fill="none"><rect width="80" height="80" rx="18" fill="#111118"/><rect x="2" y="2" width="76" height="76" rx="16" stroke="#2563eb" stroke-width="2"/><path d="M22 52V28C22 26.9 22.9 26 24 26H56C57.1 26 58 26.9 58 28V44C58 45.1 57.1 46 56 46H34L26 54C24.5 55.5 22 54.4 22 52Z" fill="#2563eb"/><circle cx="32" cy="37" r="3" fill="white"/><circle cx="40" cy="37" r="3" fill="white"/><circle cx="48" cy="37" r="3" fill="white"/></svg>
-          <div>
-            <div class="about-name">iChat</div>
-            <div class="about-version">Versi 1.0.0</div>
-          </div>
-        </div>
-        <div class="about-desc">iChat adalah aplikasi pesan instan yang dirancang untuk pengalaman komunikasi yang cepat, aman, dan elegan. Dibuat dengan teknologi Firebase untuk memastikan pesan terkirim secara real-time.</div>
-      </div>
-      <div class="settings-section-title">Dukungan</div>
-      <div class="settings-group">
-        <div class="settings-item" onclick="window.location.href='mailto:fikrieverly@gmail.com'">
-          <div class="settings-icon"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
-          <div>
-            <div class="settings-label">Hubungi Developer</div>
-            <div class="settings-value"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f7919e9c859e928192859b8eb7909a969e9bd994989a">[email&#160;protected]</a></div>
-          </div>
-          <span class="settings-arrow"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ADMIN PANEL -->
-  <div id="admin-panel">
-    <div class="settings-topbar">
-      <button class="back-btn" onclick="closeAdmin()">
-        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
-      <div class="settings-title" style="color:#ef4444">Admin Panel</div>
-    </div>
-    <div class="admin-scroll">
-      <!-- Broadcast -->
-      <div class="admin-card">
-        <div class="admin-card-title">Broadcast ke Semua User</div>
-        <textarea class="admin-input" id="broadcast-text" rows="3" placeholder="Ketik pesan broadcast..."></textarea>
-        <div class="media-preview-grid" id="broadcast-preview"></div>
-        <div class="admin-attach-row">
-          <label class="admin-attach-btn" for="broadcast-file-input">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-            Lampiran
-          </label>
-        </div>
-        <input type="file" id="broadcast-file-input" accept="image/*,video/*" multiple>
-        <button class="admin-btn" id="broadcast-send-btn">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          Kirim ke Semua
-        </button>
-      </div>
-      <!-- Users -->
-      <div class="admin-card">
-        <div class="admin-card-title">Manajemen User</div>
-        <div id="admin-users-list"><div class="loading-spinner"></div></div>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<!-- IMAGE VIEWER -->
-<div id="image-viewer">
-  <button class="close-viewer" id="close-viewer">
-    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-  </button>
-  <img id="viewer-img" src="" alt="">
-</div>
-
-<!-- STORY VIEWER -->
-<div id="story-viewer">
-  <div class="story-progress" id="story-progress"></div>
-  <div class="story-header-info" id="story-header-info"></div>
-  <div class="story-content" id="story-content"></div>
-  <button class="story-close-btn" id="story-close-btn">
-    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-  </button>
-</div>
-
-<!-- TOAST -->
-<div id="toast"></div>
-
-<!-- Firebase -->
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, onSnapshot, addDoc, serverTimestamp, query, orderBy, where, getDocs, Timestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { getStorage, ref as storageRef, uploadString, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
-
+/* ====================== Konfigurasi ====================== */
 const firebaseConfig = {
-  apiKey: "AIzaSyCUJjnzN7F0oinsgZw0barU2Yv_xuqoWHw",
-  authDomain: "ichat-e4197.firebaseapp.com",
-  projectId: "ichat-e4197",
-  storageBucket: "ichat-e4197.firebasestorage.app",
-  messagingSenderId: "276669552443",
-  appId: "1:276669552443:web:e7962d3a689b581f96091e"
+  apiKey: "AIzaSyBmOQhqoVSowBHT2xLbb2-cgnLNkmAdzcQ",
+  authDomain: "caxagamehub.firebaseapp.com",
+  databaseURL: "https://caxagamehub-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "caxagamehub",
+  storageBucket: "caxagamehub.firebasestorage.app",
+  messagingSenderId: "44522670946",
+  appId: "1:44522670946:web:28352e68beb8a39f3f7a3b"
 };
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+const TS = firebase.database.ServerValue.TIMESTAMP;
 
-const DEVELOPER_EMAIL = "kriiaja48@gmail.com";
-const DEVELOPER_UID_KEY = "ichat_dev_uid";
+// Batas ini HARUS sama dengan yang ada di Security Rules.
+const LIMIT = { html: 250000, cover: 45000, titleMin: 3, titleMax: 60, desc: 500 };
+const ID_RE = /^[A-Za-z0-9_-]{6,40}$/;
+const STATUS = { pending: "Menunggu tinjauan", approved: "Dipublikasikan", rejected: "Ditolak" };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
-const provider = new GoogleAuthProvider();
+/* ====================== State ====================== */
+const state = {
+  user: null, authReady: false,
+  games: {}, cats: {}, plays: {}, favs: {}, mine: {},
+  loaded: { games: false, cats: false, mine: false },
+  loadError: "",
+  query: "", cat: "", sort: "new",
+  detail: null, detailId: null, touched: false
+};
+let route = { name: "home", id: null };
+let detailRef = null, detailCb = null, favRef = null, mineRef = null;
 
-let currentUser = null;
-let isDeveloper = false;
-let currentChatId = null;
-let currentChatUser = null;
-let messagesUnsub = null;
-let chatsUnsub = null;
-let broadcastFiles = [];
+/* ====================== Util ====================== */
+const $ = (s, r) => (r || document).querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmtDate = ts => ts ? new Date(ts).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-";
+const fmtNum = n => new Intl.NumberFormat("id-ID").format(n || 0);
+const heart = on => `<svg width="18" height="18" viewBox="0 0 24 24" fill="${on ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>`;
 
-// ===== HELPERS =====
-function showToast(msg) {
-  const t = document.getElementById('toast');
+function toast(msg, type) {
+  const t = document.createElement("div");
+  t.className = "toast " + (type || "");
   t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  $("#toasts").appendChild(t);
+  setTimeout(() => t.remove(), type === "error" ? 6500 : 3500);
+}
+let loaderCount = 0;
+function showLoader(on) {
+  loaderCount = Math.max(0, loaderCount + (on ? 1 : -1));
+  $("#loader").hidden = loaderCount === 0;
+}
+function errMsg(e) {
+  const code = (e && e.code ? e.code : "") + "";
+  const m = (e && e.message) || String(e);
+  if (/permission_denied/i.test(code + m)) return "Ditolak oleh aturan keamanan database. Pastikan Anda sudah masuk dan data memenuhi batas yang ditentukan.";
+  if (code === "auth/unauthorized-domain") return "Domain ini belum diizinkan. Tambahkan di Firebase Console, Authentication, Settings, Authorized domains.";
+  if (code === "auth/network-request-failed") return "Koneksi bermasalah. Periksa internet Anda.";
+  return m || "Terjadi kesalahan.";
+}
+let lastErrAt = 0;
+function onDbErr(e) {
+  console.error(e);
+  if (Date.now() - lastErrAt > 5000) { lastErrAt = Date.now(); toast(errMsg(e), "error"); }
+}
+function confirmBox(o) {
+  return new Promise(res => {
+    const w = document.createElement("div");
+    w.className = "backdrop";
+    w.innerHTML = `<div class="dlg" role="dialog" aria-modal="true"><h3>${esc(o.title)}</h3><p>${esc(o.text)}</p><div class="dlg-act"><button class="btn" data-r="0">Batal</button><button class="btn ${o.danger ? "danger fill" : "primary"}" data-r="1">${esc(o.ok || "Ya")}</button></div></div>`;
+    const done = v => { w.remove(); document.removeEventListener("keydown", onKey); res(v); };
+    const onKey = e => { if (e.key === "Escape") done(false); };
+    w.addEventListener("click", e => {
+      const b = e.target.closest("[data-r]");
+      if (b) done(b.dataset.r === "1"); else if (e.target === w) done(false);
+    });
+    document.addEventListener("keydown", onKey);
+    document.body.appendChild(w);
+    $('[data-r="0"]', w).focus();
+  });
 }
 
-function formatTime(ts) {
-  if (!ts) return '';
-  const d = ts.toDate ? ts.toDate() : new Date(ts);
-  const now = new Date();
-  const diff = now - d;
-  if (diff < 86400000) return d.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
-  if (diff < 604800000) return d.toLocaleDateString('id-ID', {weekday:'short'});
-  return d.toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit'});
-}
+/* ====================== Data helper ====================== */
+const gamesList = () => Object.keys(state.games).map(id => Object.assign({ id }, state.games[id]));
+const playsOf = id => state.plays[id] || 0;
+const catName = id => (state.cats[id] && state.cats[id].name) || "Tanpa kategori";
+const newest = (a, b) => (b.createdAt || 0) - (a.createdAt || 0);
+const popular = (a, b) => playsOf(b.id) - playsOf(a.id) || newest(a, b);
 
-function getInitials(name) {
-  if (!name) return '?';
-  return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-}
-
-function getChatId(uid1, uid2) {
-  return [uid1, uid2].sort().join('_');
-}
-
-// ===== AUTH =====
-document.getElementById('google-login-btn').addEventListener('click', async () => {
+/* ====================== Auth ====================== */
+async function login() {
+  const p = new firebase.auth.GoogleAuthProvider();
+  p.setCustomParameters({ prompt: "select_account" });
+  showLoader(true);
   try {
-    await signInWithPopup(auth, provider);
-  } catch(e) { showToast('Login gagal: ' + e.message); }
-});
-
-window.doLogout = async () => {
-  await signOut(auth);
-};
-
-onAuthStateChanged(auth, async user => {
-  if (user) {
-    currentUser = user;
-    isDeveloper = user.email === DEVELOPER_EMAIL;
-
-    try {
-      const userRef = doc(db, 'users', user.uid);
-      const snap = await getDoc(userRef);
-      if (!snap.exists()) {
-        await setDoc(userRef, {
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName || 'User',
-          photoURL: user.photoURL || '',
-          username: '@' + (user.displayName || 'user').replace(/\s+/g,'').toLowerCase(),
-          phone: '',
-          online: true,
-          createdAt: serverTimestamp(),
-          banned: false,
-          isDeveloper: isDeveloper,
-          bannerURL: ''
-        });
-      } else {
-        await updateDoc(userRef, { online: true, isDeveloper: isDeveloper });
-      }
-    } catch(e) { console.warn('Firestore update error:', e); }
-
-    showApp();
-    loadProfile();
-    loadChats();
-    loadStories();
-    loadCommunity();
-    if (isDeveloper) {
-      document.getElementById('admin-btn').style.display = 'flex';
+    await auth.signInWithPopup(p);
+  } catch (e) {
+    if (e.code === "auth/popup-blocked" || e.code === "auth/operation-not-supported-in-this-environment") {
+      try { await auth.signInWithRedirect(p); } catch (e2) { toast(errMsg(e2), "error"); }
+    } else if (e.code !== "auth/popup-closed-by-user" && e.code !== "auth/cancelled-popup-request") {
+      toast(errMsg(e), "error");
     }
-    document.getElementById('login-page').classList.add('hidden');
-    setTimeout(() => document.getElementById('login-page').style.display = 'none', 400);
-  } else {
-    currentUser = null;
-    isDeveloper = false;
-    document.getElementById('app').style.display = 'none';
-    document.getElementById('login-page').style.display = 'flex';
-    document.getElementById('login-page').classList.remove('hidden');
-  }
-});
-
-function showApp() {
-  document.getElementById('app').style.display = 'flex';
+  } finally { showLoader(false); }
 }
+function logout() { auth.signOut().catch(e => toast(errMsg(e), "error")); }
 
-// ===== PROFILE =====
-async function loadProfile() {
-  if (!currentUser) return;
-  const snap = await getDoc(doc(db, 'users', currentUser.uid));
-  if (!snap.exists()) return;
-  const data = snap.data();
-  document.getElementById('profile-display-name').textContent = data.displayName || currentUser.displayName;
-  document.getElementById('profile-display-username').textContent = data.username || '@user';
-  document.getElementById('profile-display-phone').textContent = data.phone ? '📱 ' + data.phone : '';
-  document.getElementById('edit-name').value = data.displayName || '';
-  document.getElementById('edit-username').value = data.username || '';
-  document.getElementById('edit-phone').value = data.phone || '';
-
-  const avEl = document.getElementById('profile-avatar-display');
-  if (data.photoURL) {
-    avEl.innerHTML = `<img src="${data.photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
-  } else {
-    avEl.textContent = getInitials(data.displayName);
-  }
-
-  const bannerEl = document.getElementById('profile-banner-display');
-  if (data.bannerURL) {
-    bannerEl.style.backgroundImage = `url(${data.bannerURL})`;
-    bannerEl.style.backgroundSize = 'cover';
-    bannerEl.style.backgroundPosition = 'center';
-    bannerEl.innerHTML = '';
-  }
-}
-
-document.getElementById('edit-profile-toggle').addEventListener('click', () => {
-  const form = document.getElementById('profile-edit-form');
-  form.classList.toggle('open');
-});
-
-document.getElementById('save-profile-btn').addEventListener('click', async () => {
-  if (!currentUser) return;
-  const name = document.getElementById('edit-name').value.trim();
-  const username = document.getElementById('edit-username').value.trim();
-  const phone = document.getElementById('edit-phone').value.trim();
+async function ensureUserRecord(u) {
   try {
-    await updateDoc(doc(db, 'users', currentUser.uid), { displayName: name, username, phone });
-    loadProfile();
-    document.getElementById('profile-edit-form').classList.remove('open');
-    showToast('Profil berhasil disimpan!');
-  } catch(e) { showToast('Gagal menyimpan: ' + e.message); }
-});
-
-// Avatar upload
-document.getElementById('avatar-edit-btn').addEventListener('click', () => document.getElementById('avatar-file-input').click());
-document.getElementById('avatar-file-input').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file || !currentUser) return;
-  try {
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      const dataUrl = ev.target.result;
-      const sRef = storageRef(storage, `avatars/${currentUser.uid}`);
-      await uploadString(sRef, dataUrl, 'data_url');
-      const url = await getDownloadURL(sRef);
-      await updateDoc(doc(db, 'users', currentUser.uid), { photoURL: url });
-      loadProfile();
-      showToast('Foto profil diperbarui!');
+    const ref = db.ref("users/" + u.uid);
+    const snap = await ref.once("value");
+    const base = {
+      name: (u.displayName || "Pengguna").slice(0, 100),
+      email: u.email ? u.email.slice(0, 200) : null,
+      photo: u.photoURL ? u.photoURL.slice(0, 500) : null,
+      lastLogin: TS
     };
-    reader.readAsDataURL(file);
-  } catch(e) { showToast('Gagal upload: ' + e.message); }
-  e.target.value = '';
-});
+    if (snap.exists()) await ref.update(base);
+    else await ref.set(Object.assign({}, base, { createdAt: TS }));
+  } catch (e) { console.warn("Gagal menyimpan data pengguna:", e); }
+}
 
-// Banner upload
-document.getElementById('banner-edit-btn').addEventListener('click', () => document.getElementById('banner-file-input').click());
-document.getElementById('banner-file-input').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file || !currentUser) return;
-  try {
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      const dataUrl = ev.target.result;
-      const sRef = storageRef(storage, `banners/${currentUser.uid}`);
-      await uploadString(sRef, dataUrl, 'data_url');
-      const url = await getDownloadURL(sRef);
-      await updateDoc(doc(db, 'users', currentUser.uid), { bannerURL: url });
-      loadProfile();
-      showToast('Banner diperbarui!');
-    };
-    reader.readAsDataURL(file);
-  } catch(e) { showToast('Gagal upload: ' + e.message); }
-  e.target.value = '';
-});
+function detachUserListeners() {
+  if (favRef) { favRef.off(); favRef = null; }
+  if (mineRef) { mineRef.off(); mineRef = null; }
+  state.favs = {}; state.mine = {}; state.loaded.mine = false;
+}
+function attachUserListeners(u) {
+  favRef = db.ref("favorites/" + u.uid);
+  favRef.on("value", s => { state.favs = s.val() || {}; refresh(); }, onDbErr);
+  mineRef = db.ref("games").orderByChild("ownerId").equalTo(u.uid);
+  mineRef.on("value", s => { state.mine = s.val() || {}; state.loaded.mine = true; refresh(); }, e => { state.loaded.mine = true; onDbErr(e); refresh(); });
+}
 
-// ===== CHAT LIST =====
-function loadChats() {
-  if (!currentUser) return;
-  const chatList = document.getElementById('chat-list');
-  chatList.innerHTML = '<div class="loading-spinner"></div>';
+function renderAuth() {
+  const box = $("#auth");
+  if (!state.authReady) { box.innerHTML = ""; return; }
+  const u = state.user;
+  if (!u) { box.innerHTML = '<button class="btn primary" data-act="login">Masuk dengan Google</button>'; return; }
+  const ini = esc((u.displayName || "?").trim().charAt(0).toUpperCase());
+  box.innerHTML = `<a class="avatar" href="#/profile" title="Profil: ${esc(u.displayName || "")}">${u.photoURL ? `<img src="${esc(u.photoURL)}" alt="" referrerpolicy="no-referrer">` : ini}</a><button class="btn sm hide-sm" data-act="logout">Keluar</button>`;
+}
 
-  const q = query(collection(db, 'chats'), where('members', 'array-contains', currentUser.uid), orderBy('updatedAt', 'desc'));
-  if (chatsUnsub) chatsUnsub();
-  chatsUnsub = onSnapshot(q, async (snap) => {
-    if (snap.empty) {
-      chatList.innerHTML = `<div class="empty-state"><svg width="60" height="60" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><p>Belum ada percakapan</p></div>`;
-      return;
-    }
-    const items = [];
-    for (const d of snap.docs) {
-      const data = d.data();
-      const otherId = data.members.find(m => m !== currentUser.uid);
-      if (!otherId) continue;
-      const uSnap = await getDoc(doc(db, 'users', otherId));
-      const uData = uSnap.data() || {};
-      items.push({ id: d.id, data, uData, otherId });
-    }
-    chatList.innerHTML = '';
-    items.forEach(({ id, data, uData, otherId }) => {
-      const div = document.createElement('div');
-      div.className = 'chat-item';
-      const initials = getInitials(uData.displayName);
-      const avatarHtml = uData.photoURL
-        ? `<div class="avatar"><img src="${uData.photoURL}" alt=""></div>`
-        : `<div class="avatar">${initials}</div>`;
-      const devBadge = uData.isDeveloper ? `<span class="dev-badge">DEV</span>` : '';
-      const preview = data.lastMessage || (data.lastMedia ? '📎 Media' : '');
-      div.innerHTML = `
-        ${avatarHtml}
-        <div class="chat-info">
-          <div class="chat-name">${uData.displayName || 'User'} ${devBadge}</div>
-          <div class="chat-preview">${preview}</div>
+/* ====================== Tampilan umum ====================== */
+const loadingBlock = t => `<div class="state"><div class="spin"></div><p>${esc(t || "Memuat...")}</p></div>`;
+const notFound = t => `<section class="wrap narrow"><div class="state"><h2>Tidak ditemukan</h2><p>${esc(t)}</p><a class="btn primary" href="#/">Kembali ke beranda</a></div></section>`;
+const needLogin = t => `<section class="wrap narrow"><div class="state"><h2>Masuk diperlukan</h2><p>${esc(t)}</p><button class="btn primary" data-act="login">Masuk dengan Google</button></div></section>`;
+
+function coverHTML(g) {
+  if (g.cover && String(g.cover).indexOf("data:image/") === 0) return `<img src="${esc(g.cover)}" alt="" loading="lazy">`;
+  return `<div class="ph" aria-hidden="true">${esc((g.title || "?").trim().charAt(0).toUpperCase())}</div>`;
+}
+
+function cardHTML(g, manage) {
+  const id = esc(g.id);
+  let foot;
+  if (manage) {
+    foot = `<div class="manage"><span class="badge ${esc(g.status)}">${esc(STATUS[g.status] || g.status)}</span><span class="grow"></span><a class="btn sm" href="#/edit/${id}">Edit</a><button class="btn danger sm" data-act="delete" data-id="${id}">Hapus</button></div>` +
+      (g.status === "rejected" && g.reviewNote ? `<p class="reason">Alasan penolakan: ${esc(g.reviewNote)}</p>` : "");
+  } else {
+    const on = !!state.favs[g.id];
+    foot = `<div class="row"><span class="muted">${fmtNum(playsOf(g.id))} dimainkan</span><button class="icon-btn ${on ? "on" : ""}" data-act="fav" data-id="${id}" aria-pressed="${on}" aria-label="${on ? "Hapus dari favorit" : "Tambah ke favorit"}">${heart(on)}</button></div>`;
+  }
+  return `<article class="card"><a class="thumb" href="#/game/${id}">${coverHTML(g)}${g.featured && g.status === "approved" ? '<span class="tag">Unggulan</span>' : ""}</a><div class="cbody"><a class="ctitle" href="#/game/${id}" title="${esc(g.title)}">${esc(g.title)}</a><div class="meta"><span>${esc(g.ownerName)}</span><span>${esc(catName(g.category))}</span></div>${foot}</div></article>`;
+}
+const gridHTML = (list, manage) => `<div class="grid">${list.map(g => cardHTML(g, manage)).join("")}</div>`;
+const sectionHTML = (title, list) => `<section class="sec"><div class="sec-head"><h2>${esc(title)}</h2></div>${gridHTML(list)}</section>`;
+
+/* ====================== Beranda ====================== */
+function viewHome() {
+  if (state.loadError) return `<section class="wrap"><div class="state"><h2>Game tidak dapat dimuat</h2><p>${esc(state.loadError)}</p></div></section>`;
+  if (!state.loaded.games) return loadingBlock("Memuat game...");
+  const all = gamesList();
+  const q = state.query.trim().toLowerCase();
+  const cats = Object.keys(state.cats).map(id => ({ id, name: state.cats[id].name || "" })).sort((a, b) => a.name.localeCompare(b.name));
+  const chips = `<div class="chips" role="group" aria-label="Kategori"><button class="chip ${!state.cat ? "on" : ""}" data-act="cat" data-id="">Semua</button>${cats.map(c => `<button class="chip ${state.cat === c.id ? "on" : ""}" data-act="cat" data-id="${esc(c.id)}">${esc(c.name)}</button>`).join("")}</div>`;
+  let html = "";
+  if (!q && !state.cat) {
+    html += `<div class="hero"><h1>Mainkan game buatan komunitas.</h1><p>${all.length ? fmtNum(all.length) + " game siap dimainkan langsung di browser, tanpa unduhan." : "Belum ada game yang dipublikasikan."} Punya game HTML sendiri? Bagikan di sini.</p><a class="btn primary" href="#/upload">Unggah game</a></div>`;
+  }
+  html += chips;
+  if (q || state.cat) {
+    let list = all.filter(g => (!state.cat || g.category === state.cat) && (!q || ((g.title || "") + " " + (g.description || "") + " " + (g.ownerName || "")).toLowerCase().indexOf(q) !== -1));
+    list.sort(state.sort === "pop" ? popular : newest);
+    html += `<section class="sec"><div class="sec-head"><h2>${fmtNum(list.length)} hasil</h2><select id="sort" aria-label="Urutkan"><option value="new" ${state.sort === "new" ? "selected" : ""}>Terbaru</option><option value="pop" ${state.sort === "pop" ? "selected" : ""}>Terpopuler</option></select></div>${list.length ? gridHTML(list) : '<div class="empty"><p>Tidak ada game yang cocok dengan pencarian atau kategori ini.</p></div>'}</section>`;
+  } else if (!all.length) {
+    html += `<section class="sec"><div class="empty"><p>Belum ada game. Jadilah yang pertama mengunggah.</p><a class="btn primary" href="#/upload">Unggah game</a></div></section>`;
+  } else {
+    const feat = all.filter(g => g.featured).sort(newest);
+    const pop = all.filter(g => playsOf(g.id) > 0).sort(popular);
+    if (feat.length) html += sectionHTML("Unggulan", feat.slice(0, 8));
+    html += sectionHTML("Terbaru", all.slice().sort(newest).slice(0, 8));
+    if (pop.length) html += sectionHTML("Populer", pop.slice(0, 8));
+  }
+  return `<section class="wrap">${html}</section>`;
+}
+
+/* ====================== Favorit ====================== */
+function viewFavorites() {
+  if (!state.authReady) return loadingBlock();
+  if (!state.user) return needLogin("Masuk untuk melihat game favorit Anda.");
+  if (!state.loaded.games) return loadingBlock();
+  const list = Object.keys(state.favs).filter(id => state.games[id]).map(id => Object.assign({ id }, state.games[id])).sort(newest);
+  return `<section class="wrap"><div class="sec-head"><h1>Favorit</h1></div>${list.length ? gridHTML(list) : '<div class="empty"><p>Belum ada favorit. Tekan ikon hati pada game untuk menyimpannya di sini.</p><a class="btn primary" href="#/">Jelajahi game</a></div>'}</section>`;
+}
+
+/* ====================== Detail game ====================== */
+function viewGame() {
+  if (state.detailId !== route.id && state.detailId !== "bad") return loadingBlock("Memuat game...");
+  const g = state.detail;
+  const u = state.user;
+  const own = !!(u && g && g.ownerId === u.uid);
+  if (!g || (g.status !== "approved" && !own)) return notFound("Game ini tidak ada atau belum dipublikasikan.");
+  const id = esc(route.id);
+  const on = !!state.favs[route.id];
+  let banner = "";
+  if (own && g.status === "pending") banner = '<div class="notice warn">Menunggu tinjauan admin. Game ini belum tampil untuk pengguna lain.</div>';
+  if (own && g.status === "rejected") banner = `<div class="notice bad">Game ditolak admin.${g.reviewNote ? " Alasan: " + esc(g.reviewNote) : ""} Perbaiki lalu kirim ulang lewat tombol Edit.</div>`;
+  return `<section class="wrap">
+    <a class="back" href="#/">Kembali</a>
+    <div class="d-grid">
+      <div class="d-cover">${coverHTML(g)}</div>
+      <div class="d-info">
+        ${banner}
+        <h1>${esc(g.title)}</h1>
+        <dl class="facts">
+          <dt>Pembuat</dt><dd>${esc(g.ownerName)}</dd>
+          <dt>Kategori</dt><dd>${esc(catName(g.category))}</dd>
+          <dt>Dimainkan</dt><dd>${fmtNum(playsOf(route.id))} kali</dd>
+          <dt>Diunggah</dt><dd>${fmtDate(g.createdAt)}</dd>
+        </dl>
+        ${g.description ? `<p class="desc">${esc(g.description)}</p>` : ""}
+        <div class="actions">
+          <button class="btn primary" data-act="play" data-id="${id}">Mainkan</button>
+          <button class="btn" data-act="fav" data-id="${id}" aria-pressed="${on}">${heart(on)} ${on ? "Hapus dari favorit" : "Favorit"}</button>
+          <button class="btn" data-act="share" data-id="${id}">Bagikan</button>
+          ${own ? `<a class="btn" href="#/edit/${id}">Edit</a><button class="btn danger" data-act="delete" data-id="${id}">Hapus</button>` : ""}
         </div>
-        <div class="chat-meta">
-          <span class="chat-time">${formatTime(data.updatedAt)}</span>
-          ${data.unread && data.lastSenderId !== currentUser.uid ? `<span class="unread-badge">${data.unread}</span>` : ''}
-        </div>`;
-      div.addEventListener('click', () => openChat(otherId, uData, id));
-      chatList.appendChild(div);
-    });
-  });
-}
-
-// Search filter
-document.getElementById('search-input').addEventListener('input', (e) => {
-  const val = e.target.value.toLowerCase();
-  document.querySelectorAll('.chat-item').forEach(item => {
-    const name = item.querySelector('.chat-name').textContent.toLowerCase();
-    item.style.display = name.includes(val) ? '' : 'none';
-  });
-});
-
-// ===== OPEN CHAT =====
-async function openChat(userId, userData, chatId) {
-  currentChatUser = { uid: userId, ...userData };
-  currentChatId = chatId || getChatId(currentUser.uid, userId);
-
-  // Update header
-  const avatarEl = document.getElementById('chat-header-avatar');
-  if (userData.photoURL) {
-    avatarEl.innerHTML = `<img src="${userData.photoURL}" alt="">`;
-  } else {
-    avatarEl.textContent = getInitials(userData.displayName);
-  }
-  document.getElementById('chat-header-name').textContent = userData.displayName || 'User';
-  document.getElementById('chat-header-status').textContent = userData.online ? 'online' : 'terakhir dilihat baru-baru ini';
-
-  document.getElementById('chat-window').classList.add('open');
-  loadMessages();
-
-  // Reset unread
-  const chatRef = doc(db, 'chats', currentChatId);
-  const chatSnap = await getDoc(chatRef);
-  if (chatSnap.exists() && chatSnap.data().lastSenderId !== currentUser.uid) {
-    await updateDoc(chatRef, { unread: 0 });
-  }
-}
-
-function loadMessages() {
-  const area = document.getElementById('messages-area');
-  area.innerHTML = '<div class="loading-spinner"></div>';
-  if (messagesUnsub) messagesUnsub();
-
-  const q = query(collection(db, 'chats', currentChatId, 'messages'), orderBy('createdAt', 'asc'));
-  messagesUnsub = onSnapshot(q, (snap) => {
-    area.innerHTML = '';
-    let lastDate = '';
-    snap.docs.forEach(d => {
-      const msg = d.data();
-      const dateStr = msg.createdAt ? msg.createdAt.toDate().toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long'}) : '';
-      if (dateStr && dateStr !== lastDate) {
-        lastDate = dateStr;
-        const divEl = document.createElement('div');
-        divEl.className = 'date-divider';
-        divEl.textContent = dateStr;
-        area.appendChild(divEl);
-      }
-      renderMessage(msg, area);
-    });
-    area.scrollTop = area.scrollHeight;
-  });
-}
-
-function renderMessage(msg, area) {
-  const isOut = msg.senderId === currentUser.uid;
-  const wrap = document.createElement('div');
-  wrap.className = `msg-wrap ${isOut ? 'out' : 'in'}`;
-
-  let content = '';
-  if (msg.type === 'image') {
-    content = `<div class="msg-bubble" style="padding:4px;background:${isOut?'var(--blue-primary)':'var(--bg-card)'}"><img class="msg-img" src="${msg.url}" alt="" onclick="viewImage('${msg.url}')"></div>`;
-  } else if (msg.type === 'video') {
-    content = `<div class="msg-bubble" style="padding:4px"><video class="msg-video" src="${msg.url}" controls></video></div>`;
-  } else {
-    content = `<div class="msg-bubble">${escapeHtml(msg.text || '')}</div>`;
-  }
-
-  wrap.innerHTML = `
-    ${!isOut ? `<div class="msg-sender">${msg.senderName || 'User'}</div>` : ''}
-    ${content}
-    <div class="msg-time">${formatTime(msg.createdAt)}</div>`;
-  area.appendChild(wrap);
-}
-
-function escapeHtml(t) {
-  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-}
-
-// Send message
-async function sendMessage(text, type, url, mediaType) {
-  if (!currentChatId || !currentUser) return;
-  try {
-    const chatRef = doc(db, 'chats', currentChatId);
-    const chatSnap = await getDoc(chatRef);
-    const userData = await getDoc(doc(db, 'users', currentUser.uid));
-    const uData = userData.data() || {};
-
-    const msgData = {
-      senderId: currentUser.uid,
-      senderName: uData.displayName || currentUser.displayName,
-      senderPhoto: uData.photoURL || currentUser.photoURL || '',
-      createdAt: serverTimestamp(),
-      type: type || 'text',
-      text: text || '',
-      url: url || '',
-    };
-    await addDoc(collection(db, 'chats', currentChatId, 'messages'), msgData);
-
-    const updateData = {
-      members: [currentUser.uid, currentChatUser.uid],
-      updatedAt: serverTimestamp(),
-      lastSenderId: currentUser.uid,
-      unread: (chatSnap.exists() && chatSnap.data().lastSenderId !== currentUser.uid) ? 0 : (chatSnap.exists() ? (chatSnap.data().unread || 0) + 1 : 1),
-    };
-    if (type === 'text') updateData.lastMessage = text;
-    else updateData.lastMedia = url;
-    if (!chatSnap.exists()) updateData.createdAt = serverTimestamp();
-
-    await setDoc(chatRef, updateData, { merge: true });
-  } catch(e) { showToast('Gagal kirim: ' + e.message); }
-}
-
-document.getElementById('send-btn').addEventListener('click', async () => {
-  const input = document.getElementById('chat-input');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
-  input.style.height = 'auto';
-  await sendMessage(text, 'text');
-});
-
-document.getElementById('chat-input').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    document.getElementById('send-btn').click();
-  }
-});
-
-document.getElementById('chat-input').addEventListener('input', function() {
-  this.style.height = 'auto';
-  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-});
-
-// Attach file
-document.getElementById('attach-btn').addEventListener('click', () => document.getElementById('chat-file-input').click());
-document.getElementById('chat-file-input').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  showToast('Mengunggah file...');
-  try {
-    const sRef = storageRef(storage, `chat_media/${currentChatId}/${Date.now()}_${file.name}`);
-    await uploadBytes(sRef, file);
-    const url = await getDownloadURL(sRef);
-    const type = file.type.startsWith('video') ? 'video' : 'image';
-    await sendMessage('', type, url);
-    showToast('File terkirim!');
-  } catch(e) { showToast('Gagal upload: ' + e.message); }
-  e.target.value = '';
-});
-
-document.getElementById('close-chat-btn').addEventListener('click', () => {
-  document.getElementById('chat-window').classList.remove('open');
-  if (messagesUnsub) { messagesUnsub(); messagesUnsub = null; }
-  currentChatId = null;
-  currentChatUser = null;
-});
-
-// FAB - new chat (show all users)
-document.getElementById('new-chat-fab').addEventListener('click', async () => {
-  const snap = await getDocs(collection(db, 'users'));
-  const users = snap.docs.filter(d => d.id !== currentUser.uid && !d.data().banned).map(d => d.data());
-  if (!users.length) { showToast('Belum ada pengguna lain'); return; }
-  const modal = document.createElement('div');
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:flex;align-items:flex-end;';
-  let html = `<div style="background:var(--bg-card);border-radius:20px 20px 0 0;width:100%;max-height:70vh;overflow-y:auto;padding:16px">
-    <div style="font-size:16px;font-weight:800;color:var(--text-primary);margin-bottom:14px">Pilih Pengguna</div>`;
-  users.forEach(u => {
-    const av = u.photoURL ? `<img src="${u.photoURL}" style="width:44px;height:44px;border-radius:50%;object-fit:cover">` : `<div style="width:44px;height:44px;border-radius:50%;background:var(--blue-muted);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--blue-light)">${getInitials(u.displayName)}</div>`;
-    html += `<div class="chat-item" data-uid="${u.uid}" data-name="${u.displayName}" data-photo="${u.photoURL||''}" style="border-radius:12px;margin-bottom:4px">
-      ${av}
-      <div class="chat-info"><div class="chat-name">${u.displayName}</div><div class="chat-preview">${u.username||''}</div></div></div>`;
-  });
-  html += `<button onclick="this.closest('[style]').remove()" style="width:100%;background:var(--bg-input);border:none;color:var(--text-secondary);padding:13px;border-radius:12px;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;margin-top:8px">Batal</button></div>`;
-  modal.innerHTML = html;
-  modal.querySelectorAll('.chat-item').forEach(item => {
-    item.addEventListener('click', () => {
-      const uid = item.dataset.uid;
-      const uData = users.find(u => u.uid === uid);
-      modal.remove();
-      openChat(uid, uData, getChatId(currentUser.uid, uid));
-    });
-  });
-  document.body.appendChild(modal);
-});
-
-// ===== STORIES =====
-function loadStories() {
-  const list = document.getElementById('stories-list');
-  const q = query(collection(db, 'stories'), orderBy('createdAt', 'desc'));
-  onSnapshot(q, (snap) => {
-    const storyMap = {};
-    snap.docs.forEach(d => {
-      const data = d.data();
-      if (!storyMap[data.userId]) storyMap[data.userId] = { user: data, stories: [] };
-      storyMap[data.userId].stories.push({ id: d.id, ...data });
-    });
-    list.innerHTML = '';
-    Object.values(storyMap).forEach(({ user, stories }) => {
-      if (user.userId === currentUser.uid) return;
-      const div = document.createElement('div');
-      div.className = 'story-item';
-      const av = user.photoURL ? `<img src="${user.photoURL}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--bg-primary)">` : `<div class="story-avatar">${getInitials(user.displayName)}</div>`;
-      div.innerHTML = `<div class="story-ring"><div style="width:48px;height:48px;border-radius:50%;background:var(--bg-primary);display:flex;align-items:center;justify-content:center">${av}</div></div><div class="story-info"><div class="story-name">${user.displayName||'User'}</div><div class="story-time">${formatTime(stories[0]?.createdAt)}</div></div>`;
-      div.addEventListener('click', () => showStoryViewer(stories, user));
-      list.appendChild(div);
-    });
-  });
-}
-
-document.getElementById('add-story-btn').addEventListener('click', () => document.getElementById('story-file-input').click());
-document.getElementById('story-file-input').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file || !currentUser) return;
-  showToast('Mengunggah story...');
-  try {
-    const sRef = storageRef(storage, `stories/${currentUser.uid}/${Date.now()}_${file.name}`);
-    await uploadBytes(sRef, file);
-    const url = await getDownloadURL(sRef);
-    const uSnap = await getDoc(doc(db, 'users', currentUser.uid));
-    const uData = uSnap.data() || {};
-    await addDoc(collection(db, 'stories'), {
-      userId: currentUser.uid,
-      displayName: uData.displayName || currentUser.displayName,
-      photoURL: uData.photoURL || currentUser.photoURL || '',
-      type: file.type.startsWith('video') ? 'video' : 'image',
-      url,
-      createdAt: serverTimestamp(),
-    });
-    showToast('Story berhasil ditambahkan!');
-  } catch(e) { showToast('Gagal upload: ' + e.message); }
-  e.target.value = '';
-});
-
-let storyTimer = null;
-function showStoryViewer(stories, user) {
-  let idx = 0;
-  const viewer = document.getElementById('story-viewer');
-  const progressEl = document.getElementById('story-progress');
-  const contentEl = document.getElementById('story-content');
-  const headerEl = document.getElementById('story-header-info');
-
-  function showStory(i) {
-    if (storyTimer) clearTimeout(storyTimer);
-    const s = stories[i];
-    progressEl.innerHTML = stories.map((_, j) =>
-      `<div class="story-bar"><div class="story-bar-fill" id="sbar-${j}" style="width:${j<i?'100%':'0'}"></div></div>`
-    ).join('');
-    headerEl.innerHTML = `<div style="width:40px;height:40px;border-radius:50%;background:var(--blue-muted);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--blue-light);overflow:hidden">${user.photoURL?`<img src="${user.photoURL}" style="width:100%;height:100%;object-fit:cover">`:getInitials(user.displayName)}</div><div><div style="font-size:14px;font-weight:700;color:#fff">${user.displayName||'User'}</div><div style="font-size:11px;color:rgba(255,255,255,0.6)">${formatTime(s.createdAt)}</div></div>`;
-    contentEl.innerHTML = s.type === 'video'
-      ? `<video src="${s.url}" autoplay style="max-width:100%;max-height:80vh;border-radius:8px"></video>`
-      : `<img src="${s.url}" style="max-width:100%;max-height:80vh;border-radius:8px;object-fit:contain">`;
-    const bar = document.getElementById(`sbar-${i}`);
-    if (bar) { bar.style.transition = 'width 5s linear'; setTimeout(() => bar.style.width = '100%', 50); }
-    storyTimer = setTimeout(() => {
-      if (i + 1 < stories.length) showStory(i + 1);
-      else { viewer.classList.remove('open'); if (storyTimer) clearTimeout(storyTimer); }
-    }, 5000);
-  }
-
-  showStory(0);
-  viewer.classList.add('open');
-}
-
-document.getElementById('story-close-btn').addEventListener('click', () => {
-  document.getElementById('story-viewer').classList.remove('open');
-  if (storyTimer) clearTimeout(storyTimer);
-});
-
-// ===== COMMUNITY =====
-function loadCommunity() {
-  const list = document.getElementById('community-list');
-  const communities = [
-    { name: 'iChat Official', desc: 'Komunitas resmi pengguna iChat', members: 1240, icon: '' },
-    { name: 'Tech & Dev', desc: 'Diskusi seputar teknologi dan pengembangan', members: 892, icon: '' },
-    { name: 'Desainer Kreatif', desc: 'Berbagi inspirasi desain dan kreativitas', members: 567, icon: '' },
-    { name: 'Gaming Indo', desc: 'Komunitas gamer Indonesia', members: 2100, icon: '' },
-    { name: 'Startup Hub', desc: 'Ekosistem startup & kewirausahaan', members: 445, icon: '' },
-  ];
-  const joined = JSON.parse(localStorage.getItem('ichat_joined') || '[]');
-  list.innerHTML = communities.map((c, i) => `
-    <div class="community-item">
-      <div class="community-icon" style="background:var(--blue-muted)">
-        <svg width="28" height="28" fill="none" stroke="var(--blue-light)" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        ${!u ? '<p class="hint">Masuk dengan Google agar permainan Anda dihitung dan untuk menyimpan favorit.</p>' : ""}
       </div>
-      <div style="flex:1;min-width:0">
-        <div class="community-name">${c.name}</div>
-        <div class="community-desc">${c.desc}</div>
-        <div class="community-members">${c.members.toLocaleString('id-ID')} anggota</div>
-      </div>
-      <button class="join-btn ${joined.includes(i)?'joined':''}" data-idx="${i}" onclick="toggleJoin(${i},this)">${joined.includes(i)?'Bergabung':'Gabung'}</button>
-    </div>`
-  ).join('');
+    </div>
+  </section>`;
 }
 
-window.toggleJoin = (idx, btn) => {
-  const joined = JSON.parse(localStorage.getItem('ichat_joined') || '[]');
-  if (joined.includes(idx)) {
-    joined.splice(joined.indexOf(idx), 1);
-    btn.textContent = 'Gabung'; btn.classList.remove('joined');
-  } else {
-    joined.push(idx);
-    btn.textContent = 'Bergabung'; btn.classList.add('joined');
-    showToast('Berhasil bergabung!');
+/* ====================== Profil ====================== */
+function viewProfile() {
+  if (!state.authReady) return loadingBlock();
+  const u = state.user;
+  if (!u) return needLogin("Masuk untuk melihat profil Anda.");
+  const mine = Object.keys(state.mine).map(id => Object.assign({ id }, state.mine[id])).sort(newest);
+  const favs = Object.keys(state.favs).filter(id => state.games[id]).map(id => Object.assign({ id }, state.games[id])).sort(newest);
+  const ini = esc((u.displayName || "?").trim().charAt(0).toUpperCase());
+  return `<section class="wrap">
+    <div class="profile">
+      <div class="avatar">${u.photoURL ? `<img src="${esc(u.photoURL)}" alt="" referrerpolicy="no-referrer">` : ini}</div>
+      <div><h1>${esc(u.displayName || "Pengguna")}</h1><p class="muted">${esc(u.email || "")}</p></div>
+      <span class="grow"></span>
+      <button class="btn" data-act="logout">Keluar</button>
+    </div>
+    <section class="sec"><div class="sec-head"><h2>Game saya (${fmtNum(mine.length)})</h2><a class="btn primary sm" href="#/upload">Unggah game</a></div>
+      ${!state.loaded.mine ? loadingBlock() : mine.length ? gridHTML(mine, true) : '<div class="empty"><p>Anda belum mengunggah game.</p><a class="btn primary" href="#/upload">Unggah game pertama</a></div>'}
+    </section>
+    <section class="sec"><div class="sec-head"><h2>Favorit (${fmtNum(favs.length)})</h2></div>
+      ${favs.length ? gridHTML(favs) : '<div class="empty"><p>Belum ada favorit.</p></div>'}
+    </section>
+  </section>`;
+}
+
+/* ====================== Form unggah / edit ====================== */
+function viewForm() {
+  if (!state.authReady) return loadingBlock();
+  if (!state.user) return needLogin("Masuk dengan Google untuk mengunggah game.");
+  const editing = route.name === "edit";
+  let g = null;
+  if (editing) {
+    if (!state.loaded.mine) return loadingBlock();
+    g = state.mine[route.id];
+    if (!g) return notFound("Game tidak ditemukan atau bukan milik Anda.");
   }
-  localStorage.setItem('ichat_joined', JSON.stringify(joined));
-};
+  if (!state.loaded.cats) return loadingBlock();
+  const cats = Object.keys(state.cats).map(id => ({ id, name: state.cats[id].name || "" })).sort((a, b) => a.name.localeCompare(b.name));
+  if (!cats.length) return `<section class="wrap narrow"><h1>Unggah game</h1><div class="empty" style="margin-top:20px"><p>Belum ada kategori. Admin perlu membuat kategori terlebih dahulu sebelum game dapat diunggah.</p></div></section>`;
+  const v = g || {};
+  return `<section class="wrap narrow">
+    <a class="back" href="${editing ? "#/profile" : "#/"}">Kembali</a>
+    <h1>${editing ? "Edit game" : "Unggah game"}</h1>
+    <p class="muted" style="margin-top:6px">Setiap game ditinjau admin sebelum tampil untuk pengguna lain.${editing ? " Menyimpan perubahan mengirim ulang game untuk ditinjau." : ""}</p>
+    <form id="gform" class="form" novalidate>
+      <label>Nama game<input type="text" name="gtitle" maxlength="${LIMIT.titleMax}" required value="${esc(v.title || "")}"></label>
+      <label>Deskripsi<textarea name="gdesc" maxlength="${LIMIT.desc}" rows="4">${esc(v.description || "")}</textarea><small id="gdesc-c">0/${LIMIT.desc}</small></label>
+      <label>Kategori<select name="gcat" required><option value="">Pilih kategori</option>${cats.map(c => `<option value="${esc(c.id)}" ${v.category === c.id ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select></label>
+      <label>${editing ? "Ganti file game (opsional)" : "File game (.html)"}<input type="file" name="gfile" accept=".html,.htm,text/html"><small>Satu file HTML mandiri, maksimal ${Math.round(LIMIT.html / 1000)} KB. Letakkan CSS, JavaScript, dan gambar di dalam file itu sendiri.</small></label>
+      <label>Gambar sampul (opsional)<input type="file" name="gcover" accept="image/png,image/jpeg,image/webp,image/gif"><small>Akan dikecilkan otomatis agar di bawah ${Math.round(LIMIT.cover / 1000)} KB.</small></label>
+      <div class="cover-prev" id="cover-prev" ${v.cover ? "" : "hidden"}>${v.cover ? `<img src="${esc(v.cover)}" alt="Sampul saat ini">` : ""}</div>
+      ${editing && v.cover ? '<label class="check"><input type="checkbox" name="rmcover"> Hapus sampul saat ini</label>' : ""}
+      <div class="actions"><button class="btn primary" type="submit" id="gsubmit">${editing ? "Simpan dan kirim ulang" : "Kirim untuk ditinjau"}</button><a class="btn" href="${editing ? "#/profile" : "#/"}">Batal</a></div>
+    </form>
+  </section>`;
+}
+function bindForm() {
+  const f = $("#gform");
+  if (!f) return;
+  const mark = () => { state.touched = true; };
+  f.addEventListener("input", mark);
+  f.addEventListener("change", mark);
+  const counter = () => { $("#gdesc-c").textContent = f.elements.gdesc.value.length + "/" + LIMIT.desc; };
+  f.elements.gdesc.addEventListener("input", counter);
+  counter();
+  f.elements.gcover.addEventListener("change", () => {
+    const file = f.elements.gcover.files[0];
+    const box = $("#cover-prev");
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    box.hidden = false;
+    box.innerHTML = '<img alt="Pratinjau sampul">';
+    const im = $("img", box);
+    im.onload = () => URL.revokeObjectURL(url);
+    im.src = url;
+  });
+  f.addEventListener("submit", e => { e.preventDefault(); submitForm(f); });
+}
 
-// ===== SETTINGS =====
-window.openSettings = () => { document.getElementById('settings-page').classList.add('open'); closeDropdown(); };
-window.closeSettings = () => document.getElementById('settings-page').classList.remove('open');
-window.setLang = (lang) => {
-  document.getElementById('lang-id').classList.toggle('active', lang === 'id');
-  document.getElementById('lang-en').classList.toggle('active', lang === 'en');
-  document.getElementById('lang-id').innerHTML = lang === 'id' ? '<svg width="10" height="10" fill="white" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" stroke="white" stroke-width="3" fill="none"/></svg>' : '';
-  document.getElementById('lang-en').innerHTML = lang === 'en' ? '<svg width="10" height="10" fill="white" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" stroke="white" stroke-width="3" fill="none"/></svg>' : '';
-  showToast(`Bahasa diubah ke ${lang === 'id' ? 'Indonesia' : 'English'}`);
-};
-
-// ===== ADMIN PANEL =====
-window.openAdmin = () => { document.getElementById('admin-panel').classList.add('open'); closeDropdown(); loadAdminUsers(); };
-window.closeAdmin = () => document.getElementById('admin-panel').classList.remove('open');
-
-async function loadAdminUsers() {
-  const listEl = document.getElementById('admin-users-list');
-  listEl.innerHTML = '<div class="loading-spinner"></div>';
-  const snap = await getDocs(collection(db, 'users'));
-  listEl.innerHTML = '';
-  snap.docs.forEach(d => {
-    const u = d.data();
-    if (u.uid === currentUser.uid) return;
-    const div = document.createElement('div');
-    div.className = 'user-row';
-    div.innerHTML = `
-      <div class="user-row-avatar">${u.photoURL ? `<img src="${u.photoURL}" style="width:36px;height:36px;border-radius:50%;object-fit:cover">` : getInitials(u.displayName)}</div>
-      <div class="user-row-info">
-        <div class="user-row-name">${u.displayName||'User'} ${u.banned?'<span class="banned-badge">BANNED</span>':''}</div>
-        <div class="user-row-email">${u.email||''}</div>
-      </div>
-      <button class="admin-btn ${u.banned?'':'red'}" style="font-size:11px;padding:6px 10px" onclick="toggleBan('${u.uid}',${u.banned})">${u.banned?'Unban':'Ban'}</button>`;
-    listEl.appendChild(div);
+function loadImg(file) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file);
+    const im = new Image();
+    im.onload = () => { URL.revokeObjectURL(url); res(im); };
+    im.onerror = () => { URL.revokeObjectURL(url); rej(new Error("Gambar sampul tidak dapat dibaca.")); };
+    im.src = url;
   });
 }
-
-window.toggleBan = async (uid, isBanned) => {
-  try {
-    await updateDoc(doc(db, 'users', uid), { banned: !isBanned });
-    showToast(isBanned ? 'User di-unban' : 'User di-ban');
-    loadAdminUsers();
-  } catch(e) { showToast('Gagal: ' + e.message); }
-};
-
-// Broadcast media
-let broadcastMediaFiles = [];
-document.getElementById('broadcast-file-input').addEventListener('change', async (e) => {
-  const files = Array.from(e.target.files);
-  const preview = document.getElementById('broadcast-preview');
-  for (const file of files) {
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      broadcastMediaFiles.push({ file, dataUrl: ev.target.result, type: file.type.startsWith('video') ? 'video' : 'image' });
-      const img = document.createElement('img');
-      img.src = ev.target.result;
-      img.className = 'media-preview-item';
-      preview.appendChild(img);
-    };
-    reader.readAsDataURL(file);
+async function makeCover(file) {
+  if (!/^image\/(png|jpeg|webp|gif)$/.test(file.type)) throw new Error("Sampul harus berupa PNG, JPG, WebP, atau GIF.");
+  if (file.size > 8 * 1024 * 1024) throw new Error("Gambar sampul terlalu besar (maksimal 8 MB sebelum dikecilkan).");
+  const im = await loadImg(file);
+  const steps = [[480, 0.78], [420, 0.68], [360, 0.6], [300, 0.5], [240, 0.45]];
+  for (const st of steps) {
+    const w = st[0], h = Math.round(w * 9 / 16);
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    const x = c.getContext("2d");
+    x.fillStyle = "#000"; x.fillRect(0, 0, w, h);
+    const s = Math.max(w / im.width, h / im.height);
+    const dw = im.width * s, dh = im.height * s;
+    x.drawImage(im, (w - dw) / 2, (h - dh) / 2, dw, dh);
+    const url = c.toDataURL("image/jpeg", st[1]);
+    if (url.length <= LIMIT.cover) return url;
   }
-  e.target.value = '';
-});
+  throw new Error("Sampul terlalu detail untuk dikecilkan di bawah " + Math.round(LIMIT.cover / 1000) + " KB. Coba gambar lain.");
+}
 
-document.getElementById('broadcast-send-btn').addEventListener('click', async () => {
-  const text = document.getElementById('broadcast-text').value.trim();
-  if (!text && broadcastMediaFiles.length === 0) { showToast('Pesan atau media kosong'); return; }
-  showToast('Mengirim broadcast...');
+async function submitForm(f) {
+  const u = state.user;
+  if (!u) { toast("Anda harus masuk terlebih dahulu.", "error"); return; }
+  const editing = route.name === "edit";
+  const id = editing ? route.id : null;
+  const el = f.elements;
+  const title = el.gtitle.value.trim();
+  const desc = el.gdesc.value.trim();
+  const cat = el.gcat.value;
+  const file = el.gfile.files[0];
+  const coverFile = el.gcover.files[0];
 
+  if (title.length < LIMIT.titleMin || title.length > LIMIT.titleMax) return toast("Nama game harus " + LIMIT.titleMin + " sampai " + LIMIT.titleMax + " karakter.", "error");
+  if (desc.length > LIMIT.desc) return toast("Deskripsi maksimal " + LIMIT.desc + " karakter.", "error");
+  if (!state.cats[cat]) return toast("Pilih kategori.", "error");
+  if (!editing && !file) return toast("Pilih file HTML game.", "error");
+
+  if (editing && state.mine[id] && state.mine[id].status === "approved") {
+    const ok = await confirmBox({ title: "Kirim ulang untuk ditinjau?", text: "Game akan disembunyikan dari publik sampai admin menyetujui perubahan Anda.", ok: "Simpan perubahan" });
+    if (!ok) return;
+  }
+
+  const btn = $("#gsubmit");
+  btn.disabled = true;
+  showLoader(true);
   try {
-    const snap = await getDocs(collection(db, 'users'));
-    const targets = snap.docs.filter(d => d.id !== currentUser.uid && !d.data().banned).map(d => d.data());
-    const uData = (await getDoc(doc(db, 'users', currentUser.uid))).data() || {};
-
-    for (const target of targets) {
-      const chatId = getChatId(currentUser.uid, target.uid);
-      const chatRef = doc(db, 'chats', chatId);
-      await setDoc(chatRef, { members: [currentUser.uid, target.uid], updatedAt: serverTimestamp(), lastSenderId: currentUser.uid, unread: 1 }, { merge: true });
-
-      if (text) {
-        await addDoc(collection(db, 'chats', chatId, 'messages'), {
-          senderId: currentUser.uid,
-          senderName: uData.displayName || 'Developer',
-          senderPhoto: uData.photoURL || '',
-          text,
-          type: 'text',
-          createdAt: serverTimestamp(),
-        });
-        await updateDoc(chatRef, { lastMessage: text });
-      }
-
-      for (const media of broadcastMediaFiles) {
-        const sRef = storageRef(storage, `broadcast_media/${Date.now()}_${media.file.name}`);
-        await uploadBytes(sRef, media.file);
-        const url = await getDownloadURL(sRef);
-        await addDoc(collection(db, 'chats', chatId, 'messages'), {
-          senderId: currentUser.uid,
-          senderName: uData.displayName || 'Developer',
-          senderPhoto: uData.photoURL || '',
-          text: '',
-          type: media.type,
-          url,
-          createdAt: serverTimestamp(),
-        });
-        await updateDoc(chatRef, { lastMedia: url });
-      }
+    let code = null, cover = null;
+    if (file) {
+      if (!/\.html?$/i.test(file.name)) throw new Error("File harus berformat .html atau .htm.");
+      if (file.size > LIMIT.html) throw new Error("Ukuran file " + Math.ceil(file.size / 1000) + " KB melebihi batas " + Math.round(LIMIT.html / 1000) + " KB. Kecilkan ukuran gambar atau aset di dalam game.");
+      code = await file.text();
+      if (code.length > LIMIT.html) throw new Error("Isi file melebihi batas " + Math.round(LIMIT.html / 1000) + " KB.");
+      if (!/<\s*(!doctype|html|head|body|script|canvas|div)/i.test(code)) throw new Error("Isi file tidak terlihat seperti dokumen HTML.");
     }
+    if (coverFile) cover = await makeCover(coverFile);
 
-    document.getElementById('broadcast-text').value = '';
-    document.getElementById('broadcast-preview').innerHTML = '';
-    broadcastMediaFiles = [];
-    showToast('Broadcast berhasil dikirim!');
-  } catch(e) { showToast('Gagal broadcast: ' + e.message); }
+    const up = {};
+    if (editing) {
+      const base = "games/" + id + "/";
+      up[base + "title"] = title;
+      up[base + "description"] = desc || null;
+      up[base + "category"] = cat;
+      up[base + "status"] = "pending";
+      up[base + "reviewNote"] = null;
+      up[base + "updatedAt"] = TS;
+      if (cover) up[base + "cover"] = cover;
+      else if (el.rmcover && el.rmcover.checked) up[base + "cover"] = null;
+      if (code) up["gameCode/" + id] = code;
+    } else {
+      const newId = db.ref("games").push().key;
+      const rec = { ownerId: u.uid, ownerName: (u.displayName || "Pengguna").slice(0, 100), title: title, category: cat, status: "pending", featured: false, createdAt: TS, updatedAt: TS };
+      if (desc) rec.description = desc;
+      if (cover) rec.cover = cover;
+      up["games/" + newId] = rec;
+      up["gameCode/" + newId] = code;
+    }
+    await db.ref().update(up);
+    toast(editing ? "Perubahan dikirim untuk ditinjau." : "Game dikirim. Admin akan meninjau sebelum dipublikasikan.", "ok");
+    location.hash = "#/profile";
+  } catch (e) {
+    toast(errMsg(e), "error");
+  } finally {
+    showLoader(false);
+    btn.disabled = false;
+  }
+}
+
+/* ====================== Aksi ====================== */
+async function toggleFav(id) {
+  if (!state.user) { toast("Masuk dengan Google untuk menyimpan favorit.", "error"); return; }
+  if (!ID_RE.test(id)) return;
+  const ref = db.ref("favorites/" + state.user.uid + "/" + id);
+  try {
+    if (state.favs[id]) await ref.remove(); else await ref.set(TS);
+  } catch (e) { toast(errMsg(e), "error"); }
+}
+
+async function deleteGame(id) {
+  if (!state.user || !ID_RE.test(id)) return;
+  const g = state.mine[id] || state.detail;
+  const ok = await confirmBox({ title: "Hapus game ini?", text: 'Game "' + ((g && g.title) || "") + '" akan dihapus permanen dari database. Tindakan ini tidak dapat dibatalkan.', ok: "Hapus permanen", danger: true });
+  if (!ok) return;
+  showLoader(true);
+  try {
+    const up = {};
+    up["games/" + id] = null;
+    up["gameCode/" + id] = null;
+    up["plays/" + id] = null;
+    up["favorites/" + state.user.uid + "/" + id] = null;
+    await db.ref().update(up);
+    toast("Game dihapus.", "ok");
+    if (route.name === "game") location.hash = "#/profile";
+  } catch (e) { toast(errMsg(e), "error"); }
+  finally { showLoader(false); }
+}
+
+async function share(id) {
+  const url = location.href.split("#")[0] + "#/game/" + id;
+  const title = state.detail && state.detail.title ? state.detail.title : "Caxa GameHub";
+  try {
+    if (navigator.share) { await navigator.share({ title: title, url: url }); return; }
+    await navigator.clipboard.writeText(url);
+    toast("Tautan disalin.", "ok");
+  } catch (e) {
+    if (e && e.name === "AbortError") return;
+    window.prompt("Salin tautan game ini:", url);
+  }
+}
+
+function countPlay(id, g) {
+  if (!state.user || !g || g.status !== "approved") return;
+  const key = "caxa_played_" + id;
+  try {
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+  } catch (_) { /* abaikan */ }
+  db.ref("plays/" + id).transaction(c => (c || 0) + 1).catch(() => {});
+}
+
+async function playGame(id) {
+  if (!ID_RE.test(id)) return;
+  const g = state.detail;
+  showLoader(true);
+  try {
+    const snap = await db.ref("gameCode/" + id).once("value");
+    const code = snap.val();
+    if (typeof code !== "string" || !code) throw new Error("Kode game tidak tersedia atau belum dipublikasikan.");
+    openPlayer((g && g.title) || "Game", code);
+    countPlay(id, g);
+  } catch (e) { toast(errMsg(e), "error"); }
+  finally { showLoader(false); }
+}
+
+function openPlayer(title, code) {
+  const w = document.createElement("div");
+  w.className = "player";
+  w.innerHTML = `<div class="pbar"><strong>${esc(title)}</strong>${document.fullscreenEnabled ? '<button class="btn sm" data-p="fs">Layar penuh</button>' : ""}<button class="btn primary sm" data-p="close">Tutup</button></div><iframe title="${esc(title)}" sandbox="allow-scripts allow-pointer-lock allow-modals" referrerpolicy="no-referrer" allow="fullscreen" allowfullscreen></iframe>`;
+  const close = () => {
+    document.removeEventListener("keydown", onKey);
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    w.remove();
+    document.body.style.overflow = "";
+  };
+  const onKey = e => { if (e.key === "Escape" && !document.fullscreenElement) close(); };
+  w.addEventListener("click", e => {
+    const b = e.target.closest("[data-p]");
+    if (!b) return;
+    if (b.dataset.p === "close") close();
+    else if (w.requestFullscreen) w.requestFullscreen().catch(() => {});
+  });
+  document.addEventListener("keydown", onKey);
+  document.body.style.overflow = "hidden";
+  document.body.appendChild(w);
+  // Tanpa "allow-same-origin": game berjalan di origin terpisah dan tidak bisa
+  // membaca halaman, cookie, localStorage, maupun sesi Firebase kita.
+  $("iframe", w).srcdoc = code;
+}
+
+/* ====================== Router ====================== */
+function parseHash() {
+  const p = location.hash.replace(/^#\/?/, "").split("/");
+  return { name: p[0] || "home", id: p[1] || null };
+}
+function onRoute() {
+  route = parseHash();
+  state.touched = false;
+  if (detailRef) { detailRef.off("value", detailCb); detailRef = null; }
+  state.detail = null; state.detailId = null;
+  if (route.name === "game") {
+    const rid = route.id;
+    if (!ID_RE.test(rid || "")) { state.detailId = "bad"; }
+    else {
+      detailCb = s => { if (route.id !== rid) return; state.detail = s.val(); state.detailId = rid; renderView(); };
+      detailRef = db.ref("games/" + rid);
+      detailRef.on("value", detailCb, e => { if (route.id !== rid) return; state.detail = null; state.detailId = rid; onDbErr(e); renderView(); });
+    }
+  }
+  const navKey = route.name === "edit" ? "upload" : route.name;
+  document.querySelectorAll("[data-nav]").forEach(a => a.classList.toggle("on", a.dataset.nav === navKey));
+  window.scrollTo(0, 0);
+  renderView();
+}
+function renderView() {
+  const v = $("#view");
+  switch (route.name) {
+    case "home": v.innerHTML = viewHome(); break;
+    case "game": v.innerHTML = viewGame(); break;
+    case "favorites": v.innerHTML = viewFavorites(); break;
+    case "profile": v.innerHTML = viewProfile(); break;
+    case "upload": case "edit": v.innerHTML = viewForm(); bindForm(); break;
+    default: v.innerHTML = notFound("Halaman tidak ada.");
+  }
+}
+// Data realtime memanggil refresh(); form yang sedang diisi tidak ditimpa.
+function refresh() {
+  if ((route.name === "upload" || route.name === "edit") && state.touched) return;
+  renderView();
+}
+
+/* ====================== Event ====================== */
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-act]");
+  if (!el) return;
+  const a = el.dataset.act, id = el.dataset.id;
+  if (a === "login") login();
+  else if (a === "logout") logout();
+  else if (a === "fav") toggleFav(id);
+  else if (a === "play") playGame(id);
+  else if (a === "share") share(id);
+  else if (a === "delete") deleteGame(id);
+  else if (a === "cat") { state.cat = id || ""; renderView(); }
+});
+document.addEventListener("change", e => {
+  if (e.target.id === "sort") { state.sort = e.target.value; renderView(); }
+});
+let qTimer = null;
+$("#q").addEventListener("input", e => {
+  clearTimeout(qTimer);
+  const val = e.target.value;
+  qTimer = setTimeout(() => {
+    state.query = val;
+    if (route.name !== "home") location.hash = "#/"; else renderView();
+  }, 150);
+});
+window.addEventListener("hashchange", onRoute);
+
+/* ====================== Mulai ====================== */
+let offTimer = null;
+db.ref(".info/connected").on("value", s => {
+  clearTimeout(offTimer);
+  if (s.val() === true) $("#offline").hidden = true;
+  else offTimer = setTimeout(() => { $("#offline").hidden = false; }, 4000);
+});
+db.ref("categories").on("value", s => { state.cats = s.val() || {}; state.loaded.cats = true; refresh(); }, e => { state.loaded.cats = true; onDbErr(e); });
+db.ref("games").orderByChild("status").equalTo("approved").on("value", s => {
+  state.games = s.val() || {}; state.loaded.games = true; state.loadError = ""; refresh();
+}, e => { state.loaded.games = true; state.loadError = errMsg(e); onDbErr(e); refresh(); });
+db.ref("plays").on("value", s => { state.plays = s.val() || {}; refresh(); }, onDbErr);
+
+auth.getRedirectResult().catch(e => toast(errMsg(e), "error"));
+auth.onAuthStateChanged(async u => {
+  detachUserListeners();
+  state.user = u;
+  state.authReady = true;
+  renderAuth();
+  if (u) { await ensureUserRecord(u); attachUserListeners(u); }
+  refresh();
 });
 
-// ===== DROPDOWN =====
-const menuBtn = document.getElementById('menu-btn');
-const dropdown = document.getElementById('main-dropdown');
-menuBtn.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('open'); });
-document.addEventListener('click', () => dropdown.classList.remove('open'));
-function closeDropdown() { dropdown.classList.remove('open'); }
-
-document.getElementById('settings-btn').addEventListener('click', () => openSettings());
-document.getElementById('admin-btn').addEventListener('click', () => openAdmin());
-document.getElementById('logout-btn').addEventListener('click', () => doLogout());
-
-// ===== PAGE SWITCH =====
-window.switchPage = (pageId, btn) => {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(pageId).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-};
-
-// ===== IMAGE VIEWER =====
-window.viewImage = (url) => {
-  document.getElementById('viewer-img').src = url;
-  document.getElementById('image-viewer').classList.add('open');
-};
-document.getElementById('close-viewer').addEventListener('click', () => {
-  document.getElementById('image-viewer').classList.remove('open');
-});
-document.getElementById('image-viewer').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('image-viewer')) {
-    document.getElementById('image-viewer').cla
+onRoute();
+})();
+</script>
+</body>
+</html>
