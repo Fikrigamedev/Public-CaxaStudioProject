@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VTD - Virtual TikTok Downloader</title>
+    <title>Cdoti - Virtual TikTok Downloader</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -183,20 +183,18 @@
         .nav-logo .logo-v { color: var(--logo-v); transition: color 0.4s ease; }
         .nav-logo .logo-td { color: var(--logo-td); transition: color 0.4s ease; }
 
-        /* ===== DOWNLOADER PILL BUTTON ===== */
+        /* ===== DOWNLOADER PILL BUTTON (liquid glass) ===== */
         .downloader-btn {
             display: flex; align-items: center; gap: 6px;
             padding: 9px 14px;
-            background: rgba(var(--accent-rgb),0.14);
-            border: 1px solid rgba(var(--accent-rgb),0.35);
             border-radius: var(--radius-pill);
             color: var(--accent);
             font-size: 11.5px; font-weight: 700; letter-spacing: 0.6px;
             cursor: pointer; transition: all 0.2s ease;
             white-space: nowrap;
         }
-        .downloader-btn:hover { background: rgba(var(--accent-rgb),0.26); }
-        .downloader-btn svg { width: 15px; height: 15px; fill: currentColor; flex-shrink: 0; }
+        .downloader-btn svg { width: 15px; height: 15px; fill: currentColor; flex-shrink: 0; position: relative; z-index: 1; }
+        .downloader-btn span { position: relative; z-index: 1; }
         .nav-right-group { display: flex; align-items: center; gap: 8px; }
 
         /* ===== DOWNLOADER TYPE MODAL ===== */
@@ -224,17 +222,16 @@
         .downloader-modal-item:hover { background: rgba(var(--accent-rgb),0.12); }
         .downloader-modal-item svg { width: 20px; height: 20px; fill: var(--accent); flex-shrink: 0; }
 
-        /* ===== FLOATING '+' POST BUTTON ===== */
+        /* ===== FLOATING '+' POST BUTTON (liquid glass) ===== */
         .fab-post-btn {
             position: fixed; right: 18px; bottom: 22px; z-index: 3000;
             width: 52px; height: 52px; border-radius: var(--radius-md);
-            background: var(--accent); border: none; cursor: pointer;
+            cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: var(--shadow-md);
             transition: all 0.2s ease;
         }
-        .fab-post-btn:hover { background: var(--accent-alt); transform: translateY(-2px); }
-        .fab-post-btn svg { width: 26px; height: 26px; fill: #fff; }
+        .fab-post-btn:hover { transform: translateY(-2px); }
+        .fab-post-btn svg { width: 26px; height: 26px; fill: var(--accent); position: relative; z-index: 1; }
 
         /* ===== FEED (Home) ===== */
         .feed-post {
@@ -283,19 +280,18 @@
         }
         .feed-comment-send-btn svg { width: 15px; height: 15px; fill: #fff; }
 
-        /* ===== HAMBURGER BUTTON ===== */
+        /* ===== HAMBURGER BUTTON (liquid glass) ===== */
         .hamburger-btn {
             width: 42px; height: 42px;
-            background: transparent; border: 1px solid transparent;
             border-radius: 12px; cursor: pointer;
             display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
             transition: all 0.2s ease; padding: 0; position: relative;
         }
-        .hamburger-btn:hover { background: rgba(var(--accent-rgb),0.12); border-color: rgba(var(--accent-rgb),0.3); }
         .hamburger-btn span {
             display: block; width: 20px; height: 2px;
             background: var(--text-secondary); border-radius: 2px;
             transition: all 0.3s ease;
+            position: relative; z-index: 1;
         }
         .hamburger-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
         .hamburger-btn.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
@@ -395,6 +391,75 @@
             transition: color 0.2s; white-space: nowrap;
         }
         .nav-icon-btn:hover .nav-icon-label, .nav-icon-btn.active .nav-icon-label { color: var(--accent); }
+
+        /* ===== LIQUID GLASS EFFECT ===== */
+        /* Shared frosted-glass look used on: Downloader button, hamburger menu button,
+           the '+' post button, and the link-input box on the downloader page. */
+        .liquid-glass {
+            position: relative;
+            background: linear-gradient(135deg, rgba(var(--accent-rgb),0.22), rgba(var(--accent-rgb),0.08) 60%, rgba(255,255,255,0.05));
+            backdrop-filter: blur(14px) saturate(160%);
+            -webkit-backdrop-filter: blur(14px) saturate(160%);
+            border: 1px solid rgba(255,255,255,0.22);
+            box-shadow:
+                inset 0 1px 1px rgba(255,255,255,0.35),
+                inset 0 -6px 10px rgba(var(--accent-rgb),0.12),
+                0 6px 18px rgba(3,8,20,0.35);
+            overflow: hidden;
+        }
+        .liquid-glass::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(120deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.03) 35%, rgba(255,255,255,0) 60%);
+            pointer-events: none;
+        }
+        .liquid-glass::after {
+            content: '';
+            position: absolute; left: 6%; right: 6%; top: 6%; height: 34%;
+            border-radius: inherit;
+            background: linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0));
+            filter: blur(2px);
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        .liquid-glass:hover {
+            background: linear-gradient(135deg, rgba(var(--accent-rgb),0.30), rgba(var(--accent-rgb),0.12) 60%, rgba(255,255,255,0.07));
+            border-color: rgba(255,255,255,0.32);
+        }
+        .liquid-glass:active { transform: translateY(1px) scale(0.985); }
+
+        .glass-surface {
+            background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(var(--accent-rgb),0.07) 70%);
+            backdrop-filter: blur(16px) saturate(160%);
+            -webkit-backdrop-filter: blur(16px) saturate(160%);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 14px;
+            box-shadow:
+                inset 0 1px 1px rgba(255,255,255,0.3),
+                inset 0 -8px 14px rgba(var(--accent-rgb),0.08),
+                0 8px 22px rgba(3,8,20,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .glass-surface::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(120deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0) 65%);
+            pointer-events: none;
+        }
+        .glass-input {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            position: relative;
+            z-index: 1;
+        }
+        .glass-input:focus { background: rgba(255,255,255,0.04) !important; }
+
+        .downloader-page-label {
+            font-size: 15px; font-weight: 700; color: var(--text-primary);
+            text-align: center; margin-bottom: 16px; letter-spacing: 0.2px;
+        }
 
         /* ===== INPUT WITH PASTE BUTTON ===== */
         .input-with-paste { position: relative; display: flex; align-items: center; }
@@ -723,28 +788,7 @@
 
         .subtitle { text-align: center; color: var(--text-secondary); font-size: 12px; margin-bottom: 24px; letter-spacing: 0.5px; }
 
-        /* ===== TYPE SELECTOR ===== */
-        .type-selector { display: flex; gap: 8px; margin-bottom: 16px; }
-        .type-btn {
-            flex: 1; padding: 11px 6px;
-            background: var(--input-bg);
-            border: 1px solid var(--input-border);
-            border-radius: 12px;
-            color: var(--text-secondary);
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            font-weight: 500;
-            text-align: center;
-        }
-        .type-btn:hover { background: rgba(var(--accent-rgb),0.07); }
-        .type-btn.active {
-            background: var(--accent);
-            border-color: transparent;
-            color: #fff;
-            transform: scale(1.02);
-            box-shadow: 0 3px 12px rgba(var(--accent-rgb),0.35);
-        }
+
 
         /* ===== RESOLUTION ===== */
         .res-label { font-size: 11px; color: var(--text-tertiary); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
@@ -1011,6 +1055,8 @@
             .result-thumbnail { width:62px; height:62px; }
             .image-gallery { grid-template-columns:repeat(auto-fill,minmax(108px,1fr)); }
             .mc-toast { width:calc(100vw - 24px); left:12px; }
+            .downloader-btn { padding:8px 10px; font-size:10px; letter-spacing:0.3px; }
+            .nav-logo { font-size:17px; }
         }
     </style>
 </head>
@@ -1018,7 +1064,7 @@
 <!-- ===== LOGIN OVERLAY ===== -->
 <div class="login-overlay" id="login-overlay">
     <div class="login-card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:36px 28px 32px;max-width:380px;width:100%;">
-        <div class="login-logo" style="font-size:56px;font-weight:900;letter-spacing:2px;margin-bottom:6px;"><span class="logo-v">V</span><span class="logo-td">TD</span></div>
+        <div class="login-logo" style="font-size:56px;font-weight:900;letter-spacing:2px;margin-bottom:6px;"><span class="logo-v">C</span><span class="logo-td">doti</span></div>
         <p style="font-size:12px;color:var(--text-secondary);margin-bottom:24px;letter-spacing:0.3px;">Virtual TikTok Downloader</p>
 
         <!-- Tab Switch -->
@@ -1047,7 +1093,7 @@
         <!-- Tab: Daftar (buat akun baru) -->
         <div id="login-tab-daftar" style="width:100%;max-width:300px;display:none;flex-direction:column;align-items:center;gap:0;">
             <div style="background:rgba(var(--accent-rgb),0.08);border:1px solid rgba(var(--accent-rgb),0.2);border-radius:12px;padding:14px;width:100%;margin-bottom:14px;">
-                <p style="font-size:12px;color:var(--text-secondary);text-align:center;line-height:1.7;margin:0;"><strong>Cara Daftar:</strong><br>Klik tombol di bawah lalu pilih akun Google kamu. Akun VTD akan otomatis dibuat.</p>
+                <p style="font-size:12px;color:var(--text-secondary);text-align:center;line-height:1.7;margin:0;"><strong>Cara Daftar:</strong><br>Klik tombol di bawah lalu pilih akun Google kamu. Akun Cdoti akan otomatis dibuat.</p>
             </div>
             <button class="google-login-btn" onclick="loginWithGoogle('daftar')" id="google-daftar-btn" style="width:100%;margin-bottom:12px;">
                 <svg viewBox="0 0 48 48" style="width:20px;height:20px;flex-shrink:0;">
@@ -1081,7 +1127,7 @@
 <!-- ===== MINECRAFT ACHIEVEMENT TOAST ===== -->
 <div class="mc-toast" id="mc-toast">
     <div class="mc-toast-header" id="mc-toast-header">
-        <span id="mc-toast-header-text">Notifikasi VTD</span>
+        <span id="mc-toast-header-text">Notifikasi Cdoti</span>
         <div class="mc-toast-close" onclick="dismissMcToast()">
             <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </div>
@@ -1102,15 +1148,15 @@
 <!-- ===== NAVBAR ===== -->
 <nav class="nav-bar" id="nav-bar">
     <div class="nav-logo">
-        <span class="logo-v">V</span><span class="logo-td">TD</span>
+        <span class="logo-v">C</span><span class="logo-td">doti</span>
     </div>
     <div class="nav-right-group">
-        <button class="downloader-btn" id="downloader-nav-btn" onclick="toggleDownloaderModal()" title="Downloader">
+        <button class="downloader-btn liquid-glass" id="downloader-nav-btn" onclick="toggleDownloaderModal()" title="Downloader">
             <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
             <span>DOWNLOADER</span>
         </button>
         <!-- Hamburger menu button -->
-        <button class="hamburger-btn" id="hamburger-btn" onclick="toggleHamburgerMenu()" title="Menu">
+        <button class="hamburger-btn liquid-glass" id="hamburger-btn" onclick="toggleHamburgerMenu()" title="Menu">
             <span></span><span></span><span></span>
         </button>
     </div>
@@ -1194,7 +1240,7 @@
 </div>
 
 <!-- ===== FLOATING '+' POST BUTTON ===== -->
-<button class="fab-post-btn" id="fab-post-btn" onclick="openPostComposer()" title="Buat Postingan">
+<button class="fab-post-btn liquid-glass" id="fab-post-btn" onclick="openPostComposer()" title="Buat Postingan">
     <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
 </button>
 
@@ -1215,16 +1261,10 @@
 <div class="page" id="page-downloader">
     <div style="display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 70px);">
     <div class="container">
-        <h1><span class="h1-v">V</span><span class="h1-td">TD</span></h1>
+        <h1><span class="h1-v">C</span><span class="h1-td">doti</span></h1>
         <p class="subtitle">Virtual TikTok Downloader</p>
 
-        <div class="type-selector">
-            <button class="type-btn active" onclick="selectType('video',this)">Video</button>
-            <button class="type-btn" onclick="selectType('audio',this)">Audio</button>
-            <button class="type-btn" onclick="selectType('slide',this)">Slide</button>
-            <button class="type-btn" onclick="selectType('stories',this)">Stories</button>
-            <button class="type-btn" onclick="selectType('profile',this)">Profil</button>
-        </div>
+        <div class="downloader-page-label" id="downloader-page-title">Downloader Video</div>
 
         <!-- Video / Audio / Slide -->
         <div id="section-video-audio">
@@ -1237,9 +1277,9 @@
                 </div>
             </div>
             <div class="input-group">
-                <label>Masukkan Link TikTok</label>
-                <div class="input-with-paste">
-                    <input type="text" id="tt-url" placeholder="Masukkan Link Disini">
+                <label id="tt-url-label">Masukkan Link TikTok</label>
+                <div class="input-with-paste glass-surface">
+                    <input type="text" id="tt-url" class="glass-input" placeholder="Masukkan Link Disini">
                     <button class="paste-btn" id="paste-btn-tt" onclick="togglePasteBtn('tt-url','paste-btn-tt')">
                         <svg viewBox="0 0 24 24"><path d="M19 2h-4.18C14.4.84 13.3 0 12 0c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/></svg>
                         <span>Paste</span>
@@ -1256,8 +1296,8 @@
         <div id="section-profile" style="display:none;">
             <div class="input-group">
                 <label>Link Profil TikTok</label>
-                <div class="input-with-paste">
-                    <input type="text" id="profile-url" placeholder="https://www.tiktok.com/@username">
+                <div class="input-with-paste glass-surface">
+                    <input type="text" id="profile-url" class="glass-input" placeholder="https://www.tiktok.com/@username">
                     <button class="paste-btn" id="paste-btn-profile" onclick="togglePasteBtn('profile-url','paste-btn-profile')">
                         <svg viewBox="0 0 24 24"><path d="M19 2h-4.18C14.4.84 13.3 0 12 0c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/></svg>
                         <span>Paste</span>
@@ -1402,7 +1442,7 @@
         <div class="divider"></div>
         <div class="setting-group">
             <label class="setting-label">Dukung Developer</label>
-            <p class="setting-description">Bantu pengembangan VTD dengan donasi</p>
+            <p class="setting-description">Bantu pengembangan Cdoti dengan donasi</p>
             <button class="download-btn" onclick="openDonationModal()" style="background:#ff1744;display:flex;align-items:center;justify-content:center;gap:8px;">
                 <svg style="width:17px;height:17px;fill:currentColor;" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                 Donasi Sekarang
@@ -1416,7 +1456,7 @@
                 <!-- Redeem Code -->
                 <div class="admin-section">
                     <div class="admin-section-title"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>Tambah Kode Redeem</div>
-                    <div class="input-group"><input type="text" id="new-code" placeholder="Kode unik (misal: VTD2025)"></div>
+                    <div class="input-group"><input type="text" id="new-code" placeholder="Kode unik (misal: CDOTI2025)"></div>
                     <div class="input-group"><input type="text" id="gift-name" placeholder="Nama hadiah"></div>
                     <div class="input-group"><input type="text" id="dana-link" placeholder="Link Hadiah (https://...)"></div>
                     <div class="input-group"><label style="margin-bottom:7px;font-size:12px;color:var(--text-secondary);">Tanggal Kadaluarsa (Opsional)</label><input type="datetime-local" id="expiry-date"></div>
@@ -1487,7 +1527,7 @@
         <div class="page-back-btn" id="chat-back-btn" onclick="chatBackBtn()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div>
         <div>
             <div class="page-header-title" id="chat-page-title">Chat</div>
-            <div class="page-header-sub" id="chat-page-sub">VTD Messaging</div>
+            <div class="page-header-sub" id="chat-page-sub">Cdoti Messaging</div>
         </div>
     </div>
     <div class="page-card" style="padding:18px;">
@@ -1516,7 +1556,7 @@
                 <div class="dev-inbox-avatar" style="width:38px;height:38px;border-radius:50%;background:rgba(var(--accent-rgb),0.2);border:1px solid rgba(var(--accent-rgb),0.3);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--accent);flex-shrink:0;margin-right:4px;">D</div>
                 <div>
                     <div class="dev-thread-name">Developer</div>
-                    <div class="dev-thread-uid">VTD Support</div>
+                    <div class="dev-thread-uid">Cdoti Support</div>
                 </div>
             </div>
             <div class="chat-messages" id="chat-messages-user">
@@ -1614,7 +1654,7 @@
 
         <!-- Username + Developer Badge -->
         <div style="display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;margin-bottom:4px;">
-            <div class="profile-username-display" id="profile-page-username" style="margin-bottom:0;">Pengguna VTD</div>
+            <div class="profile-username-display" id="profile-page-username" style="margin-bottom:0;">Pengguna Cdoti</div>
             <div id="profile-dev-badge" style="display:none;background:#1565c0;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:0.5px;white-space:nowrap;">Developer</div>
         </div>
 
@@ -1660,7 +1700,7 @@
         <!-- Search User -->
         <div class="setting-group" style="margin-top:4px;">
             <label class="setting-label">Cari Pengguna</label>
-            <p class="setting-description">Cari pengguna VTD menggunakan ID atau username</p>
+            <p class="setting-description">Cari pengguna Cdoti menggunakan ID atau username</p>
             <div class="profile-edit-row">
                 <input type="text" id="search-user-input" placeholder="Masukkan ID atau @username" class="profile-edit-input">
                 <button class="profile-save-btn" onclick="searchUser()" style="background:rgba(var(--accent-rgb),0.18);color:var(--accent);border:1px solid rgba(var(--accent-rgb),0.35);">Cari</button>
@@ -1738,7 +1778,7 @@
             <div class="modal-title">Donasi untuk Developer</div>
             <div class="close-btn" onclick="closeDonationModal()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></div>
         </div>
-        <p class="setting-description">Dukung pengembangan VTD dengan donasi via DANA:</p>
+        <p class="setting-description">Dukung pengembangan Cdoti dengan donasi via DANA:</p>
         <div class="donation-grid">
             <div class="donation-option" onclick="donate(2000,'https://link.dana.id/minta?full_url=https://qr.dana.id/v1/281012092026021589320330')"><div class="donation-amount">Rp 2K</div><div class="donation-label">Donasi Kecil</div></div>
             <div class="donation-option" onclick="donate(5000,'https://link.dana.id/minta?full_url=https://qr.dana.id/v1/281012092026021589075547')"><div class="donation-amount">Rp 5K</div><div class="donation-label">Dukungan Ringan</div></div>
@@ -1833,7 +1873,7 @@ function _renderMcToast(title, message, type, duration) {
     const iconEl   = document.getElementById('mc-toast-icon-svg');
     const barFill  = document.getElementById('mc-toast-bar-fill');
 
-    headerEl.textContent = HEADER_LABELS[type] || 'VTD';
+    headerEl.textContent = HEADER_LABELS[type] || 'Cdoti';
     titleEl.textContent  = title;
     msgEl.textContent    = message;
     iconEl.innerHTML     = `<path d="${ICON_PATHS[type] || ICON_PATHS.info}"/>`;
@@ -2159,16 +2199,27 @@ function navigateTo(pageId) {
 // ===== TYPE SELECTOR =====
 function selectType(type, element) {
     currentType = type;
-    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
-    element.classList.add('active');
+    if (element) {
+        document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+        element.classList.add('active');
+    }
     document.getElementById('result-card').classList.remove('show');
     const resSection = document.getElementById('resolution-section');
+
+    // Page title per type (e.g. "Downloader Video")
+    const titleMap = { video:'Downloader Video', audio:'Downloader Audio', slide:'Downloader Slide', stories:'Downloader Stories', profile:'Downloader Profil' };
+    const titleEl = document.getElementById('downloader-page-title');
+    if (titleEl) titleEl.textContent = titleMap[type] || 'Downloader';
+
     if (type === 'profile') {
         document.getElementById('section-video-audio').style.display = 'none';
         document.getElementById('section-profile').style.display = 'block';
     } else {
         document.getElementById('section-video-audio').style.display = 'block';
         document.getElementById('section-profile').style.display = 'none';
+        const linkLabelMap = { video:'Masukkan Link Video', audio:'Masukkan Link Audio', slide:'Masukkan Link Slide', stories:'Masukkan Link Stories' };
+        const linkLabelEl = document.getElementById('tt-url-label');
+        if (linkLabelEl) linkLabelEl.textContent = linkLabelMap[type] || 'Masukkan Link TikTok';
         const btnTextMap = { video:'Download Video', audio:'Download Audio', slide:'Ambil Foto Slide', stories:'Download Stories' };
         document.getElementById('btn-text').textContent = btnTextMap[type] || 'Download';
         resSection.style.display = (type === 'video' || type === 'stories') ? 'block' : 'none';
@@ -2183,7 +2234,7 @@ function selectResolution(res, element) {
 }
 
 // ===== CUSTOM FILENAME =====
-// Format: VTD-(Label).ext  e.g. VTD-(HD).mp4 / VTD-(720p).mp4 / VTD-(MP3).mp3 / VTD-(IMG-1).jpeg / VTD-(Profile).png
+// Format: Cdoti-(Label).ext  e.g. Cdoti-(HD).mp4 / Cdoti-(720p).mp4 / Cdoti-(MP3).mp3 / Cdoti-(IMG-1).jpeg / Cdoti-(Profile).png
 function buildFilename(mediaType, resolution, index) {
     let ext, label;
     switch (mediaType) {
@@ -2212,7 +2263,7 @@ function buildFilename(mediaType, resolution, index) {
             ext   = '.mp4';
             label = 'File';
     }
-    return 'VTD-(' + label + ')' + ext;
+    return 'Cdoti-(' + label + ')' + ext;
 }
 
 // ===== NOTIFICATION (Achievement style, repeating) =====
@@ -2260,7 +2311,7 @@ function _fireNotifToast(text, durationMs, thumbnail) {
     const barFill  = document.getElementById('mc-toast-bar-fill');
     const thumbEl  = document.getElementById('mc-toast-thumb');
 
-    headerEl.textContent = 'Pengumuman VTD';
+    headerEl.textContent = 'Pengumuman Cdoti';
     titleEl.textContent  = 'Notifikasi';
     msgEl.textContent    = text;
     iconEl.innerHTML     = `<path d="${ICON_PATHS.news}"/>`;
@@ -2714,7 +2765,7 @@ function addDownloadAllOption(images, title) {
     option.onclick=async()=>{
         showToast('Memulai Download','Mendownload '+images.length+' foto...','download',true,images.length*1500);
         for(let i=0;i<images.length;i++){
-            const filename = buildFilename('foto', null, i+1); // VTD-(IMG-1).jpeg, VTD-(IMG-2).jpeg, ...
+            const filename = buildFilename('foto', null, i+1); // Cdoti-(IMG-1).jpeg, Cdoti-(IMG-2).jpeg, ...
             await executeDownload(images[i],filename);
             addToHistory({url:images[i],filename,thumbnail:images[i],title,type:'Foto',date:new Date().toISOString()});
             await new Promise(r=>setTimeout(r,700));
@@ -2807,7 +2858,7 @@ async function redownloadHistory(idx) {
     const item=history[idx];
     if(!item) return;
     showToast('Download Dimulai','Mengunduh ulang file...','download',true,3000);
-    const success=await executeDownload(item.url, item.filename||'VTD-file.mp4');
+    const success=await executeDownload(item.url, item.filename||'Cdoti-file.mp4');
     if(success) showToast('Berhasil','File berhasil diunduh ulang','success');
     else showToast('Perhatian','File terbuka di tab baru','info');
 }
@@ -3125,7 +3176,7 @@ function onChatPageOpen() {
             if (prvBtn) prvBtn.textContent = 'Pribadi';
         }
         document.getElementById('chat-page-title').textContent = 'Chat';
-        document.getElementById('chat-page-sub').textContent   = 'VTD Messaging';
+        document.getElementById('chat-page-sub').textContent   = 'Cdoti Messaging';
         switchChatTab('private');
     }
 }
@@ -3174,7 +3225,7 @@ function openUserInbox() {
     document.getElementById('chat-dev-inbox').style.display   = 'none';
     document.getElementById('chat-dev-thread').style.display  = 'none';
     document.getElementById('chat-page-title').textContent    = 'Chat';
-    document.getElementById('chat-page-sub').textContent      = 'VTD Messaging';
+    document.getElementById('chat-page-sub').textContent      = 'Cdoti Messaging';
     renderUserInbox();
 }
 
@@ -3341,7 +3392,7 @@ async function chatSearchUser() {
 
         if (foundUid && foundProfile) {
             const isDev = foundProfile.email === DEV_EMAIL;
-            const username = foundProfile.username || 'Pengguna VTD';
+            const username = foundProfile.username || 'Pengguna Cdoti';
             const shortId  = isDev ? 'D#1' : foundUid.substr(0,10);
             const devBadge = isDev ? `<span style="background:linear-gradient(135deg,#7c4dff,#448aff);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;margin-left:4px;">Dev</span>` : '';
             const avatarId = 'chat-search-av-' + foundUid.substr(0,6);
@@ -3438,7 +3489,7 @@ function openUserThread() {
     document.getElementById('chat-user-inbox').style.display  = 'none';
     document.getElementById('chat-user-thread').style.display = 'block';
     document.getElementById('chat-page-title').textContent    = 'Developer';
-    document.getElementById('chat-page-sub').textContent      = 'VTD Support';
+    document.getElementById('chat-page-sub').textContent      = 'Cdoti Support';
     localStorage.setItem('vtd_chat_last_read', Date.now().toString());
     document.getElementById('chat-unread-badge').classList.remove('show');
 
@@ -3793,12 +3844,8 @@ function closeDownloaderModal(e) {
 function openDownloaderPage(type) {
     closeDownloaderModal();
     navigateTo('downloader');
-    // Select the matching type tab inside the downloader page
-    const typeBtns = document.querySelectorAll('#page-downloader .type-selector .type-btn');
-    const idx = ['video','audio','slide','stories','profile'].indexOf(type);
-    if (idx >= 0 && typeBtns[idx]) {
-        selectType(type, typeBtns[idx]);
-    }
+    // No visible type tabs anymore — the type is set directly from the DOWNLOADER modal choice
+    selectType(type, null);
 }
 
 // ===== POST COMPOSER ('+' button) =====
@@ -3822,7 +3869,7 @@ async function submitPost() {
         const uid = currentUser.uid;
         const profileSnap = await database.ref('userProfiles/' + uid).once('value');
         const profile = profileSnap.val() || {};
-        const username = profile.username || currentUser.displayName || 'Pengguna VTD';
+        const username = profile.username || currentUser.displayName || 'Pengguna Cdoti';
         await database.ref('posts').push({
             uid, name: username, text,
             createdAt: Date.now(),
@@ -3895,7 +3942,7 @@ async function renderFeedPost(container, post) {
         <div class="feed-post-head">
             <div class="feed-post-avatar" id="${avatarId}">${initials}</div>
             <div style="flex:1;min-width:0;">
-                <div class="feed-post-name">${escapeHtml(post.name || 'Pengguna VTD')}</div>
+                <div class="feed-post-name">${escapeHtml(post.name || 'Pengguna Cdoti')}</div>
                 <div class="feed-post-time">${timeAgo(post.createdAt)}</div>
             </div>
         </div>
@@ -3986,9 +4033,9 @@ function renderCommentRow(container, postId, comment, isReply) {
     row.innerHTML = `
         <div class="feed-comment-avatar" id="${avatarId}">${initials}</div>
         <div class="feed-comment-bubble">
-            <div class="feed-comment-name">${escapeHtml(comment.name || 'Pengguna VTD')}</div>
+            <div class="feed-comment-name">${escapeHtml(comment.name || 'Pengguna Cdoti')}</div>
             <div class="feed-comment-text">${escapeHtml(comment.text)}</div>
-            ${!isReply ? `<div class="feed-comment-reply-btn" onclick="showReplyInput('${postId}','${comment.id}','${escapeHtml(comment.name||'Pengguna VTD').replace(/'/g,"&#39;")}')">Balas</div>` : ''}
+            ${!isReply ? `<div class="feed-comment-reply-btn" onclick="showReplyInput('${postId}','${comment.id}','${escapeHtml(comment.name||'Pengguna Cdoti').replace(/'/g,"&#39;")}')">Balas</div>` : ''}
         </div>`;
     container.appendChild(row);
     getPublicAvatar(comment.uid).then(src => {
@@ -4017,7 +4064,7 @@ async function submitComment(postId) {
         const uid = currentUser.uid;
         const profileSnap = await database.ref('userProfiles/' + uid).once('value');
         const profile = profileSnap.val() || {};
-        const username = profile.username || currentUser.displayName || 'Pengguna VTD';
+        const username = profile.username || currentUser.displayName || 'Pengguna Cdoti';
         await database.ref('postComments/' + postId).push({
             uid, name: username, text, createdAt: Date.now(),
             parentId: parentId || null
@@ -4063,7 +4110,7 @@ function onProfilePageOpen() {
         const avatarEl  = document.getElementById('profile-page-avatar');
         const unEl      = document.getElementById('profile-page-username');
         const unInput   = document.getElementById('profile-username-input');
-        const username  = d.username || currentUser.displayName || 'Pengguna VTD';
+        const username  = d.username || currentUser.displayName || 'Pengguna Cdoti';
         if (unEl)    unEl.textContent = username;
         if (unInput) unInput.value    = d.username || '';
         const avatarSrc = await getPublicAvatar(uid);
@@ -4158,7 +4205,7 @@ async function switchFollowTab(tab) {
     listEl.innerHTML = '';
     for (const uid of uids) {
         const profile = profiles[uid] || {};
-        const username = profile.username || 'Pengguna VTD';
+        const username = profile.username || 'Pengguna Cdoti';
         const initials = username.charAt(0).toUpperCase();
         const row = document.createElement('div');
         row.style.cssText = 'display:flex;align-items:center;gap:12px;background:var(--input-bg);border:1px solid var(--border-color);border-radius:14px;padding:10px 12px;';
@@ -4203,7 +4250,7 @@ function renderSearchResult(container, profile, uid, isDev) {
         </div>`;
         return;
     }
-    const username = profile.username || 'Pengguna VTD';
+    const username = profile.username || 'Pengguna Cdoti';
     const shortId = isDev ? 'D#1' : (uid ? uid.substr(0,10) : '-');
     const devBadge = isDev ? `<span style="background:linear-gradient(135deg,#7c4dff,#448aff);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:0.4px;">Dev</span>` : '';
     const avatarId = 'search-avatar-' + (uid || 'x');
@@ -4367,7 +4414,7 @@ function populateSettingsAccount() {
     // Baca avatar dari localStorage (privat)
     const photo = localStorage.getItem('vtd_avatar_' + currentUser.uid) || currentUser.photoURL || '';
     if (av) { av.src = photo; av.style.display = photo ? 'block' : 'none'; }
-    if (un) un.textContent = currentUser.displayName || 'Pengguna VTD';
+    if (un) un.textContent = currentUser.displayName || 'Pengguna Cdoti';
     if (em) em.textContent = currentUser.email || '';
 }
 
