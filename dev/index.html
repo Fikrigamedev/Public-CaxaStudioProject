@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex,nofollow">
+<title>Dashboard Developer - Caxa GameHub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000;--line:#2b2b2b;--line2:#555;--tx:#fff;--mu:#a3a3a3;
+  --ok:#5ee08a;--warn:#f5c04a;--bad:#ff6b6b;
+  --font:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{color-scheme:dark}
+body{background:var(--bg);color:var(--tx);font:400 15px/1.55 var(--font);min-height:100vh;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+img{display:block;max-width:100%}
+:focus-visible{outline:2px solid #fff;outline-offset:2px}
+h1,h2,h3{line-height:1.15;letter-spacing:-.02em;font-weight:800}
+.muted{color:var(--mu)}
+.grow{flex:1}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:8px;border:1px solid var(--line2);background:transparent;cursor:pointer;font-weight:600;font-size:14px;white-space:nowrap;transition:background .15s,border-color .15s}
+.btn:hover{border-color:#fff}
+.btn.primary{background:#fff;color:#000;border-color:#fff}
+.btn.primary:hover{background:#d4d4d4}
+.btn.danger{color:var(--bad);border-color:#5c2b2b}
+.btn.danger:hover{border-color:var(--bad)}
+.btn.danger.fill{background:var(--bad);color:#000;border-color:var(--bad)}
+.btn.sm{padding:6px 12px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+input[type=text],input[type=search],textarea,select{width:100%;background:#000;border:1px solid var(--line2);border-radius:8px;padding:10px 12px}
+input:focus,textarea:focus,select:focus{border-color:#fff;outline:0}
+select option{background:#000}
+textarea{resize:vertical;min-height:90px}
+.spin{width:28px;height:28px;border:3px solid var(--line);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation-duration:2s}}
+
+/* layar penuh (login / ditolak / memuat) */
+.screen{min-height:100vh;display:grid;place-items:center;padding:24px}
+.screen .box{max-width:460px;width:100%;display:flex;flex-direction:column;gap:16px}
+.screen h1{font-size:34px}
+.screen p{color:var(--mu)}
+.screen .center{align-items:center;text-align:center}
+
+/* aplikasi */
+.layout{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh}
+.side{border-right:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
+.brand{font-size:19px;font-weight:800;letter-spacing:-.03em;padding:0 10px 2px}
+.brand-sub{color:var(--mu);font-size:13px;padding:0 10px 16px}
+.side button.tab{display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;background:none;border:0;border-radius:8px;padding:10px 12px;cursor:pointer;color:var(--mu);font-weight:600}
+.side button.tab:hover{color:#fff}
+.side button.tab.on{background:#fff;color:#000}
+.count{font-size:12px;font-weight:800;background:var(--warn);color:#000;border-radius:999px;padding:0 8px;min-width:22px;text-align:center}
+.side .who{margin-top:auto;font-size:13px;color:var(--mu);overflow-wrap:anywhere;padding:0 10px}
+.main{padding:28px 28px 72px;min-width:0;max-width:1100px}
+.main h1{font-size:30px;margin-bottom:6px}
+.lead{color:var(--mu);margin-bottom:22px;max-width:62ch}
+.banner{border:1px solid #5c2b2b;color:var(--bad);border-radius:8px;padding:12px 14px;margin-bottom:18px;font-size:14px}
+
+/* statistik */
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:30px}
+.stat{border:1px solid var(--line);border-radius:10px;padding:16px}
+.stat b{display:block;font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.stat span{color:var(--mu);font-size:14px}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.panel{border:1px solid var(--line);border-radius:10px;padding:18px}
+.panel h2{font-size:18px;margin-bottom:14px}
+.li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:10px 0;border-top:1px solid var(--line)}
+.li:first-of-type{border-top:0}
+.li .t{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:#fff}
+
+/* daftar */
+.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.toolbar input{flex:1 1 240px}
+.toolbar select{flex:0 0 190px;width:190px}
+.rowc{display:grid;grid-template-columns:128px minmax(0,1fr) auto;gap:16px;border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px;align-items:start}
+.rthumb{aspect-ratio:16/9;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.rthumb img{width:100%;height:100%;object-fit:cover}
+.ph{width:100%;height:100%;display:grid;place-items:center;font-size:34px;font-weight:800;color:transparent;-webkit-text-stroke:1px #fff}
+.rtitle{font-weight:800;font-size:17px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.rmeta{color:var(--mu);font-size:13px;display:flex;flex-direction:column;margin-top:2px}
+.rdesc{margin-top:6px;font-size:14px;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rnote{margin-top:6px;font-size:13px;color:var(--bad)}
+.racts{display:flex;flex-direction:column;gap:6px;min-width:112px}
+.badge{font-size:12px;font-weight:600;border:1px solid var(--line2);border-radius:999px;padding:1px 10px}
+.badge.approved{color:var(--ok);border-color:#1f5a35}
+.badge.pending{color:var(--warn);border-color:#6a5420}
+.badge.rejected{color:var(--bad);border-color:#5c2b2b}
+.badge.feat{background:#fff;color:#000;border-color:#fff}
+.empty{border:1px dashed var(--line2);border-radius:10px;padding:32px 16px;text-align:center;color:var(--mu)}
+.state{display:flex;flex-direction:column;align-items:center;gap:12px;padding:48px 0;color:var(--mu)}
+.addcat{display:flex;gap:10px;margin-bottom:18px;max-width:520px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:10px 12px;border-top:1px solid var(--line);vertical-align:middle}
+th{color:var(--mu);font-weight:600;border-top:0}
+.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+.uav{width:30px;height:30px;border-radius:50%;object-fit:cover;border:1px solid var(--line2)}
+.ucell{display:flex;align-items:center;gap:10px}
+
+/* overlay */
+.backdrop{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.85);display:grid;place-items:center;padding:16px}
+.dlg{background:#000;border:1px solid var(--line2);border-radius:12px;padding:22px;max-width:440px;width:100%}
+.dlg h3{font-size:20px;margin-bottom:8px}
+.dlg p{color:var(--mu);margin-bottom:14px;overflow-wrap:anywhere}
+.dlg label{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
+.dlg-act{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+.loader{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.7);display:grid;place-items:center}
+.player{position:fixed;inset:0;z-index:70;background:#000;display:flex;flex-direction:column}
+.pbar{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);min-height:52px}
+.pbar strong{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pbar small{color:var(--warn)}
+.player iframe{flex:1;width:100%;border:0;background:#000}
+#toasts{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:100;display:flex;flex-direction:column;gap:8px;width:min(92vw,420px)}
+.toast{background:#fff;color:#000;padding:12px 16px;border-radius:8px;font-weight:600;font-size:14px}
+.toast.error{background:var(--bad)}
+.toast.ok{background:var(--ok)}
+
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;border-right:0;border-bottom:1px solid var(--line);padding:12px}
+  .brand,.brand-sub{padding:0 8px 0 0}
+  .brand-sub{display:none}
+  .side .who{display:none}
+  .side .tabs{display:flex;gap:4px;overflow-x:auto;flex:1 1 100%}
+  .main{padding:20px 14px 64px}
+  .cols{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .rowc{grid-template-columns:96px minmax(0,1fr)}
+  .racts{grid-column:1/-1;flex-direction:row;flex-wrap:wrap}
+  .toolbar select{flex:1 1 100%;width:100%}
+}
+</style>
+</head>
+<body>
+
+<div id="s-loading" class="screen"><div class="box center"><div class="spin"></div><p id="loading-text">Memeriksa sesi...</p></div></div>
+
+<div id="s-login" class="screen" hidden>
+  <div class="box">
+    <h1>Dashboard Developer</h1>
+    <p>Khusus admin Caxa GameHub. Masuk dengan akun Google admin untuk meninjau dan mengelola game.</p>
+    <button class="btn primary" data-act="login">Masuk dengan Google</button>
+  </div>
+</div>
+
+<div id="s-denied" class="screen" hidden>
+  <div class="box">
+    <h1>Akses ditolak</h1>
+    <p id="denied-note">Akun ini bukan admin.</p>
+    <p>Akun saat ini: <b id="denied-email"></b></p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn primary" data-act="logout">Keluar dan ganti akun</button>
+      <a class="btn" href="utama.html">Ke website utama</a>
+    </div>
+  </div>
+</div>
+
+<div id="app" class="layout" hidden>
+  <aside class="side">
+    <div class="brand">Caxa GameHub</div>
+    <div class="brand-sub">Dashboard developer</div>
+    <nav class="tabs" aria-label="Menu dashboard" id="tabs">
+      <button class="tab" data-tab="stats">Statistik</button>
+      <button class="tab" data-tab="review">Tinjauan <span class="count" id="badge-review" hidden>0</span></button>
+      <button class="tab" data-tab="games">Semua game</button>
+      <button class="tab" data-tab="cats">Kategori</button>
+      <button class="tab" data-tab="users">Pengguna</button>
+    </nav>
+    <div class="who"><div id="who"></div><button class="btn sm" style="margin-top:10px" data-act="logout">Keluar</button></div>
+  </aside>
+  <main class="main">
+    <div id="banner" class="banner" hidden></div>
+    <div id="content"></div>
+  </main>
+</div>
+
+<div id="toasts" aria-live="polite"></div>
+<div id="loader" class="loader" hidden><div class="spin"></div></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+(function () {
+"use strict";
+
+/* ====================== Konfigurasi ====================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyBmOQhqoVSowBHT2xLbb2-cgnLNkmAdzcQ",
+  authDomain: "caxagamehub.firebaseapp.com",
+  databaseURL: "https://caxagamehub-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "caxagamehub",
+  storageBucket: "caxagamehub.firebasestorage.app",
+  messagingSenderId: "44522670946",
+  appId: "1:44522670946:web:28352e68beb8a39f3f7a3b"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+const TS = firebase.database.ServerValue.TIMESTAMP;
+
+// Pengecekan ini HANYA untuk tampilan. Penegak sebenarnya adalah Security Rules
+// di server yang memeriksa email dari token Google yang ditandatangani.
+const ADMIN_EMAIL = "kriiaja48@gmail.com";
+const ID_RE = /^[A-Za-z0-9_-]{6,40}$/;
+const STATUS = { pending: "Menunggu", approved: "Disetujui", rejected: "Ditolak" };
+
+/* ====================== State ====================== */
+const state = {
+  user: null, tab: "stats",
+  games: {}, users: {}, plays: {}, cats: {},
+  loaded: { games: false, users: false, plays: false, cats: false },
+  filter: { q: "", status: "all" }
+};
+let listeners = [];
+
+/* ====================== Util ====================== */
+const $ = (s, r) => (r || document).querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmtDate = ts => ts ? new Date(ts).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-";
+const fmtNum = n => new Intl.NumberFormat("id-ID").format(n || 0);
+function toast(msg, type) {
+  const t = document.createElement("div");
+  t.className = "toast " + (type || "");
+  t.textContent = msg;
+  $("#toasts").appendChild(t);
+  setTimeout(() => t.remove(), type === "error" ? 6500 : 3500);
+}
+let loaderCount = 0;
+function showLoader(on) {
+  loaderCount = Math.max(0, loaderCount + (on ? 1 : -1));
+  $("#loader").hidden = loaderCount === 0;
+}
+function errMsg(e) {
+  const code = (e && e.code ? e.code : "") + "";
+  const m = (e && e.message) || String(e);
+  if (/permission_denied/i.test(code + m)) return "Ditolak oleh Security Rules. Pastikan Rules terbaru sudah dipublikasikan dan Anda masuk sebagai admin.";
+  if (code === "auth/unauthorized-domain") return "Domain ini belum diizinkan. Tambahkan di Firebase Console, Authentication, Settings, Authorized domains.";
+  if (code === "auth/network-request-failed") return "Koneksi bermasalah. Periksa internet Anda.";
+  return m || "Terjadi kesalahan.";
+}
+function showScreen(name) {
+  ["loading", "login", "denied"].forEach(n => { $("#s-" + n).hidden = n !== name; });
+  $("#app").hidden = name !== "app";
+}
+function showBanner(msg) { const b = $("#banner"); b.textContent = msg; b.hidden = !msg; }
+
+function confirmBox(o) {
+  return new Promise(res => {
+    const w = document.createElement("div");
+    w.className = "backdrop";
+    w.innerHTML = `<div class="dlg" role="dialog" aria-modal="true"><h3>${esc(o.title)}</h3><p>${esc(o.text)}</p><div class="dlg-act"><button class="btn" data-r="0">Batal</button><button class="btn ${o.danger ? "danger fill" : "primary"}" data-r="1">${esc(o.ok || "Ya")}</button></div></div>`;
+    const done = v => { w.remove(); document.removeEventListener("keydown", onKey); res(v); };
+    const onKey = e => { if (e.key === "Escape") done(false); };
+    w.addEventListener("click", e => {
+      const b = e.target.closest("[data-r]");
+      if (b) done(b.dataset.r === "1"); else if (e.target === w) done(false);
+    });
+    document.addEventListener("keydown", onKey);
+    document.body.appendChild(w);
+    $('[data-r="0"]', w).focus();
+  });
+}
+// Mengembalikan teks (boleh kosong jika o.required false) atau null jika dibatalkan.
+function promptBox(o) {
+  return new Promise(res => {
+    const w = document.createElement("div");
+    w.className = "backdrop";
+    w.innerHTML = `<form class="dlg" role="dialog" aria-modal="true"><h3>${esc(o.title)}</h3><label for="pb-in">${esc(o.label)}</label>${o.multiline ? `<textarea id="pb-in" maxlength="${o.max}"></textarea>` : `<input id="pb-in" type="text" maxlength="${o.max}">`}<div class="dlg-act"><button type="button" class="btn" data-r="0">Batal</button><button type="submit" class="btn primary">${esc(o.ok || "Simpan")}</button></div></form>`;
+    const input = $("#pb-in", w);
+    input.value = o.value || "";
+    const done = v => { w.remove(); document.removeEventListener("keydown", onKey); res(v); };
+    const onKey = e => { if (e.key === "Escape") done(null); };
+    w.addEventListener("click", e => { if (e.target === w || e.target.closest('[data-r="0"]')) done(null); });
+    w.querySelector("form").addEventListener("submit", e => {
+      e.preventDefault();
+      const v = input.value.trim();
+      if (o.required && !v) { input.focus(); return; }
+      done(v);
+    });
+    document.addEventListener("keydown", onKey);
+    document.body.appendChild(w);
+    input.focus();
+  });
+}
+
+/* ====================== Auth ====================== */
+async function login() {
+  const p = new firebase.auth.GoogleAuthProvider();
+  p.setCustomParameters({ prompt: "select_account" });
+  showLoader(true);
+  try { await auth.signInWithPopup(p); }
+  catch (e) {
+    if (e.code === "auth/popup-blocked" || e.code === "auth/operation-not-supported-in-this-environment") {
+      try { await auth.signInWithRedirect(p); } catch (e2) { toast(errMsg(e2), "error"); }
+    } else if (e.code !== "auth/popup-closed-by-user" && e.code !== "auth/cancelled-popup-request") toast(errMsg(e), "error");
+  } finally { showLoader(false); }
+}
+function logout() { auth.signOut().catch(e => toast(errMsg(e), "error")); }
+
+function stopListeners() {
+  listeners.forEach(l => l.ref.off("value", l.cb));
+  listeners = [];
+  state.games = {}; state.users = {}; state.plays = {}; state.cats = {};
+  Object.keys(state.loaded).forEach(k => { state.loaded[k] = false; });
+}
+function listen(path, key) {
+  const ref = db.ref(path);
+  const cb = s => { state[key] = s.val() || {}; state.loaded[key] = true; renderBody(); updateBadge(); };
+  ref.on("value", cb, e => { state.loaded[key] = true; showBanner("Gagal membaca '" + path + "': " + errMsg(e)); renderBody(); });
+  listeners.push({ ref: ref, cb: cb });
+}
+
+let authRun = 0;
+auth.getRedirectResult().catch(e => toast(errMsg(e), "error"));
+auth.onAuthStateChanged(async u => {
+  const run = ++authRun;
+  stopListeners();
+  state.user = u;
+  showBanner("");
+  if (!u) { showScreen("login"); return; }
+  $("#denied-email").textContent = u.email || "(tanpa email)";
+  const uiOk = (u.email || "").toLowerCase() === ADMIN_EMAIL && u.emailVerified === true;
+  if (!uiOk) { $("#denied-note").textContent = "Akun ini bukan admin Caxa GameHub."; showScreen("denied"); return; }
+  $("#loading-text").textContent = "Memverifikasi akses admin ke database...";
+  showScreen("loading");
+  try {
+    // Uji nyata di sisi server: hanya admin yang boleh membaca node 'users'.
+    await db.ref("users").limitToFirst(1).once("value");
+  } catch (e) {
+    if (run !== authRun) return;
+    $("#denied-note").textContent = "Security Rules menolak akun ini. Pastikan Rules terbaru sudah dipublikasikan dan email admin di Rules sama dengan akun Anda.";
+    showScreen("denied");
+    return;
+  }
+  if (run !== authRun) return;
+  $("#who").textContent = u.email;
+  showScreen("app");
+  renderShell();
+  listen("games", "games");
+  listen("users", "users");
+  listen("plays", "plays");
+  listen("categories", "cats");
+});
+
+/* ====================== Data helper ====================== */
+const gamesList = () => Object.keys(state.games).map(id => Object.assign({ id }, state.games[id]));
+const playsOf = id => state.plays[id] || 0;
+const catName = id => (state.cats[id] && state.cats[id].name) || "Tanpa kategori";
+const newest = (a, b) => (b.createdAt || 0) - (a.createdAt || 0);
+
+function updateBadge() {
+  const n = gamesList().filter(g => g.status === "pending").length;
+  const b = $("#badge-review");
+  b.textContent = n; b.hidden = n === 0;
+}
+
+/* ====================== Tab ====================== */
+const TITLES = {
+  stats: ["Statistik", "Ringkasan pengguna, game, dan jumlah permainan. Data diperbarui secara realtime."],
+  review: ["Tinjauan game", "Game baru atau yang baru diedit menunggu keputusan Anda sebelum tampil untuk publik."],
+  games: ["Semua game", "Cari, tinjau, unggulkan, atau hapus game mana pun."],
+  cats: ["Kategori", "Kategori dipakai pengguna saat mengunggah game."],
+  users: ["Pengguna", "Pengguna yang pernah masuk ke Caxa GameHub."]
+};
+function renderShell() {
+  document.querySelectorAll("[data-tab]").forEach(b => b.classList.toggle("on", b.dataset.tab === state.tab));
+  const t = TITLES[state.tab];
+  let extra = "";
+  if (state.tab === "games") {
+    const s = state.filter.status;
+    extra = `<div class="toolbar"><input id="f-q" type="search" placeholder="Cari judul, pembuat, atau email" value="${esc(state.filter.q)}" aria-label="Cari game"><select id="f-status" aria-label="Filter status">${[["all", "Semua status"], ["pending", "Menunggu"], ["approved", "Disetujui"], ["rejected", "Ditolak"], ["featured", "Unggulan"]].map(o => `<option value="${o[0]}" ${s === o[0] ? "selected" : ""}>${o[1]}</option>`).join("")}</select></div>`;
+  }
+  if (state.tab === "cats") {
+    extra = `<form class="addcat" id="cat-form"><input type="text" id="cat-name" maxlength="30" placeholder="Nama kategori baru" aria-label="Nama kategori baru" required><button class="btn primary" type="submit">Tambah</button></form>`;
+  }
+  $("#content").innerHTML = `<h1>${t[0]}</h1><p class="lead">${t[1]}</p>${extra}<div id="body"></div>`;
+  renderBody();
+}
+function renderBody() {
+  const body = $("#body");
+  if (!body || $("#app").hidden) return;
+  const need = { stats: ["games", "users", "plays"], review: ["games"], games: ["games"], cats: ["cats", "games"], users: ["users", "games"] }[state.tab];
+  if (!need.every(k => state.loaded[k])) { body.innerHTML = '<div class="state"><div class="spin"></div><p>Memuat data...</p></div>'; return; }
+  body.innerHTML = ({ stats: bodyStats, review: bodyReview, games: bodyGames, cats: bodyCats, users: bodyUsers })[state.tab]();
+}
+
+function bodyStats() {
+  const gl = gamesList();
+  const by = s => gl.filter(g => g.status === s).length;
+  const total = Object.keys(state.plays).reduce((a, k) => a + (state.plays[k] || 0), 0);
+  const cards = [
+    ["Pengguna", Object.keys(state.users).length], ["Total game", gl.length],
+    ["Menunggu tinjauan", by("pending")], ["Dipublikasikan", by("approved")],
+    ["Ditolak", by("rejected")], ["Game unggulan", gl.filter(g => g.featured).length],
+    ["Total permainan", total], ["Kategori", Object.keys(state.cats).length]
+  ];
+  const top = gl.filter(g => g.status === "approved").sort((a, b) => playsOf(b.id) - playsOf(a.id)).slice(0, 5);
+  const max = top.length ? Math.max(1, playsOf(top[0].id)) : 1;
+  const recent = gl.slice().sort(newest).slice(0, 5);
+  return `<div class="stats">${cards.map(c => `<div class="stat"><b>${fmtNum(c[1])}</b><span>${c[0]}</span></div>`).join("")}</div>
+  <div class="cols">
+    <div class="panel"><h2>Game terpopuler</h2>${top.length ? top.map(g => `<div class="li"><span class="t">${esc(g.title)}</span><span>${fmtNum(playsOf(g.id))}</span><div class="bar"><i style="width:${Math.round(playsOf(g.id) / max * 100)}%"></i></div></div>`).join("") : '<p class="muted">Belum ada game yang dimainkan.</p>'}</div>
+    <div class="panel"><h2>Pengajuan terbaru</h2>${recent.length ? recent.map(g => `<div class="li"><span class="t">${esc(g.title)}</span><span class="badge ${esc(g.status)}">${esc(STATUS[g.status] || g.status)}</span><span class="muted" style="grid-column:1/-1;font-size:13px">${esc(g.ownerName)}, ${fmtDate(g.createdAt)}</span></div>`).join("") : '<p class="muted">Belum ada game.</p>'}</div>
+  </div>`;
+}
+
+function rowHTML(g) {
+  const id = esc(g.id);
+  const owner = state.users[g.ownerId];
+  const cover = g.cover && String(g.cover).indexOf("data:image/") === 0 ? `<img src="${esc(g.cover)}" alt="" loading="lazy">` : `<div class="ph">${esc((g.title || "?").trim().charAt(0).toUpperCase())}</div>`;
+  const acts = [`<button class="btn sm" data-act="preview" data-id="${id}">Pratinjau</button>`];
+  if (g.status !== "approved") acts.push(`<button class="btn primary sm" data-act="approve" data-id="${id}">Setujui</button>`);
+  if (g.status !== "rejected") acts.push(`<button class="btn sm" data-act="reject" data-id="${id}">Tolak</button>`);
+  if (g.status === "approved") acts.push(`<button class="btn sm" data-act="feature" data-id="${id}">${g.featured ? "Batalkan unggulan" : "Jadikan unggulan"}</button>`);
+  acts.push(`<button class="btn danger sm" data-act="delete" data-id="${id}">Hapus</button>`);
+  return `<article class="rowc"><div class="rthumb">${cover}</div><div><div class="rtitle">${esc(g.title)} <span class="badge ${esc(g.status)}">${esc(STATUS[g.status] || g.status)}</span>${g.featured ? '<span class="badge feat">Unggulan</span>' : ""}</div>
+    <div class="rmeta"><span>Pembuat: ${esc(g.ownerName)}${owner && owner.email ? " (" + esc(owner.email) + ")" : ""}</span><span>Kategori: ${esc(catName(g.category))}</span><span>Diunggah ${fmtDate(g.createdAt)}, ${fmtNum(playsOf(g.id))} kali dimainkan</span></div>
+    ${g.description ? `<p class="rdesc">${esc(g.description)}</p>` : ""}${g.reviewNote ? `<p class="rnote">Catatan penolakan: ${esc(g.reviewNote)}</p>` : ""}</div>
+    <div class="racts">${acts.join("")}</div></article>`;
+}
+function bodyReview() {
+  const list = gamesList().filter(g => g.status === "pending").sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  return list.length ? list.map(rowHTML).join("") : '<div class="empty">Tidak ada game yang menunggu tinjauan.</div>';
+}
+function bodyGames() {
+  const q = state.filter.q.trim().toLowerCase(), s = state.filter.status;
+  const list = gamesList().filter(g => {
+    if (s === "featured" ? !g.featured : (s !== "all" && g.status !== s)) return false;
+    if (!q) return true;
+    const o = state.users[g.ownerId];
+    return ((g.title || "") + " " + (g.ownerName || "") + " " + (o && o.email ? o.email : "") + " " + (g.description || "")).toLowerCase().indexOf(q) !== -1;
+  }).sort(newest);
+  return list.length ? `<p class="muted" style="margin-bottom:12px">${fmtNum(list.length)} game</p>` + list.map(rowHTML).join("") : '<div class="empty">Tidak ada game yang cocok.</div>';
+}
+function bodyCats() {
+  const gl = gamesList();
+  const cats = Object.keys(state.cats).map(id => ({ id, name: state.cats[id].name || "" })).sort((a, b) => a.name.localeCompare(b.name));
+  if (!cats.length) return '<div class="empty">Belum ada kategori. Tambahkan satu agar pengguna dapat mengunggah game.</div>';
+  return `<div class="tscroll"><table><thead><tr><th>Nama</th><th>Jumlah game</th><th></th></tr></thead><tbody>${cats.map(c => `<tr><td>${esc(c.name)}</td><td>${fmtNum(gl.filter(g => g.category === c.id).length)}</td><td style="text-align:right;white-space:nowrap"><button class="btn sm" data-act="cat-rename" data-id="${esc(c.id)}">Ubah nama</button> <button class="btn danger sm" data-act="cat-delete" data-id="${esc(c.id)}">Hapus</button></td></tr>`).join("")}</tbody></table></div>`;
+}
+function bodyUsers() {
+  const gl = gamesList();
+  const us = Object.keys(state.users).map(id => Object.assign({ id }, state.users[id])).sort((a, b) => (b.lastLogin || 0) - (a.lastLogin || 0));
+  if (!us.length) return '<div class="empty">Belum ada pengguna.</div>';
+  return `<div class="tscroll"><table><thead><tr><th>Pengguna</th><th>Email</th><th>Game</th><th>Bergabung</th><th>Terakhir masuk</th></tr></thead><tbody>${us.map(u => `<tr><td><div class="ucell">${u.photo ? `<img class="uav" src="${esc(u.photo)}" alt="" referrerpolicy="no-referrer">` : ""}${esc(u.name)}</div></td><td>${esc(u.email || "-")}</td><td>${fmtNum(gl.filter(g => g.ownerId === u.id).length)}</td><td>${fmtDate(u.createdAt)}</td><td>${fmtDate(u.lastLogin)}</td></tr>`).join("")}</tbody></table></div>`;
+}
+
+/* ====================== Aksi admin ====================== */
+async function run(fn, okMsg) {
+  showLoader(true);
+  try { await fn(); if (okMsg) toast(okMsg, "ok"); }
+  catch (e) { toast(errMsg(e), "error"); }
+  finally { showLoader(false); }
+}
+async function approve(id) {
+  await run(() => db.ref().update({ ["games/" + id + "/status"]: "approved", ["games/" + id + "/reviewNote"]: null }), "Game disetujui dan dipublikasikan.");
+}
+async function reject(id) {
+  const g = state.games[id];
+  const note = await promptBox({ title: 'Tolak "' + (g ? g.title : "game") + '"', label: "Alasan penolakan (ditampilkan kepada pembuat)", multiline: true, max: 300, ok: "Tolak game" });
+  if (note === null) return;
+  await run(() => db.ref().update({ ["games/" + id + "/status"]: "rejected", ["games/" + id + "/reviewNote"]: note || null, ["games/" + id + "/featured"]: false }), "Game ditolak.");
+}
+async function toggleFeature(id) {
+  const g = state.games[id];
+  if (!g || g.status !== "approved") return;
+  await run(() => db.ref("games/" + id + "/featured").set(!g.featured), g.featured ? "Status unggulan dicabut." : "Game dijadikan unggulan.");
+}
+async function removeGame(id) {
+  const g = state.games[id];
+  const ok = await confirmBox({ title: "Hapus game ini?", text: 'Game "' + (g ? g.title : "") + '" beserta kode dan statistik permainannya akan dihapus permanen.', ok: "Hapus permanen", danger: true });
+  if (!ok) return;
+  await run(() => db.ref().update({ ["games/" + id]: null, ["gameCode/" + id]: null, ["plays/" + id]: null }), "Game dihapus.");
+}
+async function preview(id) {
+  if (!ID_RE.test(id)) return;
+  const g = state.games[id];
+  showLoader(true);
+  try {
+    const snap = await db.ref("gameCode/" + id).once("value");
+    const code = snap.val();
+    if (typeof code !== "string" || !code) throw new Error("Kode game tidak ditemukan.");
+    openPlayer((g && g.title) || "Game", code);
+  } catch (e) { toast(errMsg(e), "error"); }
+  finally { showLoader(false); }
+}
+function openPlayer(title, code) {
+  const w = document.createElement("div");
+  w.className = "player";
+  w.innerHTML = `<div class="pbar"><strong>${esc(title)}</strong><small>Pratinjau admin, berjalan di sandbox</small><button class="btn primary sm" data-p="close">Tutup</button></div><iframe title="${esc(title)}" sandbox="allow-scripts allow-pointer-lock allow-modals" referrerpolicy="no-referrer"></iframe>`;
+  const close = () => { document.removeEventListener("keydown", onKey); w.remove(); document.body.style.overflow = ""; };
+  const onKey = e => { if (e.key === "Escape") close(); };
+  w.addEventListener("click", e => { if (e.target.closest('[data-p="close"]')) close(); });
+  document.addEventListener("keydown", onKey);
+  document.body.style.overflow = "hidden";
+  document.body.appendChild(w);
+  $("iframe", w).srcdoc = code;
+}
+
+async function addCategory(name) {
+  name = name.trim();
+  if (name.length < 2 || name.length > 30) return toast("Nama kategori harus 2 sampai 30 karakter.", "error");
+  const dup = Object.keys(state.cats).some(k => (state.cats[k].name || "").toLowerCase() === name.toLowerCase());
+  if (dup) return toast("Kategori dengan nama itu sudah ada.", "error");
+  await run(async () => { await db.ref("categories").push({ name: name, createdAt: TS }); $("#cat-name").value = ""; }, "Kategori ditambahkan.");
+}
+async function renameCategory(id) {
+  const c = state.cats[id];
+  if (!c) return;
+  const name = await promptBox({ title: "Ubah nama kategori", label: "Nama baru", value: c.name, max: 30, required: true });
+  if (name === null) return;
+  if (name.length < 2) return toast("Nama kategori minimal 2 karakter.", "error");
+  const dup = Object.keys(state.cats).some(k => k !== id && (state.cats[k].name || "").toLowerCase() === name.toLowerCase());
+  if (dup) return toast("Kategori dengan nama itu sudah ada.", "error");
+  await run(() => db.ref("categories/" + id + "/name").set(name), "Nama kategori diubah.");
+}
+async function deleteCategory(id) {
+  const c = state.cats[id];
+  if (!c) return;
+  const used = gamesList().filter(g => g.category === id).length;
+  if (used) return toast("Tidak bisa dihapus: " + used + " game masih memakai kategori ini.", "error");
+  const ok = await confirmBox({ title: "Hapus kategori?", text: 'Kategori "' + c.name + '" akan dihapus.', ok: "Hapus", danger: true });
+  if (!ok) return;
+  await run(() => db.ref("categories/" + id).remove(), "Kategori dihapus.");
+}
+
+/* ====================== Event ====================== */
+document.addEventListener("click", e => {
+  const tab = e.target.closest("[data-tab]");
+  if (tab) { state.tab = tab.dataset.tab; renderShell(); return; }
+  const el = e.target.closest("[data-act]");
+  if (!el) return;
+  const a = el.dataset.act, id = el.dataset.id;
+  if (a === "login") login();
+  else if (a === "logout") logout();
+  else if (a === "preview") preview(id);
+  else if (a === "approve") approve(id);
+  else if (a === "reject") reject(id);
+  else if (a === "feature") toggleFeature(id);
+  else if (a === "delete") removeGame(id);
+  else if (a === "cat-rename") renameCategory(id);
+  else if (a === "cat-delete") deleteCategory(id);
+});
+document.addEventListener("input", e => { if (e.target.id === "f-q") { state.filter.q = e.target.value; renderBody(); } });
+document.addEventListener("change", e => { if (e.target.id === "f-status") { state.filter.status = e.target.value; renderBody(); } });
+document.addEventListener("submit", e => {
+  if (e.target.id === "cat-form") { e.preventDefault(); addCategory($("#cat-name").value); }
+});
+})();
+</script>
+</body>
+</html>
