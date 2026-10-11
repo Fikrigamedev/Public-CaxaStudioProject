@@ -108,6 +108,10 @@ th{color:var(--mu);font-weight:600;border-top:0}
 .uav{width:30px;height:30px;border-radius:50%;object-fit:cover;border:1px solid var(--line2)}
 .ucell{display:flex;align-items:center;gap:10px}
 
+.vchk{display:inline-block;vertical-align:-3px;margin-left:4px}
+.devtag{display:inline-block;font-size:12px;font-weight:800;background:#fff;color:#000;border-radius:4px;padding:0 8px;margin-top:6px}
+.badge.mp{color:#fff;border-color:#fff}
+
 /* overlay */
 .backdrop{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.85);display:grid;place-items:center;padding:16px}
 .dlg{background:#000;border:1px solid var(--line2);border-radius:12px;padding:22px;max-width:440px;width:100%}
@@ -220,8 +224,8 @@ const STATUS = { pending: "Menunggu", approved: "Disetujui", rejected: "Ditolak"
 /* ====================== State ====================== */
 const state = {
   user: null, tab: "stats",
-  games: {}, users: {}, plays: {}, cats: {},
-  loaded: { games: false, users: false, plays: false, cats: false },
+  games: {}, users: {}, plays: {}, cats: {}, ratings: {},
+  loaded: { games: false, users: false, plays: false, cats: false, ratings: false },
   filter: { q: "", status: "all" }
 };
 let listeners = [];
@@ -313,7 +317,7 @@ function logout() { auth.signOut().catch(e => toast(errMsg(e), "error")); }
 function stopListeners() {
   listeners.forEach(l => l.ref.off("value", l.cb));
   listeners = [];
-  state.games = {}; state.users = {}; state.plays = {}; state.cats = {};
+  state.games = {}; state.users = {}; state.plays = {}; state.cats = {}; state.ratings = {};
   Object.keys(state.loaded).forEach(k => { state.loaded[k] = false; });
 }
 function listen(path, key) {
@@ -346,18 +350,36 @@ auth.onAuthStateChanged(async u => {
     return;
   }
   if (run !== authRun) return;
-  $("#who").textContent = u.email;
+  $("#who").innerHTML = esc(u.email) + VERIFIED + '<div><span class="devtag">Developer</span></div>';
+  ensureAdminProfile(u);
   showScreen("app");
   renderShell();
   listen("games", "games");
   listen("users", "users");
   listen("plays", "plays");
   listen("categories", "cats");
+  listen("ratingStats", "ratings");
 });
+
+/* ====================== Badge developer ====================== */
+const VERIFIED = '<svg class="vchk" viewBox="0 0 24 24" width="16" height="16" role="img" aria-label="Developer terverifikasi"><title>Developer terverifikasi</title><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+// Menandai profil publik admin sebagai developer. Rules hanya mengizinkan ini untuk akun admin.
+async function ensureAdminProfile(u) {
+  try {
+    const ref = db.ref("profiles/" + u.uid);
+    const snap = await ref.once("value");
+    if (!snap.exists()) await ref.set({ name: ((u.displayName || "Developer").trim().slice(0, 30)) || "Developer", dev: true, updatedAt: TS });
+    else if (!snap.val().dev) await ref.update({ dev: true });
+  } catch (e) { console.warn("Profil admin:", e); }
+}
 
 /* ====================== Data helper ====================== */
 const gamesList = () => Object.keys(state.games).map(id => Object.assign({ id }, state.games[id]));
 const playsOf = id => state.plays[id] || 0;
+function ratingText(id) {
+  const r = state.ratings[id];
+  return r && r.count > 0 ? (r.sum / r.count).toFixed(1) + " dari 5 (" + fmtNum(r.count) + " penilaian)" : "belum ada";
+}
 const catName = id => (state.cats[id] && state.cats[id].name) || "Tanpa kategori";
 const newest = (a, b) => (b.createdAt || 0) - (a.createdAt || 0);
 
@@ -405,7 +427,7 @@ function bodyStats() {
     ["Pengguna", Object.keys(state.users).length], ["Total game", gl.length],
     ["Menunggu tinjauan", by("pending")], ["Dipublikasikan", by("approved")],
     ["Ditolak", by("rejected")], ["Game unggulan", gl.filter(g => g.featured).length],
-    ["Total permainan", total], ["Kategori", Object.keys(state.cats).length]
+    ["Total permainan", total], ["Game multiplayer", gl.filter(g => g.multiplayer).length]
   ];
   const top = gl.filter(g => g.status === "approved").sort((a, b) => playsOf(b.id) - playsOf(a.id)).slice(0, 5);
   const max = top.length ? Math.max(1, playsOf(top[0].id)) : 1;
@@ -426,8 +448,8 @@ function rowHTML(g) {
   if (g.status !== "rejected") acts.push(`<button class="btn sm" data-act="reject" data-id="${id}">Tolak</button>`);
   if (g.status === "approved") acts.push(`<button class="btn sm" data-act="feature" data-id="${id}">${g.featured ? "Batalkan unggulan" : "Jadikan unggulan"}</button>`);
   acts.push(`<button class="btn danger sm" data-act="delete" data-id="${id}">Hapus</button>`);
-  return `<article class="rowc"><div class="rthumb">${cover}</div><div><div class="rtitle">${esc(g.title)} <span class="badge ${esc(g.status)}">${esc(STATUS[g.status] || g.status)}</span>${g.featured ? '<span class="badge feat">Unggulan</span>' : ""}</div>
-    <div class="rmeta"><span>Pembuat: ${esc(g.ownerName)}${owner && owner.email ? " (" + esc(owner.email) + ")" : ""}</span><span>Kategori: ${esc(catName(g.category))}</span><span>Diunggah ${fmtDate(g.createdAt)}, ${fmtNum(playsOf(g.id))} kali dimainkan</span></div>
+  return `<article class="rowc"><div class="rthumb">${cover}</div><div><div class="rtitle">${esc(g.title)} <span class="badge ${esc(g.status)}">${esc(STATUS[g.status] || g.status)}</span>${g.featured ? '<span class="badge feat">Unggulan</span>' : ""}${g.multiplayer ? '<span class="badge mp">Multiplayer</span>' : ""}</div>
+    <div class="rmeta"><span>Pembuat: ${esc((owner && owner.name) || g.ownerName)}${owner && owner.email ? " (" + esc(owner.email) + ")" : ""}</span><span>Kategori: ${esc(catName(g.category))}</span><span>Diunggah ${fmtDate(g.createdAt)}, ${fmtNum(playsOf(g.id))} kali dimainkan</span><span>Rating: ${ratingText(g.id)}</span></div>
     ${g.description ? `<p class="rdesc">${esc(g.description)}</p>` : ""}${g.reviewNote ? `<p class="rnote">Catatan penolakan: ${esc(g.reviewNote)}</p>` : ""}</div>
     <div class="racts">${acts.join("")}</div></article>`;
 }
@@ -483,7 +505,7 @@ async function removeGame(id) {
   const g = state.games[id];
   const ok = await confirmBox({ title: "Hapus game ini?", text: 'Game "' + (g ? g.title : "") + '" beserta kode dan statistik permainannya akan dihapus permanen.', ok: "Hapus permanen", danger: true });
   if (!ok) return;
-  await run(() => db.ref().update({ ["games/" + id]: null, ["gameCode/" + id]: null, ["plays/" + id]: null }), "Game dihapus.");
+  await run(() => db.ref().update({ ["games/" + id]: null, ["gameCode/" + id]: null, ["plays/" + id]: null, ["ratings/" + id]: null, ["ratingStats/" + id]: null }), "Game dihapus.");
 }
 async function preview(id) {
   if (!ID_RE.test(id)) return;
