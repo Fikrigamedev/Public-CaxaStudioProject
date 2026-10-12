@@ -215,11 +215,11 @@ textarea{resize:vertical;min-height:100px}
 .micbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
 .micbar .muted{font-size:13px;flex:1 1 220px}
 .roomgame div span.muted{font-size:13px}
-.mp.split{display:grid;grid-template-columns:repeat(var(--cols,1),minmax(0,1fr));grid-template-rows:repeat(var(--rows,2),minmax(0,1fr));gap:2px;background:#fff}
+.mp.split{background:#000}
 .mp.split .pane{background:#000;border-top:0}
 .mp.split .pane+.pane{border-top:0}
 .mp.split .pane.wide{grid-column:span 2}
-.mp.single .pane.full{flex:1 1 0}
+
 .mp-ctls{position:absolute;top:8px;left:8px;z-index:4;display:flex;gap:6px;flex-wrap:wrap}
 .mp-ctls .btn{background:rgba(0,0,0,.75)}
 .pout{position:absolute;inset:0;z-index:2;display:grid;place-items:center;background:rgba(0,0,0,.72);font-weight:800;font-size:clamp(20px,5vw,34px);pointer-events:none}
@@ -250,6 +250,21 @@ input[type=email]:focus,input[type=password]:focus{border-color:#fff;outline:0}
 .vchip{background:rgba(0,0,0,.75);border:1px solid var(--line2);border-radius:999px;padding:2px 10px;font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .vchip.speaking{border-color:#22c55e;box-shadow:0 0 0 2px #22c55e,0 0 12px rgba(34,197,94,.7)}
 @media (prefers-reduced-motion:reduce){.eq i{animation:none;height:8px}}
+/* v5: bar ikon, tayangan layar */
+.mp-bar{flex:0 0 38px;display:flex;align-items:center;gap:6px;padding:0 6px;background:#000;border-bottom:1px solid var(--line);overflow:hidden}
+.ib{width:30px;height:30px;flex:none;display:grid;place-items:center;border:1px solid var(--line2);border-radius:8px;background:#000;color:#fff;cursor:pointer;padding:0}
+.ib:hover{border-color:#fff}
+.ib svg{width:18px;height:18px}
+.ib.on{background:#fff;color:#000;border-color:#fff}
+.ib.off{color:var(--bad);border-color:#5c2b2b}
+.ib.danger{color:var(--bad);border-color:#5c2b2b}
+.mp-bar .vbar{display:flex;gap:6px;margin-left:auto;min-width:0;overflow:hidden}
+.mp-body{flex:1 1 0;min-height:0;position:relative}
+.mp.split .mp-body{display:grid;grid-template-columns:repeat(var(--cols,1),minmax(0,1fr));grid-template-rows:repeat(var(--rows,2),minmax(0,1fr));gap:2px;background:#fff}
+.mp.single .pane.full{position:absolute;inset:0}
+.vview{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;z-index:1}
+.pnote{position:absolute;left:8px;bottom:8px;z-index:3;font-size:11px;background:rgba(0,0,0,.75);border:1px solid var(--line2);border-radius:6px;padding:1px 8px;color:var(--mu);pointer-events:none}
+.plabel{opacity:.88;padding:2px 8px}
 @media (max-width:860px){
   .top-in{gap:10px}
   .search{order:5;flex:1 1 100%;max-width:none}
@@ -275,7 +290,7 @@ input[type=email]:focus,input[type=password]:focus{border-color:#fff;outline:0}
       <a href="#/" data-nav="home">Beranda</a>
       <a href="#/favorites" data-nav="favorites">Favorit</a>
       <a href="#/upload" data-nav="upload">Unggah game</a>
-      <button type="button" data-act="join-room">Gabung room</button>
+      <button type="button" data-act="join-room">Room</button>
     </nav>
     <label class="search">
       <span class="sr">Cari game</span>
@@ -1059,7 +1074,10 @@ function openPlayer(title, code) {
 /* ====================== Multiplayer ====================== */
 const MAX_PLAYERS = 5;
 const SLOT_KEYS = ["s1", "s2", "s3", "s4", "s5"];
-const ICE_CFG = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" }] };
+// Isi CUSTOM_ICE dengan server TURN milik Anda agar suara dan tayangan layar tetap tersambung di jaringan yang
+// memblokir koneksi langsung (misalnya data seluler). Contoh: { urls: "turn:turn.contoh.com:3478", username: "user", credential: "sandi" }
+const CUSTOM_ICE = [];
+const ICE_CFG = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" }].concat(CUSTOM_ICE) };
 const JITTER_MS = 120;
 
 function membersList(r) {
@@ -1091,7 +1109,7 @@ function computeFinish(r) {
 function caxaShim(cfg) {
   "use strict";
   var role = cfg.role, mode = cfg.mode || "split";
-  var post = function (m) { try { parent.postMessage(m, "*"); } catch (e) {} };
+  var post = function (m, t) { try { parent.postMessage(m, "*", t || []); } catch (e) {} };
   var t0 = Date.now(), done = false;
 
   if (mode === "split" && typeof cfg.seed === "number") {
@@ -1164,6 +1182,42 @@ function caxaShim(cfg) {
     var oa = window.alert, oc = window.confirm;
     window.alert = function (m) { if (RE.test(String(m))) over(true); return oa.apply(window, arguments); };
     window.confirm = function (m) { if (RE.test(String(m))) over(true); return oc.apply(window, arguments); };
+
+    // Tayangan layar: bila game memakai <canvas>, kirim cuplikan JPEG agar pemain lain melihat layar aslinya
+    // (bukan perkiraan). WebGL dipaksa menyimpan buffer supaya bisa dibaca di luar frame gambar.
+    if (cfg.vw) {
+      var ogc = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (t, o) {
+        if (typeof t === "string" && /webgl/i.test(t)) { o = Object.assign({}, o || {}); o.preserveDrawingBuffer = true; }
+        return ogc.call(this, t, o);
+      };
+      var vbusy = false, vdead = false, vcv = document.createElement("canvas"), vcx = vcv.getContext("2d");
+      var pickCanvas = function () {
+        var best = null, area = 0, cs = document.getElementsByTagName("canvas");
+        for (var i = 0; i < cs.length; i++) {
+          var r = cs[i].getBoundingClientRect(), a = r.width * r.height;
+          if (a > area && r.bottom > 0 && r.right > 0 && r.top < innerHeight && r.left < innerWidth) { best = cs[i]; area = a; }
+        }
+        return best && area >= innerWidth * innerHeight * 0.25 ? best : null;
+      };
+      setInterval(function () {
+        if (vbusy || vdead) return;
+        var src = pickCanvas();
+        if (!src || !src.width || !src.height) return;
+        vbusy = true;
+        try {
+          var r = src.getBoundingClientRect();
+          var w = cfg.vw, h = Math.max(2, Math.round(w * r.height / r.width));
+          vcv.width = w; vcv.height = h;
+          vcx.fillStyle = "#000"; vcx.fillRect(0, 0, w, h);
+          vcx.drawImage(src, 0, 0, src.width, src.height, 0, 0, w, h);
+          vcv.toBlob(function (b) {
+            if (!b) { vbusy = false; return; }
+            b.arrayBuffer().then(function (buf) { post({ caxa: 1, type: "frame", w: w, h: h, buf: buf }, [buf]); vbusy = false; }, function () { vbusy = false; });
+          }, "image/jpeg", cfg.vq || 0.55);
+        } catch (e) { vdead = true; vbusy = false; } // canvas tercemar (CORS): pakai tayangan perkiraan
+      }, Math.round(1000 / (cfg.vfps || 10)));
+    }
 
     var buf = [], timer = null;
     var flush = function () { timer = null; if (buf.length) { post({ caxa: 1, type: "input", ev: buf }); buf = []; } };
@@ -1337,9 +1391,13 @@ function playMenu(id) {
 }
 
 async function createRoom(gameId) {
-  const u = state.user, g = state.detail;
+  const u = state.user;
   if (!u) { toast("Masuk untuk membuat room.", "error"); return; }
-  if (!g || g.status !== "approved") { toast("Hanya game yang sudah dipublikasikan yang bisa dimainkan bersama.", "error"); return; }
+  let g = null;
+  if (gameId) {
+    g = state.detail;
+    if (!g || g.status !== "approved") { toast("Hanya game yang sudah dipublikasikan yang bisa dimainkan bersama.", "error"); return; }
+  }
   showLoader(true);
   try {
     for (let i = 0; i < 5; i++) {
@@ -1348,7 +1406,9 @@ async function createRoom(gameId) {
       if ((await ref.once("value")).exists()) continue;
       const mem = {};
       mem[u.uid] = { name: myName(), slot: "s1" };
-      await ref.set({ hostId: u.uid, gameId: gameId, gameTitle: g.title, gameMulti: !!g.multiplayer, status: "waiting", round: 0, createdAt: TS, members: mem, slots: { s1: u.uid } });
+      const room = { hostId: u.uid, status: "waiting", round: 0, createdAt: TS, members: mem, slots: { s1: u.uid } };
+      if (g) { room.gameId = gameId; room.gameTitle = g.title; room.gameMulti = !!g.multiplayer; }
+      await ref.set(room);
       location.hash = "#/room/" + code;
       return;
     }
@@ -1357,12 +1417,22 @@ async function createRoom(gameId) {
   finally { showLoader(false); }
 }
 
+// Dialog Room: buat room dulu (game dipilih belakangan di lobi) atau gabung dengan kode.
 function joinModal() {
-  if (!state.user) { toast("Masuk untuk bergabung ke room.", "error"); return; }
-  const m = modal('<form id="jr-form"><h3>Gabung room</h3><p>Masukkan kode room dari temanmu.</p><input type="text" id="jr" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Kode room" style="text-transform:uppercase;letter-spacing:.3em;text-align:center;font-size:26px;font-weight:800"><div class="dlg-act"><button type="button" class="btn" data-close>Batal</button><button type="submit" class="btn primary">Gabung</button></div></form>');
-  const input = $("#jr", m.el);
-  input.focus();
-  $("#jr-form", m.el).addEventListener("submit", e => { e.preventDefault(); const v = input.value; m.close(); joinRoom(v); });
+  if (!state.user) { toast("Masuk untuk memakai room.", "error"); return; }
+  const m = modal('<h3>Room multiplayer</h3><p>Buat room baru lalu pilih game di lobi, atau gabung ke room temanmu.</p><div class="choices" id="rm-ch"><button class="choice" data-m="create"><b>Buat room</b><span>Buat room dulu, pilih game belakangan di lobi.</span></button><button class="choice" data-m="join"><b>Gabung room</b><span>Masukkan kode room dari temanmu.</span></button></div><form id="jr-form" hidden><input type="text" id="jr" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Kode room" placeholder="KODE" style="text-transform:uppercase;letter-spacing:.3em;text-align:center;font-size:26px;font-weight:800"><div class="dlg-act"><button type="button" class="btn" data-back>Kembali</button><button type="submit" class="btn primary">Gabung</button></div></form><div class="dlg-act" id="rm-act"><button class="btn" data-close>Batal</button></div>');
+  const show = joinForm => {
+    $("#rm-ch", m.el).hidden = joinForm;
+    $("#rm-act", m.el).hidden = joinForm;
+    $("#jr-form", m.el).hidden = !joinForm;
+    if (joinForm) $("#jr", m.el).focus();
+  };
+  m.el.addEventListener("click", e => {
+    const b = e.target.closest("[data-m]");
+    if (b) { if (b.dataset.m === "create") { m.close(); createRoom(null); } else show(true); return; }
+    if (e.target.closest("[data-back]")) show(false);
+  });
+  $("#jr-form", m.el).addEventListener("submit", e => { e.preventDefault(); const v = $("#jr", m.el).value; m.close(); joinRoom(v); });
 }
 
 async function joinRoom(raw) {
@@ -1474,7 +1544,7 @@ function pickGame() {
 
 async function startRound() {
   const r = state.room, code = state.roomId;
-  if (!r || !state.user || Object.keys(r.members || {}).length < 2) return;
+  if (!r || !r.gameId || !state.user || Object.keys(r.members || {}).length < 2) return;
   const b = "rooms/" + code + "/";
   const up = {};
   up[b + "status"] = "playing";
@@ -1569,14 +1639,15 @@ function signal(to, msg, p) {
 
 function createPeer(id, initiator) {
   const pc = new RTCPeerConnection(ICE_CFG);
-  const p = { id: id, pc: pc, initiator: initiator, dc: null, sender: null, rs: null, pending: [], remoteSet: false, state: "connecting", audio: null };
+  const p = { id: id, pc: pc, initiator: initiator, dc: null, vdc: null, sender: null, rs: null, pending: [], remoteSet: false, state: "connecting", audio: null };
   mesh.peers[id] = p;
   pc.onicecandidate = e => { if (e.candidate) signal(id, { t: "ice", c: e.candidate.toJSON ? e.candidate.toJSON() : e.candidate }, p); };
   pc.onconnectionstatechange = () => { p.state = pc.connectionState; peerStateChanged(); };
   pc.ontrack = e => attachAudio(p, (e.streams && e.streams[0]) || new MediaStream([e.track]));
-  pc.ondatachannel = e => setupDC(p, e.channel);
+  pc.ondatachannel = e => { if (e.channel.label === "v") setupVDC(p, e.channel); else setupDC(p, e.channel); };
   if (initiator) {
     setupDC(p, pc.createDataChannel("g"));
+    setupVDC(p, pc.createDataChannel("v", { ordered: false, maxRetransmits: 0 }));
     const tr = pc.addTransceiver("audio", { direction: "sendrecv" });
     p.sender = tr.sender;
     if (mesh.micTrack) tr.sender.replaceTrack(mesh.micTrack).catch(() => {});
@@ -1665,10 +1736,26 @@ function setupDC(p, dc) {
   dc.onmessage = e => { if (typeof e.data === "string" && e.data.length < 20000) onNetData(p.id, e.data); };
 }
 
+function setupVDC(p, dc) {
+  p.vdc = dc;
+  try { dc.binaryType = "arraybuffer"; } catch (_) {}
+  dc.onopen = () => peerStateChanged();
+  dc.onclose = () => peerStateChanged();
+  dc.onmessage = e => { if (e.data instanceof ArrayBuffer) onVideoFrame(p.id, e.data); };
+}
+
 function refreshMicButtons() {
-  document.querySelectorAll('[data-act="mic-toggle"]').forEach(b => { b.textContent = mesh.micOn ? "Matikan mic" : "Nyalakan mic"; });
+  document.querySelectorAll('[data-act="mic-toggle"]').forEach(b => {
+    const t = mesh.micOn ? "Matikan mic" : "Nyalakan mic";
+    if (b.dataset.ic) { b.innerHTML = micIcon(mesh.micOn); b.title = t; b.setAttribute("aria-label", t); b.classList.toggle("on", mesh.micOn); }
+    else b.textContent = t;
+  });
   document.querySelectorAll('[data-act="mic-mute"]').forEach(b => { b.hidden = !mesh.micOn; b.textContent = mesh.micMuted ? "Aktifkan suara mic" : "Bisukan mic"; });
-  document.querySelectorAll('[data-act="mute-all"]').forEach(b => { b.textContent = voice.allMuted ? "Suarakan semua" : "Bisukan semua"; });
+  document.querySelectorAll('[data-act="mute-all"]').forEach(b => {
+    const t = voice.allMuted ? "Suarakan semua" : "Bisukan semua";
+    if (b.dataset.ic) { b.innerHTML = spkIcon(!voice.allMuted); b.title = t; b.setAttribute("aria-label", t); b.classList.toggle("off", voice.allMuted); }
+    else b.textContent = t;
+  });
 }
 function setMicFlag(on) {
   const r = state.room, u = state.user;
@@ -1705,6 +1792,8 @@ function micStop(updateDb) {
   refreshMicButtons();
 }
 
+const spkIcon = on => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4V5z"/>' + (on ? '<path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>' : '<path d="M22 9l-6 6M16 9l6 6"/>') + "</svg>";
+const flagIcon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4M5 4h12l-2.5 4L17 12H5"/></svg>';
 const micIcon = on => '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/>' + (on ? "" : '<path d="M3 3l18 18"/>') + "</svg>";
 
 /* ---- Mute dan indikator suara ---- */
@@ -1806,10 +1895,10 @@ function viewRoom() {
   if (!me) {
     if (list.length >= MAX_PLAYERS) return notFound("Room ini sudah penuh (maksimal " + MAX_PLAYERS + " pemain).");
     if (r.status === "playing") return notFound("Pertandingan di room ini sedang berlangsung.");
-    return '<section class="wrap narrow"><h1>Gabung ke room ' + esc(code) + '</h1><div class="roomgame"><div><span class="muted">Game</span><b>' + esc(r.gameTitle) + '</b></div><div><span class="muted">Pemain</span><b>' + list.length + " dari " + MAX_PLAYERS + '</b></div></div><div class="actions" style="margin-top:20px"><button class="btn primary" data-act="join-room-now" data-id="' + esc(code) + '">Gabung room</button><a class="btn" href="#/">Batal</a></div></section>';
+    return '<section class="wrap narrow"><h1>Gabung ke room ' + esc(code) + '</h1><div class="roomgame"><div><span class="muted">Game</span><b>' + esc(r.gameTitle || "Belum dipilih") + '</b></div><div><span class="muted">Pemain</span><b>' + list.length + " dari " + MAX_PLAYERS + '</b></div></div><div class="actions" style="margin-top:20px"><button class="btn primary" data-act="join-room-now" data-id="' + esc(code) + '">Gabung room</button><a class="btn" href="#/">Batal</a></div></section>';
   }
   const isHost = r.hostId === uid;
-  const canStart = list.length >= 2 && ((isHost && r.status === "waiting") || r.status === "finished");
+  const canStart = !!r.gameId && list.length >= 2 && ((isHost && r.status === "waiting") || r.status === "finished");
   const byId = {};
   list.forEach(x => { byId[x.id] = x; });
   const cards = SLOT_KEYS.map((k, idx) => {
@@ -1833,15 +1922,16 @@ function viewRoom() {
   else if (isHost) startArea = '<button class="btn primary" disabled>Mainkan</button>';
   else startArea = "";
   let wait = "";
-  if (isHost && list.length < 2) wait = "Menunggu minimal satu teman bergabung dengan kode di atas.";
+  if (!r.gameId) wait = isHost ? "Pilih game terlebih dahulu dengan tombol Pilih game." : "Menunggu host memilih game.";
+  else if (isHost && list.length < 2) wait = "Menunggu minimal satu teman bergabung dengan kode di atas.";
   else if (!isHost && r.status === "waiting") wait = "Menunggu host menekan Mainkan.";
-  const modeText = r.gameMulti ? "Game multiplayer: semua pemain berada di satu layar penuh." : "Game biasa: layar terbagi, tiap pemain memainkan game sendiri dan yang bertahan terakhir menang.";
+  const modeText = !r.gameId ? "Game belum dipilih." : r.gameMulti ? "Game multiplayer: semua pemain berada di satu layar penuh." : "Game biasa: layar terbagi, tiap pemain memainkan game sendiri dan yang bertahan terakhir menang.";
   return '<section class="wrap narrow"><h1>Room multiplayer</h1>' +
-    '<p class="muted" style="margin-top:6px">' + (isHost ? "Bagikan kode ini ke temanmu. Mereka memasukkannya lewat tombol Gabung room di menu atas." : "Anda sudah berada di room ini.") + "</p>" +
+    '<p class="muted" style="margin-top:6px">' + (isHost ? "Bagikan kode ini ke temanmu. Mereka memasukkannya lewat tombol Room di menu atas." : "Anda sudah berada di room ini.") + "</p>" +
     '<div class="roomcode"><div><span class="muted">Kode room</span><output>' + esc(code) + '</output></div><button class="btn sm" data-act="copy-code" data-id="' + esc(code) + '">Salin kode</button></div>' +
     '<div class="sec-head" style="margin:0 0 10px"><h2 style="font-size:18px">Pemain (' + list.length + "/" + MAX_PLAYERS + ')</h2></div><div class="players">' + cards + "</div>" +
     '<div class="micbar"><button class="btn" data-act="mic-toggle">' + (mesh.micOn ? "Matikan mic" : "Nyalakan mic") + '</button><button class="btn" data-act="mic-mute"' + (mesh.micOn ? "" : " hidden") + '>' + (mesh.micMuted ? "Aktifkan suara mic" : "Bisukan mic") + '</button><button class="btn" data-act="mute-all">' + (voice.allMuted ? "Suarakan semua" : "Bisukan semua") + '</button><span class="muted">Suara tersambung langsung antar pemain. Jika jaringan memblokir koneksi langsung, suara tidak akan tersambung.</span></div>' +
-    '<div class="roomgame"><div><span class="muted">Game</span><b>' + esc(r.gameTitle) + '</b><span class="muted">' + esc(modeText) + "</span></div>" + (isHost ? '<button class="btn sm" data-act="pick-game">Ganti game</button>' : "") + "</div>" +
+    '<div class="roomgame"><div><span class="muted">Game</span><b>' + esc(r.gameTitle || "Belum dipilih") + '</b><span class="muted">' + esc(modeText) + "</span></div>" + (isHost ? '<button class="btn sm" data-act="pick-game">' + (r.gameId ? "Ganti game" : "Pilih game") + "</button>" : "") + "</div>" +
     (wait ? '<p class="hint">' + esc(wait) + "</p>" : "") +
     '<div class="actions" style="margin-top:22px">' + startArea + '<button class="btn danger" data-act="leave-room">' + (isHost ? "Tutup room" : "Keluar room") + "</button></div></section>";
 }
@@ -1851,12 +1941,12 @@ function paneLabel(x, uid) {
   return '<div class="plabel" data-voice="' + esc(x.id) + '"><b>Player ' + x.slot + "</b><span>" + nameHTML(x.id, x.name) + "</span>" + (x.id === uid ? '<em class="you">Anda</em>' : "") + "</div>";
 }
 function paneEl(m, id) {
-  const kids = m.el ? m.el.children : [];
+  const kids = m.body ? m.body.children : [];
   for (let i = 0; i < kids.length; i++) if (kids[i].dataset && kids[i].dataset.pane === id) return kids[i];
   return null;
 }
 function postToFrame(f, msg) {
-  if (!f) return;
+  if (!f || f.dead) return;
   if (f.ready && f.el.contentWindow) { try { f.el.contentWindow.postMessage(msg, "*"); } catch (_) {} }
   else if (f.queue.length < 500) f.queue.push(msg);
 }
@@ -1877,27 +1967,34 @@ function startMp(r) {
   const mode = r.gameMulti ? "single" : "split";
   const m = {
     code: state.roomId, round: r.round, gameId: r.gameId, mode: mode, uid: uid, list: list, members: {}, seed: r.seed,
-    live: false, dead: false, reported: false, resultShown: false, finishing: false, seq: 0, t0: 0, tickT: null,
-    el: null, local: null, single: null, frames: {}, seen: {}, sync: {}, dbBuf: [], dbTimer: null, rtdb: [], isHost: r.hostId === uid
+    live: false, dead: false, reported: false, resultShown: false, finishing: false, seq: 0, t0: 0, tickT: null, noteT: null,
+    el: null, body: null, local: null, single: null, frames: {}, seen: {}, sync: {}, dbBuf: [], dbTimer: null, rtdb: [], isHost: r.hostId === uid,
+    vview: {}, vbusy: {}, vlast: {}, gotFrame: {}, vseq: 0
   };
   list.forEach(x => { m.members[x.id] = x; });
   mp = m;
   ensureProfiles(list.map(x => x.id));
-  const me = m.members[uid];
   const el = document.createElement("div");
   el.className = "mp " + mode;
+  const micT = mesh.micOn ? "Matikan mic" : "Nyalakan mic", spkT = voice.allMuted ? "Suarakan semua" : "Bisukan semua";
+  // Bar tipis berisi ikon saja; berada di luar area game sehingga tidak menutupi tampilan.
+  let bar = '<div class="mp-bar"><button class="ib danger" data-act="mp-surrender" title="Menyerah" aria-label="Menyerah">' + flagIcon + '</button><button class="ib' + (mesh.micOn ? " on" : "") + '" data-act="mic-toggle" data-ic="1" title="' + micT + '" aria-label="' + micT + '">' + micIcon(mesh.micOn) + '</button><button class="ib' + (voice.allMuted ? " off" : "") + '" data-act="mute-all" data-ic="1" title="' + spkT + '" aria-label="' + spkT + '">' + spkIcon(!voice.allMuted) + "</button>";
+  let body;
   if (mode === "split") {
     const n = list.length;
     const cols = n >= 4 ? 2 : 1;
     el.style.setProperty("--cols", cols);
     el.style.setProperty("--rows", Math.ceil(n / cols));
-    el.innerHTML = list.map((x, idx) => '<div class="pane' + (cols === 2 && n % 2 === 1 && idx === n - 1 ? " wide" : "") + '" data-pane="' + esc(x.id) + '">' + paneLabel(x, uid) + '<div class="pout" hidden>Game over</div></div>').join("") + '<div class="cd" id="mp-cd" aria-live="assertive"></div>';
+    body = '<div class="mp-body">' + list.map((x, idx) => '<div class="pane' + (cols === 2 && n % 2 === 1 && idx === n - 1 ? " wide" : "") + '" data-pane="' + esc(x.id) + '">' + paneLabel(x, uid) + '<div class="pout" hidden>Game over</div></div>').join("") + "</div>";
   } else {
-    el.innerHTML = '<div class="pane full" data-pane="single">' + (me ? paneLabel(me, uid) : "") + (list.length > 1 ? '<div class="vstrip">' + list.filter(x => x.id !== uid).map(x => '<span class="vchip" data-voice="' + esc(x.id) + '">' + esc(nameOf(x.id, x.name)) + "</span>").join("") + "</div>" : "") + '</div><div class="cd" id="mp-cd" aria-live="assertive"></div>';
+    bar += '<span class="vbar">' + list.map(x => '<span class="vchip" data-voice="' + esc(x.id) + '">P' + x.slot + " " + esc(nameOf(x.id, x.name)) + (x.id === uid ? " (Anda)" : "") + "</span>").join("") + "</span>";
+    body = '<div class="mp-body"><div class="pane full" data-pane="single"></div></div>';
   }
+  el.innerHTML = bar + "</div>" + body + '<div class="cd" id="mp-cd" aria-live="assertive"></div>';
   document.body.appendChild(el);
   document.body.style.overflow = "hidden";
   m.el = el;
+  m.body = $(".mp-body", el);
   applySpeaking();
   const codePromise = db.ref("gameCode/" + r.gameId).once("value").then(s => s.val());
   codePromise.catch(() => {});
@@ -1934,25 +2031,45 @@ async function launchMp(m, r, codePromise) {
     f.srcdoc = injectShim(code, cfg);
     return f;
   };
-  let localPane;
   if (m.mode === "split") {
+    const vw = n <= 2 ? 480 : n === 3 ? 400 : 320;
+    const vfps = n <= 2 ? 12 : n === 3 ? 10 : 8;
     m.list.forEach(x => {
       const pane = paneEl(m, x.id);
       if (!pane) return;
       if (x.id === m.uid) {
-        const f = build({ role: "local", mode: "split", seed: m.seed }, "Game Anda");
+        const f = build({ role: "local", mode: "split", seed: m.seed, vw: vw, vfps: vfps, vq: 0.55 }, "Game Anda");
         f.addEventListener("load", () => { try { f.contentWindow.focus(); } catch (_) {} });
         m.local = f;
         pane.insertBefore(f, pane.firstChild);
-        localPane = pane;
       } else {
+        // Layar pemain lain: jika pengirim memakai canvas, tayangan asli (cuplikan) menggantikan iframe ini
+        // dan iframe dibuang agar tidak membebani perangkat. Jika tidak, iframe memutar ulang input (perkiraan).
         const f = build({ role: "mirror", mode: "split", seed: m.seed, fps: n >= 3 ? 30 : 60 }, "Tayangan " + x.name);
         f.className = "mirror";
         f.tabIndex = -1;
         m.frames[x.id] = frameRec(f);
         pane.insertBefore(f, pane.firstChild);
+        const cv = document.createElement("canvas");
+        cv.className = "vview";
+        cv.hidden = true;
+        pane.insertBefore(cv, f.nextSibling);
+        m.vview[x.id] = cv;
       }
     });
+    m.noteT = setTimeout(() => {
+      if (m.dead) return;
+      m.list.forEach(x => {
+        if (x.id === m.uid || m.gotFrame[x.id]) return;
+        const pane = paneEl(m, x.id);
+        if (pane && !$(".pnote", pane)) {
+          const nt = document.createElement("div");
+          nt.className = "pnote";
+          nt.textContent = "Tayangan perkiraan";
+          pane.appendChild(nt);
+        }
+      });
+    }, 4500);
   } else {
     const me = m.members[m.uid];
     const players = m.list.map(x => ({ id: x.id, name: nameOf(x.id, x.name), index: x.slot }));
@@ -1961,14 +2078,8 @@ async function launchMp(m, r, codePromise) {
     f.addEventListener("load", () => { try { f.contentWindow.focus(); } catch (_) {} });
     m.local = f;
     m.single = frameRec(f);
-    localPane = paneEl(m, "single");
-    localPane.insertBefore(f, localPane.firstChild);
-  }
-  if (localPane) {
-    const ctl = document.createElement("div");
-    ctl.className = "mp-ctls";
-    ctl.innerHTML = '<button class="btn sm" data-act="mp-surrender">Menyerah</button><button class="btn sm" data-act="mic-toggle">' + (mesh.micOn ? "Matikan mic" : "Nyalakan mic") + '</button><button class="btn sm" data-act="mic-mute"' + (mesh.micOn ? "" : " hidden") + ">" + (mesh.micMuted ? "Aktifkan suara mic" : "Bisukan mic") + '</button><button class="btn sm" data-act="mute-all">' + (voice.allMuted ? "Suarakan semua" : "Bisukan semua") + "</button>";
-    localPane.appendChild(ctl);
+    const pane = paneEl(m, "single");
+    pane.insertBefore(f, pane.firstChild);
   }
   // Jalur cadangan lewat Realtime Database (dipakai bila koneksi langsung gagal).
   m.list.forEach(x => {
@@ -1981,6 +2092,52 @@ async function launchMp(m, r, codePromise) {
   m.t0 = Date.now();
   m.live = true;
   if (r.round === 1) countPlay(r.gameId, state.games[r.gameId]);
+}
+
+// Tayangan layar pemain lain: cuplikan JPEG lewat kanal data tanpa antrean (frame lama dibuang, bukan menumpuk).
+function netFrame(d) {
+  const m = mp;
+  if (!m || !m.live || m.dead || !(d.buf instanceof ArrayBuffer) || d.buf.byteLength > 200000) return;
+  const w = Math.min(65535, d.w | 0), h = Math.min(65535, d.h | 0);
+  if (w < 2 || h < 2) return;
+  const out = new Uint8Array(12 + d.buf.byteLength);
+  const dv = new DataView(out.buffer);
+  dv.setUint32(0, m.round); dv.setUint16(4, w); dv.setUint16(6, h); dv.setUint32(8, ++m.vseq);
+  out.set(new Uint8Array(d.buf), 12);
+  Object.keys(m.members).forEach(id => {
+    if (id === m.uid) return;
+    const p = mesh.peers[id];
+    if (p && p.vdc && p.vdc.readyState === "open" && p.vdc.bufferedAmount < 262144) { try { p.vdc.send(out); } catch (_) {} }
+  });
+}
+function onVideoFrame(from, buf) {
+  const m = mp;
+  if (!m || m.dead || !m.members[from] || buf.byteLength < 14) return;
+  const view = m.vview[from];
+  if (!view) return;
+  const dv = new DataView(buf);
+  if (dv.getUint32(0) !== m.round) return;
+  const seq = dv.getUint32(8);
+  if (seq <= (m.vlast[from] || 0) || m.vbusy[from]) return;
+  m.vlast[from] = seq;
+  const w = dv.getUint16(4), h = dv.getUint16(6);
+  m.vbusy[from] = true;
+  createImageBitmap(new Blob([buf.slice(12)], { type: "image/jpeg" })).then(bm => {
+    m.vbusy[from] = false;
+    if (m.dead) { bm.close(); return; }
+    if (view.width !== w || view.height !== h) { view.width = w; view.height = h; }
+    view.getContext("2d").drawImage(bm, 0, 0);
+    bm.close();
+    if (!m.gotFrame[from]) {
+      m.gotFrame[from] = true;
+      view.hidden = false;
+      const f = m.frames[from];
+      if (f) { f.dead = true; try { f.el.srcdoc = ""; f.el.remove(); } catch (_) {} }
+      const pane = paneEl(m, from);
+      const nt = pane && $(".pnote", pane);
+      if (nt) nt.remove();
+    }
+  }).catch(() => { m.vbusy[from] = false; });
 }
 
 function cleanEv(e) {
@@ -2057,13 +2214,14 @@ function onNetData(from, str) {
 // sehingga gerakan lawan tampak halus dan tidak menumpuk.
 function deliverSplit(m, from, fresh) {
   const f = m.frames[from];
-  if (!f) return;
-  const st = m.sync[from] || (m.sync[from] = { min: Infinity });
+  if (!f || f.dead) return; // layar ini sudah memakai tayangan asli
+  const st = m.sync[from] || (m.sync[from] = { min: Infinity, last: 0 });
   const now = Date.now();
-  const clean = fresh.map(cleanEv).filter(Boolean);
+  const clean = fresh.map(cleanEv).filter(Boolean).sort((a, b) => a.w - b.w);
   clean.forEach(e => { const d = now - e.w; if (d < st.min) st.min = d; });
   const base = st.min + JITTER_MS;
-  clean.forEach(e => { e.at = e.w + base; });
+  // Waktu putar tidak boleh mundur: tombol "ditekan" tidak boleh terlambat dari "dilepas".
+  clean.forEach(e => { let at = e.w + base; if (at < st.last) at = st.last; st.last = at; e.at = at; });
   if (clean.length) postToFrame(f, { caxa: 1, type: "replay", events: clean });
 }
 function deliverSingle(m, from, fresh) {
@@ -2080,6 +2238,7 @@ window.addEventListener("message", e => {
   const d = e.data;
   if (!d || d.caxa !== 1) return;
   if (d.type === "gameover") reportOut();
+  else if (d.type === "frame" && m.mode === "split") netFrame(d);
   else if (d.type === "input" && m.mode === "split" && Array.isArray(d.ev)) {
     const evs = d.ev.slice(0, 100).map(cleanEv).filter(Boolean);
     evs.forEach(x => { x.i = ++m.seq; });
@@ -2166,6 +2325,7 @@ function destroyMp(forfeit) {
   if (forfeit && m.live && !m.reported && !m.resultShown) reportOut();
   m.dead = true;
   clearTimeout(m.tickT);
+  clearTimeout(m.noteT);
   clearTimeout(m.dbTimer);
   m.rtdb.forEach(x => { try { x[0].off("child_added", x[1]); } catch (_) {} });
   if (m.el) m.el.remove();
