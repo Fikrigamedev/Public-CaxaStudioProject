@@ -223,6 +223,33 @@ textarea{resize:vertical;min-height:100px}
 .mp-ctls{position:absolute;top:8px;left:8px;z-index:4;display:flex;gap:6px;flex-wrap:wrap}
 .mp-ctls .btn{background:rgba(0,0,0,.75)}
 .pout{position:absolute;inset:0;z-index:2;display:grid;place-items:center;background:rgba(0,0,0,.72);font-weight:800;font-size:clamp(20px,5vw,34px);pointer-events:none}
+/* v4: login email, mute, indikator suara */
+input[type=email],input[type=password]{width:100%;background:#000;border:1px solid var(--line2);border-radius:8px;padding:10px 12px}
+input[type=email]:focus,input[type=password]:focus{border-color:#fff;outline:0}
+.dlg .fl{display:block;font-weight:600;font-size:14px;margin:10px 0 6px}
+.dlg .or{display:flex;align-items:center;gap:10px;color:var(--mu);font-size:13px;margin:16px 0 12px}
+.dlg .or::before,.dlg .or::after{content:"";flex:1;height:1px;background:var(--line)}
+.au-err{color:var(--bad);font-size:13px;margin:10px 0 0!important}
+.linkbtn{background:none;border:0;color:var(--mu);text-decoration:underline;cursor:pointer;font-size:13px;margin-top:12px;padding:0}
+.linkbtn:hover{color:#fff}
+.doc ul{margin:10px 0 0 18px;font-size:14px;color:#fff}
+.doc li{margin:4px 0}
+.pc-mute{margin-top:8px;align-self:flex-start}
+.pcard{transition:border-color .12s,box-shadow .12s}
+.pcard.speaking{border-color:#22c55e;box-shadow:0 0 0 2px #22c55e,0 0 18px rgba(34,197,94,.55)}
+.pcard.speaking .avatar{box-shadow:0 0 0 3px #22c55e}
+.pcard.speaking .pc-mic{color:#22c55e}
+.eq{display:none;align-items:flex-end;gap:2px;height:12px;margin-left:2px}
+.speaking .eq{display:inline-flex}
+.eq i{display:block;width:3px;height:4px;background:#22c55e;border-radius:1px;animation:eq .7s ease-in-out infinite}
+.eq i:nth-child(2){animation-delay:.15s}
+.eq i:nth-child(3){animation-delay:.3s}
+@keyframes eq{0%,100%{height:3px}50%{height:12px}}
+.plabel.speaking{border-color:#22c55e;box-shadow:0 0 0 2px #22c55e,0 0 14px rgba(34,197,94,.7)}
+.vstrip{position:absolute;left:8px;bottom:8px;z-index:4;display:flex;gap:6px;flex-wrap:wrap;max-width:70%;pointer-events:none}
+.vchip{background:rgba(0,0,0,.75);border:1px solid var(--line2);border-radius:999px;padding:2px 10px;font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vchip.speaking{border-color:#22c55e;box-shadow:0 0 0 2px #22c55e,0 0 12px rgba(34,197,94,.7)}
+@media (prefers-reduced-motion:reduce){.eq i{animation:none;height:8px}}
 @media (max-width:860px){
   .top-in{gap:10px}
   .search{order:5;flex:1 1 100%;max-width:none}
@@ -288,7 +315,7 @@ const db = firebase.database();
 const TS = firebase.database.ServerValue.TIMESTAMP;
 
 // Batas ini HARUS sama dengan yang ada di Security Rules.
-const LIMIT = { html: 250000, cover: 45000, titleMin: 3, titleMax: 60, desc: 500, nameMin: 2, nameMax: 30, photo: 13000 };
+const LIMIT = { html: 5 * 1024 * 1024, cover: 45000, titleMin: 3, titleMax: 60, desc: 500, nameMin: 2, nameMax: 30, photo: 13000 };
 const ADMIN_EMAIL = "kriiaja48@gmail.com"; // hanya untuk tampilan; penegak sebenarnya adalah Security Rules
 const GPHOTO_RE = /^https:\/\/lh[0-9]\.googleusercontent\.com\//;
 const ID_RE = /^[A-Za-z0-9_-]{6,40}$/;
@@ -305,7 +332,7 @@ const state = {
   query: "", cat: "", sort: "new",
   detail: null, detailId: null, touched: false,
   room: null, roomId: null, srvOff: 0, disc: {}, leaving: false, seenRoom: null, prevMembers: null,
-  profiles: {}, myProfile: null, ratingStats: {}, myRating: null
+  profiles: {}, myProfile: null, ratingStats: {}, myRating: null, pendingName: null
 };
 let route = { name: "home", id: null };
 let detailRef = null, detailCb = null, favRef = null, mineRef = null;
@@ -315,6 +342,7 @@ let roomRef = null, roomCb = null, mp = null, profRef = null, refreshT = null;
 const $ = (s, r) => (r || document).querySelector(s);
 const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const fmtDate = ts => ts ? new Date(ts).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-";
+const fmtBytes = n => n >= 1048576 ? (n / 1048576).toFixed(n % 1048576 ? 1 : 0) + " MB" : Math.ceil(n / 1000) + " KB";
 const fmtNum = n => new Intl.NumberFormat("id-ID").format(n || 0);
 const heart = on => `<svg width="18" height="18" viewBox="0 0 24 24" fill="${on ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>`;
 
@@ -378,7 +406,8 @@ function nameOf(uid, fb) {
   return (p && p.name) || fb || "Pengguna";
 }
 const nameHTML = (uid, fb) => esc(nameOf(uid, fb)) + (isDev(uid) ? VERIFIED : "");
-const myName = () => ((state.myProfile && state.myProfile.name) || (state.user && state.user.displayName) || "Pengguna").trim().slice(0, LIMIT.nameMax) || "Pengguna";
+const dispName = u => (u && (u.displayName || state.pendingName || (u.email ? u.email.split("@")[0] : ""))) || "Pengguna";
+const myName = () => ((state.myProfile && state.myProfile.name) || dispName(state.user)).trim().slice(0, LIMIT.nameMax) || "Pengguna";
 function avatarHTML(uid, name, cls) {
   const p = state.profiles[uid];
   let src = p && p.photo;
@@ -407,7 +436,7 @@ async function ensureProfile(u) {
     const snap = await ref.once("value");
     const admin = isAdminUser(u);
     if (!snap.exists()) {
-      const rec = { name: ((u.displayName || "Pengguna").trim().slice(0, LIMIT.nameMax)) || "Pengguna", updatedAt: TS };
+      const rec = { name: (dispName(u).trim().slice(0, LIMIT.nameMax)) || "Pengguna", updatedAt: TS };
       if (u.photoURL && u.photoURL.length <= 500 && GPHOTO_RE.test(u.photoURL)) rec.photo = u.photoURL;
       if (admin) rec.dev = true;
       await ref.set(rec);
@@ -426,7 +455,7 @@ function loadMyRating(id) {
 }
 async function rateGame(id, n) {
   const u = state.user, g = state.detail;
-  if (!u) { toast("Masuk dengan Google untuk memberi rating.", "error"); return; }
+  if (!u) { toast("Masuk untuk memberi rating.", "error"); return; }
   if (!g || g.status !== "approved") { toast("Rating hanya untuk game yang sudah dipublikasikan.", "error"); return; }
   if (g.ownerId === u.uid) { toast("Anda tidak dapat menilai game sendiri.", "error"); return; }
   if (!(n >= 1 && n <= 5)) return;
@@ -507,7 +536,7 @@ function editProfileModal() {
 }
 
 /* ====================== Auth ====================== */
-async function login() {
+async function loginGoogle() {
   const p = new firebase.auth.GoogleAuthProvider();
   p.setCustomParameters({ prompt: "select_account" });
   showLoader(true);
@@ -521,14 +550,82 @@ async function login() {
     }
   } finally { showLoader(false); }
 }
-function logout() { auth.signOut().catch(e => toast(errMsg(e), "error")); }
+function logout() { state.pendingName = null; auth.signOut().catch(e => toast(errMsg(e), "error")); }
+
+function authErr(e) {
+  const c = (e && e.code) || "";
+  const map = {
+    "auth/invalid-email": "Format email tidak valid.",
+    "auth/missing-password": "Password wajib diisi.",
+    "auth/invalid-credential": "Email atau password salah. Jika dulu Anda masuk dengan Google, gunakan tombol Google.",
+    "auth/wrong-password": "Email atau password salah.",
+    "auth/user-not-found": "Akun dengan email ini belum terdaftar.",
+    "auth/email-already-in-use": "Email ini sudah terdaftar. Silakan masuk.",
+    "auth/weak-password": "Password terlalu lemah. Gunakan minimal 6 karakter.",
+    "auth/too-many-requests": "Terlalu banyak percobaan. Coba lagi beberapa saat lagi.",
+    "auth/operation-not-allowed": "Login email belum diaktifkan. Aktifkan Email/Password di Firebase Console, Authentication, Sign-in method.",
+    "auth/user-disabled": "Akun ini dinonaktifkan.",
+    "auth/network-request-failed": "Koneksi bermasalah. Periksa internet Anda."
+  };
+  return map[c] || errMsg(e);
+}
+
+// Dialog masuk: Google atau email dan password.
+function login() {
+  if (state.user) return;
+  let mode = "in";
+  const m = modal('<h3>Masuk ke Caxa GameHub</h3><button class="btn primary" style="width:100%" data-g>Lanjutkan dengan Google</button><div class="or"><span>atau dengan email</span></div><div class="chips" style="margin-bottom:6px"><button type="button" class="chip on" data-tab="in">Masuk</button><button type="button" class="chip" data-tab="up">Daftar</button></div><form id="au-form" novalidate><div id="au-name-row" hidden><label class="fl" for="au-name">Username</label><input type="text" id="au-name" maxlength="' + LIMIT.nameMax + '" autocomplete="nickname"></div><label class="fl" for="au-email">Email</label><input type="email" id="au-email" autocomplete="email" inputmode="email"><label class="fl" for="au-pass">Password</label><input type="password" id="au-pass" autocomplete="current-password"><p class="au-err" id="au-err" role="alert" hidden></p><div class="dlg-act"><button type="button" class="btn" data-close>Batal</button><button type="submit" class="btn primary" id="au-go">Masuk</button></div><button type="button" class="linkbtn" id="au-forgot">Lupa password?</button></form>');
+  const q = id => $(id, m.el);
+  const showErr = t => { const el = q("#au-err"); el.textContent = t || ""; el.hidden = !t; };
+  m.el.addEventListener("click", e => {
+    if (e.target.closest("[data-g]")) { m.close(); loginGoogle(); return; }
+    const t = e.target.closest("[data-tab]");
+    if (!t) return;
+    mode = t.dataset.tab;
+    m.el.querySelectorAll("[data-tab]").forEach(b => b.classList.toggle("on", b === t));
+    q("#au-name-row").hidden = mode !== "up";
+    q("#au-go").textContent = mode === "up" ? "Buat akun" : "Masuk";
+    q("#au-pass").setAttribute("autocomplete", mode === "up" ? "new-password" : "current-password");
+    showErr("");
+  });
+  q("#au-forgot").addEventListener("click", async () => {
+    const email = q("#au-email").value.trim();
+    if (!email) { showErr("Isi email Anda dulu, lalu tekan Lupa password."); return; }
+    showLoader(true);
+    try { await auth.sendPasswordResetEmail(email); showErr(""); toast("Tautan atur ulang password dikirim ke " + email + ".", "ok"); }
+    catch (e) { showErr(authErr(e)); }
+    finally { showLoader(false); }
+  });
+  q("#au-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const email = q("#au-email").value.trim(), pass = q("#au-pass").value, name = q("#au-name").value.trim();
+    if (!email || !pass) { showErr("Email dan password wajib diisi."); return; }
+    if (mode === "up" && (name.length < LIMIT.nameMin || name.length > LIMIT.nameMax)) { showErr("Username harus " + LIMIT.nameMin + " sampai " + LIMIT.nameMax + " karakter."); return; }
+    if (mode === "up" && pass.length < 6) { showErr("Password minimal 6 karakter."); return; }
+    showErr("");
+    q("#au-go").disabled = true;
+    showLoader(true);
+    try {
+      if (mode === "in") await auth.signInWithEmailAndPassword(email, pass);
+      else {
+        state.pendingName = name;
+        const cred = await auth.createUserWithEmailAndPassword(email, pass);
+        try { await cred.user.updateProfile({ displayName: name }); } catch (_) {}
+        cred.user.sendEmailVerification().then(() => toast("Email verifikasi dikirim ke " + email + ".", "ok")).catch(() => {});
+      }
+      m.close();
+    } catch (err) { state.pendingName = null; showErr(authErr(err)); q("#au-go").disabled = false; }
+    finally { showLoader(false); }
+  });
+  q("#au-email").focus();
+}
 
 async function ensureUserRecord(u) {
   try {
     const ref = db.ref("users/" + u.uid);
     const snap = await ref.once("value");
     const base = {
-      name: (u.displayName || "Pengguna").slice(0, 100),
+      name: dispName(u).slice(0, 100),
       email: u.email ? u.email.slice(0, 200) : null,
       photo: u.photoURL ? u.photoURL.slice(0, 500) : null,
       lastLogin: TS
@@ -558,14 +655,14 @@ function renderAuth() {
   const box = $("#auth");
   if (!state.authReady) { box.innerHTML = ""; return; }
   const u = state.user;
-  if (!u) { box.innerHTML = '<button class="btn primary" data-act="login">Masuk dengan Google</button>'; return; }
+  if (!u) { box.innerHTML = '<button class="btn primary" data-act="login">Masuk</button>'; return; }
   box.innerHTML = '<a href="#/profile" title="Profil: ' + esc(myName()) + '" style="display:inline-flex;align-items:center;gap:6px">' + avatarHTML(u.uid, myName()) + (isDev(u.uid) ? VERIFIED : "") + '</a><button class="btn sm hide-sm" data-act="logout">Keluar</button>';
 }
 
 /* ====================== Tampilan umum ====================== */
 const loadingBlock = t => `<div class="state"><div class="spin"></div><p>${esc(t || "Memuat...")}</p></div>`;
 const notFound = t => `<section class="wrap narrow"><div class="state"><h2>Tidak ditemukan</h2><p>${esc(t)}</p><a class="btn primary" href="#/">Kembali ke beranda</a></div></section>`;
-const needLogin = t => `<section class="wrap narrow"><div class="state"><h2>Masuk diperlukan</h2><p>${esc(t)}</p><button class="btn primary" data-act="login">Masuk dengan Google</button></div></section>`;
+const needLogin = t => `<section class="wrap narrow"><div class="state"><h2>Masuk diperlukan</h2><p>${esc(t)}</p><button class="btn primary" data-act="login">Masuk</button></div></section>`;
 
 function coverHTML(g) {
   if (g.cover && String(g.cover).indexOf("data:image/") === 0) return `<img src="${esc(g.cover)}" alt="" loading="lazy">`;
@@ -661,7 +758,7 @@ function viewGame() {
           <button class="btn" data-act="share" data-id="${id}">Bagikan</button>
           ${own ? `<a class="btn" href="#/edit/${id}">Edit</a><button class="btn danger" data-act="delete" data-id="${id}">Hapus</button>` : ""}
         </div>
-        ${!u ? '<p class="hint">Masuk dengan Google agar permainan Anda dihitung dan untuk menyimpan favorit.</p>' : ""}
+        ${!u ? '<p class="hint">Masuk agar permainan Anda dihitung dan untuk menyimpan favorit.</p>' : ""}
       </div>
     </div>
   </section>`;
@@ -709,7 +806,7 @@ function viewProfile() {
 /* ====================== Form unggah / edit ====================== */
 function viewForm() {
   if (!state.authReady) return loadingBlock();
-  if (!state.user) return needLogin("Masuk dengan Google untuk mengunggah game.");
+  if (!state.user) return needLogin("Masuk untuk mengunggah game.");
   const editing = route.name === "edit";
   let g = null;
   if (editing) {
@@ -731,22 +828,13 @@ function viewForm() {
       <label>Kategori<select name="gcat" required><option value="">Pilih kategori</option>${cats.map(c => `<option value="${esc(c.id)}" ${v.category === c.id ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select></label>
       <label class="check" style="font-weight:600"><input type="checkbox" name="gmulti" ${v.multiplayer ? "checked" : ""}> Game ini mendukung multiplayer</label>
       <details class="doc"><summary>Cara menyiapkan game multiplayer</summary>
-        <p>Jika dicentang, game tampil satu layar penuh untuk semua pemain di room (hingga 5). Tiap pemain menjalankan salinan game di perangkatnya sendiri, dan game saling bertukar pesan lewat <code>window.Caxa</code>:</p>
-<pre>Caxa.ready(function (info) {
-  // info.me = { id, name, index }
-  // info.players = [{ id, name, index }, ...]
-  // info.host = true jika pemain ini host
-  // info.seed = angka acak yang sama untuk semua
-});
-Caxa.send(data);              // kirim ke semua pemain lain
-Caxa.sendTo(playerId, data);  // kirim ke satu pemain
-Caxa.onMessage(function (fromId, data) {});
-Caxa.onPlayerLeave(function (playerId) {});
-Caxa.gameOver();              // pemain ini kalah
-Caxa.finish(winnerId);        // akhiri ronde, 'draw' untuk seri</pre>
-        <p>Pesan maksimal 1800 karakter JSON. Ronde otomatis selesai jika tinggal satu pemain yang belum game over. Jika tidak dicentang, game tetap bisa dimainkan bersama teman dengan layar terbagi.</p>
+        <ul>
+          <li>Pastikan file game berisi game yang support multiplayer</li>
+          <li>Pastikan game nya online</li>
+          <li>Game dipastikan memiliki teknologi multiplayer yang lengkap</li>
+        </ul>
       </details>
-      <label>${editing ? "Ganti file game (opsional)" : "File game (.html)"}<input type="file" name="gfile" accept=".html,.htm,text/html"><small>Satu file HTML mandiri, maksimal ${Math.round(LIMIT.html / 1000)} KB. Letakkan CSS, JavaScript, dan gambar di dalam file itu sendiri. Untuk layar terbagi, panggil <code>window.Caxa &amp;&amp; Caxa.gameOver()</code> saat pemain kalah. Tanpa itu, sistem hanya mencoba mendeteksi tulisan seperti "Game Over" di layar.</small></label>
+      <label>${editing ? "Ganti file game (opsional)" : "File game (.html)"}<input type="file" name="gfile" accept=".html,.htm,text/html"><small>Satu file HTML mandiri, maksimal ${fmtBytes(LIMIT.html)}. Letakkan CSS, JavaScript, dan gambar di dalam file itu sendiri. Untuk layar terbagi, panggil <code>window.Caxa &amp;&amp; Caxa.gameOver()</code> saat pemain kalah. Tanpa itu, sistem hanya mencoba mendeteksi tulisan seperti "Game Over" di layar.</small></label>
       <label>Gambar sampul (opsional)<input type="file" name="gcover" accept="image/png,image/jpeg,image/webp,image/gif"><small>Akan dikecilkan otomatis agar di bawah ${Math.round(LIMIT.cover / 1000)} KB.</small></label>
       <div class="cover-prev" id="cover-prev" ${v.cover ? "" : "hidden"}>${v.cover ? `<img src="${esc(v.cover)}" alt="Sampul saat ini">` : ""}</div>
       ${editing && v.cover ? '<label class="check"><input type="checkbox" name="rmcover"> Hapus sampul saat ini</label>' : ""}
@@ -835,9 +923,9 @@ async function submitForm(f) {
     let code = null, cover = null;
     if (file) {
       if (!/\.html?$/i.test(file.name)) throw new Error("File harus berformat .html atau .htm.");
-      if (file.size > LIMIT.html) throw new Error("Ukuran file " + Math.ceil(file.size / 1000) + " KB melebihi batas " + Math.round(LIMIT.html / 1000) + " KB. Kecilkan ukuran gambar atau aset di dalam game.");
+      if (file.size > LIMIT.html) throw new Error("Ukuran file " + fmtBytes(file.size) + " melebihi batas " + fmtBytes(LIMIT.html) + ". Kecilkan ukuran gambar atau aset di dalam game.");
       code = await file.text();
-      if (code.length > LIMIT.html) throw new Error("Isi file melebihi batas " + Math.round(LIMIT.html / 1000) + " KB.");
+      if (code.length > LIMIT.html) throw new Error("Isi file melebihi batas " + fmtBytes(LIMIT.html) + ".");
       if (!/<\s*(!doctype|html|head|body|script|canvas|div)/i.test(code)) throw new Error("Isi file tidak terlihat seperti dokumen HTML.");
     }
     if (coverFile) cover = await makeCover(coverFile);
@@ -857,7 +945,7 @@ async function submitForm(f) {
       if (code) up["gameCode/" + id] = code;
     } else {
       const newId = db.ref("games").push().key;
-      const rec = { ownerId: u.uid, ownerName: (u.displayName || "Pengguna").slice(0, 100), title: title, category: cat, status: "pending", featured: false, createdAt: TS, updatedAt: TS };
+      const rec = { ownerId: u.uid, ownerName: dispName(u).slice(0, 100), title: title, category: cat, status: "pending", featured: false, createdAt: TS, updatedAt: TS };
       if (desc) rec.description = desc;
       if (el.gmulti.checked) rec.multiplayer = true;
       if (cover) rec.cover = cover;
@@ -877,7 +965,7 @@ async function submitForm(f) {
 
 /* ====================== Aksi ====================== */
 async function toggleFav(id) {
-  if (!state.user) { toast("Masuk dengan Google untuk menyimpan favorit.", "error"); return; }
+  if (!state.user) { toast("Masuk untuk menyimpan favorit.", "error"); return; }
   if (!ID_RE.test(id)) return;
   const ref = db.ref("favorites/" + state.user.uid + "/" + id);
   try {
@@ -1236,7 +1324,7 @@ function playMenu(id) {
   const canRoom = g.status === "approved";
   let roomNote;
   if (!canRoom) roomNote = "Tersedia setelah game dipublikasikan.";
-  else if (!state.user) roomNote = "Perlu masuk dengan Google. Buat room lalu bagikan kodenya.";
+  else if (!state.user) roomNote = "Perlu masuk akun. Buat room lalu bagikan kodenya.";
   else if (g.multiplayer) roomNote = "Hingga 5 pemain dalam satu layar penuh.";
   else roomNote = "Hingga 5 pemain. Layar terbagi, tiap pemain memainkan game sendiri.";
   const m = modal('<h3>Pilih mode permainan</h3><p>' + esc(g.title) + '</p><div class="choices"><button class="choice" data-m="solo"><b>Mainkan sendiri</b><span>Satu pemain, langsung mulai.</span></button><button class="choice" data-m="room" ' + (canRoom ? "" : "disabled") + '><b>Mainkan bersama teman</b><span>' + esc(roomNote) + '</span></button></div><div class="dlg-act"><button class="btn" data-close>Batal</button></div>');
@@ -1250,7 +1338,7 @@ function playMenu(id) {
 
 async function createRoom(gameId) {
   const u = state.user, g = state.detail;
-  if (!u) { toast("Masuk dengan Google untuk membuat room.", "error"); return; }
+  if (!u) { toast("Masuk untuk membuat room.", "error"); return; }
   if (!g || g.status !== "approved") { toast("Hanya game yang sudah dipublikasikan yang bisa dimainkan bersama.", "error"); return; }
   showLoader(true);
   try {
@@ -1270,7 +1358,7 @@ async function createRoom(gameId) {
 }
 
 function joinModal() {
-  if (!state.user) { toast("Masuk dengan Google untuk bergabung ke room.", "error"); return; }
+  if (!state.user) { toast("Masuk untuk bergabung ke room.", "error"); return; }
   const m = modal('<form id="jr-form"><h3>Gabung room</h3><p>Masukkan kode room dari temanmu.</p><input type="text" id="jr" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Kode room" style="text-transform:uppercase;letter-spacing:.3em;text-align:center;font-size:26px;font-weight:800"><div class="dlg-act"><button type="button" class="btn" data-close>Batal</button><button type="submit" class="btn primary">Gabung</button></div></form>');
   const input = $("#jr", m.el);
   input.focus();
@@ -1279,7 +1367,7 @@ function joinModal() {
 
 async function joinRoom(raw) {
   const u = state.user;
-  if (!u) { toast("Masuk dengan Google untuk bergabung ke room.", "error"); return; }
+  if (!u) { toast("Masuk untuk bergabung ke room.", "error"); return; }
   const code = String(raw || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
   if (!ROOM_RE.test(code)) { toast("Kode room terdiri dari 6 karakter huruf dan angka.", "error"); return; }
   showLoader(true);
@@ -1418,7 +1506,7 @@ function copyCode(code) {
 }
 
 /* ---- Suara dan koneksi langsung antar pemain (WebRTC, signaling lewat Realtime Database) ---- */
-const mesh = { code: null, uid: null, sid: null, peers: {}, sigRef: null, sigCb: null, micStream: null, micTrack: null, micOn: false, unsupported: false, box: null };
+const mesh = { code: null, uid: null, sid: null, peers: {}, sigRef: null, sigCb: null, micStream: null, micTrack: null, micOn: false, micMuted: false, unsupported: false, box: null };
 let peerTimer = null;
 function peerStateChanged() {
   clearTimeout(peerTimer);
@@ -1470,6 +1558,7 @@ function meshStop(clearFlag) {
   Object.keys(mesh.peers).forEach(closePeer);
   if (mesh.sigRef) { mesh.sigRef.off("child_added", mesh.sigCb); mesh.sigRef = null; }
   mesh.code = null; mesh.sid = null;
+  voice.muted = {}; voice.allMuted = false;
 }
 
 function signal(to, msg, p) {
@@ -1504,6 +1593,7 @@ function closePeer(id) {
   delete mesh.peers[id];
   try { p.pc.onicecandidate = null; p.pc.onconnectionstatechange = null; p.pc.close(); } catch (_) {}
   if (p.audio) { try { p.audio.srcObject = null; p.audio.remove(); } catch (_) {} }
+  voiceUnwatch(id);
   peerStateChanged();
 }
 
@@ -1559,6 +1649,8 @@ function attachAudio(p, stream) {
     p.audio = a;
   }
   a.srcObject = stream;
+  a.muted = isMutedPeer(p.id);
+  voiceWatch(p.id, stream);
   const pr = a.play();
   if (pr && pr.catch) pr.catch(() => {
     const kick = () => { a.play().catch(() => {}); document.removeEventListener("click", kick); };
@@ -1575,6 +1667,8 @@ function setupDC(p, dc) {
 
 function refreshMicButtons() {
   document.querySelectorAll('[data-act="mic-toggle"]').forEach(b => { b.textContent = mesh.micOn ? "Matikan mic" : "Nyalakan mic"; });
+  document.querySelectorAll('[data-act="mic-mute"]').forEach(b => { b.hidden = !mesh.micOn; b.textContent = mesh.micMuted ? "Aktifkan suara mic" : "Bisukan mic"; });
+  document.querySelectorAll('[data-act="mute-all"]').forEach(b => { b.textContent = voice.allMuted ? "Suarakan semua" : "Bisukan semua"; });
 }
 function setMicFlag(on) {
   const r = state.room, u = state.user;
@@ -1593,6 +1687,8 @@ async function micToggle() {
     mesh.micStream = stream;
     mesh.micTrack = stream.getAudioTracks()[0];
     mesh.micOn = true;
+    mesh.micMuted = false;
+    voiceWatch(state.user.uid, stream);
     Object.keys(mesh.peers).forEach(id => { const p = mesh.peers[id]; if (p.sender) p.sender.replaceTrack(mesh.micTrack).catch(() => {}); });
     setMicFlag(true);
     refreshMicButtons();
@@ -1603,12 +1699,88 @@ async function micToggle() {
 function micStop(updateDb) {
   if (mesh.micStream) mesh.micStream.getTracks().forEach(t => t.stop());
   Object.keys(mesh.peers).forEach(id => { const p = mesh.peers[id]; if (p.sender) p.sender.replaceTrack(null).catch(() => {}); });
-  mesh.micStream = null; mesh.micTrack = null; mesh.micOn = false;
+  mesh.micStream = null; mesh.micTrack = null; mesh.micOn = false; mesh.micMuted = false;
+  if (state.user) voiceUnwatch(state.user.uid);
   if (updateDb) setMicFlag(false);
   refreshMicButtons();
 }
 
 const micIcon = on => '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/>' + (on ? "" : '<path d="M3 3l18 18"/>') + "</svg>";
+
+/* ---- Mute dan indikator suara ---- */
+const voice = { ctx: null, nodes: {}, speaking: {}, muted: {}, allMuted: false, timer: null };
+const isMutedPeer = id => voice.allMuted || !!voice.muted[id];
+function voiceCtx() {
+  if (!voice.ctx) {
+    const C = window.AudioContext || window.webkitAudioContext;
+    if (!C) return null;
+    try { voice.ctx = new C(); } catch (_) { return null; }
+  }
+  if (voice.ctx.state === "suspended") voice.ctx.resume().catch(() => {});
+  return voice.ctx;
+}
+function setSpeaking(id, on) {
+  if (!!voice.speaking[id] === on) return;
+  voice.speaking[id] = on;
+  document.querySelectorAll("[data-voice]").forEach(el => { if (el.dataset.voice === id) el.classList.toggle("speaking", on); });
+}
+function applySpeaking() {
+  document.querySelectorAll("[data-voice]").forEach(el => el.classList.toggle("speaking", !!voice.speaking[el.dataset.voice]));
+}
+function voiceTick() {
+  const me = state.user && state.user.uid;
+  if (voice.ctx && voice.ctx.state === "suspended") voice.ctx.resume().catch(() => {});
+  const now = Date.now();
+  Object.keys(voice.nodes).forEach(id => {
+    const n = voice.nodes[id];
+    n.an.getByteTimeDomainData(n.buf);
+    let sum = 0;
+    for (let i = 0; i < n.buf.length; i++) { const v = (n.buf[i] - 128) / 128; sum += v * v; }
+    if (Math.sqrt(sum / n.buf.length) > 0.035) n.last = now;
+    let sp = now - n.last < 350;
+    if (id !== me && isMutedPeer(id)) sp = false;
+    setSpeaking(id, sp);
+  });
+}
+function voiceWatch(id, stream) {
+  voiceUnwatch(id);
+  if (!id || !stream || !stream.getAudioTracks().length) return;
+  const ctx = voiceCtx();
+  if (!ctx) return;
+  try {
+    const src = ctx.createMediaStreamSource(stream);
+    const an = ctx.createAnalyser();
+    an.fftSize = 512;
+    src.connect(an); // tidak disambungkan ke speaker, hanya dianalisis
+    voice.nodes[id] = { src: src, an: an, buf: new Uint8Array(an.fftSize), last: 0 };
+    if (!voice.timer) voice.timer = setInterval(voiceTick, 100);
+  } catch (_) {}
+}
+function voiceUnwatch(id) {
+  const n = voice.nodes[id];
+  if (n) { try { n.src.disconnect(); } catch (_) {} delete voice.nodes[id]; }
+  setSpeaking(id, false);
+  if (!Object.keys(voice.nodes).length && voice.timer) { clearInterval(voice.timer); voice.timer = null; }
+}
+function applyMute() {
+  Object.keys(mesh.peers).forEach(id => {
+    const p = mesh.peers[id];
+    if (p.audio) p.audio.muted = isMutedPeer(id);
+    if (isMutedPeer(id)) setSpeaking(id, false);
+  });
+  refreshMicButtons();
+  if (route.name === "room" && !mp) renderView();
+}
+function toggleMutePeer(id) { voice.muted[id] = !voice.muted[id]; applyMute(); }
+function toggleMuteAll() { voice.allMuted = !voice.allMuted; applyMute(); }
+function micMuteToggle() {
+  if (!mesh.micOn || !mesh.micTrack) return;
+  mesh.micMuted = !mesh.micMuted;
+  mesh.micTrack.enabled = !mesh.micMuted;
+  setMicFlag(!mesh.micMuted);
+  refreshMicButtons();
+  if (route.name === "room" && !mp) renderView();
+}
 
 /* ---- Halaman room (lobi) ---- */
 function voiceText(id) {
@@ -1622,7 +1794,7 @@ function voiceText(id) {
 
 function viewRoom() {
   if (!state.authReady) return loadingBlock();
-  if (!state.user) return needLogin("Masuk dengan Google untuk bergabung ke room.");
+  if (!state.user) return needLogin("Masuk untuk bergabung ke room.");
   const code = (route.id || "").toUpperCase();
   if (state.roomId === "bad" || !ROOM_RE.test(code)) return notFound("Kode room tidak valid.");
   if (state.roomId !== code) return loadingBlock("Memuat room...");
@@ -1645,10 +1817,16 @@ function viewRoom() {
     const x = id && byId[id];
     if (!x) return '<div class="pcard empty"><div class="pc-top"><span class="avatar sm">' + (idx + 1) + '</span><div class="pc-name"><b>Menunggu pemain</b><span class="muted">Player ' + (idx + 1) + "</span></div></div></div>";
     const self = id === uid;
-    const meta = self
-      ? '<span class="pc-mic ' + (x.mic ? "on" : "") + '">' + micIcon(x.mic) + (x.mic ? "Mic aktif" : "Mic mati") + "</span>"
-      : '<span class="pc-mic ' + (x.mic ? "on" : "") + '">' + micIcon(x.mic) + (x.mic ? "Berbicara" : "Mic mati") + '</span><span class="muted pc-voice">' + esc(voiceText(id)) + "</span>";
-    return '<div class="pcard"><div class="pc-top">' + avatarHTML(id, x.name, "sm") + '<div class="pc-name"><b>' + nameHTML(id, x.name) + (self ? ' <span class="badge">Anda</span>' : "") + '</b><span class="muted">Player ' + x.slot + (id === r.hostId ? ", host" : "") + "</span></div></div>" + meta + "</div>";
+    const eq = '<span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>';
+    let meta;
+    if (self) {
+      const on = mesh.micOn && !mesh.micMuted;
+      meta = '<span class="pc-mic ' + (on ? "on" : "") + '">' + micIcon(on) + (mesh.micOn ? (mesh.micMuted ? "Mic dibisukan" : "Mic aktif") : "Mic mati") + eq + "</span>";
+    } else {
+      const pm = isMutedPeer(id);
+      meta = '<span class="pc-mic ' + (x.mic && !pm ? "on" : "") + '">' + micIcon(x.mic && !pm) + (pm ? "Dibisukan oleh Anda" : (x.mic ? "Mic aktif" : "Mic mati")) + eq + '</span><span class="muted pc-voice">' + esc(voiceText(id)) + '</span><button class="btn sm pc-mute" data-act="mute-peer" data-id="' + esc(id) + '">' + (voice.muted[id] ? "Suarakan" : "Bisukan") + "</button>";
+    }
+    return '<div class="pcard" data-voice="' + esc(id) + '"><div class="pc-top">' + avatarHTML(id, x.name, "sm") + '<div class="pc-name"><b>' + nameHTML(id, x.name) + (self ? ' <span class="badge">Anda</span>' : "") + '</b><span class="muted">Player ' + x.slot + (id === r.hostId ? ", host" : "") + "</span></div></div>" + meta + "</div>";
   }).join("");
   let startArea;
   if (canStart) startArea = '<button class="btn primary" data-act="start-room">' + (r.status === "finished" ? "Main lagi" : "Mainkan") + "</button>";
@@ -1662,7 +1840,7 @@ function viewRoom() {
     '<p class="muted" style="margin-top:6px">' + (isHost ? "Bagikan kode ini ke temanmu. Mereka memasukkannya lewat tombol Gabung room di menu atas." : "Anda sudah berada di room ini.") + "</p>" +
     '<div class="roomcode"><div><span class="muted">Kode room</span><output>' + esc(code) + '</output></div><button class="btn sm" data-act="copy-code" data-id="' + esc(code) + '">Salin kode</button></div>' +
     '<div class="sec-head" style="margin:0 0 10px"><h2 style="font-size:18px">Pemain (' + list.length + "/" + MAX_PLAYERS + ')</h2></div><div class="players">' + cards + "</div>" +
-    '<div class="micbar"><button class="btn" data-act="mic-toggle">' + (mesh.micOn ? "Matikan mic" : "Nyalakan mic") + '</button><span class="muted">Suara tersambung langsung antar pemain. Jika jaringan memblokir koneksi langsung, suara tidak akan tersambung.</span></div>' +
+    '<div class="micbar"><button class="btn" data-act="mic-toggle">' + (mesh.micOn ? "Matikan mic" : "Nyalakan mic") + '</button><button class="btn" data-act="mic-mute"' + (mesh.micOn ? "" : " hidden") + '>' + (mesh.micMuted ? "Aktifkan suara mic" : "Bisukan mic") + '</button><button class="btn" data-act="mute-all">' + (voice.allMuted ? "Suarakan semua" : "Bisukan semua") + '</button><span class="muted">Suara tersambung langsung antar pemain. Jika jaringan memblokir koneksi langsung, suara tidak akan tersambung.</span></div>' +
     '<div class="roomgame"><div><span class="muted">Game</span><b>' + esc(r.gameTitle) + '</b><span class="muted">' + esc(modeText) + "</span></div>" + (isHost ? '<button class="btn sm" data-act="pick-game">Ganti game</button>' : "") + "</div>" +
     (wait ? '<p class="hint">' + esc(wait) + "</p>" : "") +
     '<div class="actions" style="margin-top:22px">' + startArea + '<button class="btn danger" data-act="leave-room">' + (isHost ? "Tutup room" : "Keluar room") + "</button></div></section>";
@@ -1670,7 +1848,7 @@ function viewRoom() {
 
 /* ---- Sesi permainan ---- */
 function paneLabel(x, uid) {
-  return '<div class="plabel"><b>Player ' + x.slot + "</b><span>" + nameHTML(x.id, x.name) + "</span>" + (x.id === uid ? '<em class="you">Anda</em>' : "") + "</div>";
+  return '<div class="plabel" data-voice="' + esc(x.id) + '"><b>Player ' + x.slot + "</b><span>" + nameHTML(x.id, x.name) + "</span>" + (x.id === uid ? '<em class="you">Anda</em>' : "") + "</div>";
 }
 function paneEl(m, id) {
   const kids = m.el ? m.el.children : [];
@@ -1715,11 +1893,12 @@ function startMp(r) {
     el.style.setProperty("--rows", Math.ceil(n / cols));
     el.innerHTML = list.map((x, idx) => '<div class="pane' + (cols === 2 && n % 2 === 1 && idx === n - 1 ? " wide" : "") + '" data-pane="' + esc(x.id) + '">' + paneLabel(x, uid) + '<div class="pout" hidden>Game over</div></div>').join("") + '<div class="cd" id="mp-cd" aria-live="assertive"></div>';
   } else {
-    el.innerHTML = '<div class="pane full" data-pane="single">' + (me ? paneLabel(me, uid) : "") + '</div><div class="cd" id="mp-cd" aria-live="assertive"></div>';
+    el.innerHTML = '<div class="pane full" data-pane="single">' + (me ? paneLabel(me, uid) : "") + (list.length > 1 ? '<div class="vstrip">' + list.filter(x => x.id !== uid).map(x => '<span class="vchip" data-voice="' + esc(x.id) + '">' + esc(nameOf(x.id, x.name)) + "</span>").join("") + "</div>" : "") + '</div><div class="cd" id="mp-cd" aria-live="assertive"></div>';
   }
   document.body.appendChild(el);
   document.body.style.overflow = "hidden";
   m.el = el;
+  applySpeaking();
   const codePromise = db.ref("gameCode/" + r.gameId).once("value").then(s => s.val());
   codePromise.catch(() => {});
   const startAt = (r.startedAt || (Date.now() + state.srvOff)) + 3000;
@@ -1788,7 +1967,7 @@ async function launchMp(m, r, codePromise) {
   if (localPane) {
     const ctl = document.createElement("div");
     ctl.className = "mp-ctls";
-    ctl.innerHTML = '<button class="btn sm" data-act="mp-surrender">Menyerah</button><button class="btn sm" data-act="mic-toggle">' + (mesh.micOn ? "Matikan mic" : "Nyalakan mic") + "</button>";
+    ctl.innerHTML = '<button class="btn sm" data-act="mp-surrender">Menyerah</button><button class="btn sm" data-act="mic-toggle">' + (mesh.micOn ? "Matikan mic" : "Nyalakan mic") + '</button><button class="btn sm" data-act="mic-mute"' + (mesh.micOn ? "" : " hidden") + ">" + (mesh.micMuted ? "Aktifkan suara mic" : "Bisukan mic") + '</button><button class="btn sm" data-act="mute-all">' + (voice.allMuted ? "Suarakan semua" : "Bisukan semua") + "</button>";
     localPane.appendChild(ctl);
   }
   // Jalur cadangan lewat Realtime Database (dipakai bila koneksi langsung gagal).
@@ -2093,6 +2272,7 @@ function renderView() {
     case "upload": case "edit": v.innerHTML = viewForm(); bindForm(); break;
     default: v.innerHTML = notFound("Halaman tidak ada.");
   }
+  applySpeaking();
 }
 // Data realtime memanggil refresh(). Dibatasi agar tidak menggambar ulang terus-menerus,
 // tidak mengganggu form yang sedang diisi, dan tidak berjalan saat permainan berlangsung.
@@ -2126,6 +2306,9 @@ document.addEventListener("click", e => {
     confirmBox({ title: "Menyerah?", text: "Anda akan dinyatakan kalah di ronde ini.", ok: "Menyerah", danger: true }).then(ok => { if (ok) reportOut(); });
   }
   else if (a === "mic-toggle") micToggle();
+  else if (a === "mic-mute") micMuteToggle();
+  else if (a === "mute-peer") toggleMutePeer(id);
+  else if (a === "mute-all") toggleMuteAll();
   else if (a === "edit-profile") editProfileModal();
   else if (a === "rate") rateGame(id, parseInt(el.dataset.n, 10));
   else if (a === "share") share(id);
