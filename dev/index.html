@@ -224,8 +224,8 @@ const STATUS = { pending: "Menunggu", approved: "Disetujui", rejected: "Ditolak"
 /* ====================== State ====================== */
 const state = {
   user: null, tab: "stats",
-  games: {}, users: {}, plays: {}, cats: {}, ratings: {},
-  loaded: { games: false, users: false, plays: false, cats: false, ratings: false },
+  games: {}, users: {}, plays: {}, cats: {}, ratings: {}, versions: {},
+  loaded: { games: false, users: false, plays: false, cats: false, ratings: false, versions: false },
   filter: { q: "", status: "all" }
 };
 let listeners = [];
@@ -317,7 +317,7 @@ function logout() { auth.signOut().catch(e => toast(errMsg(e), "error")); }
 function stopListeners() {
   listeners.forEach(l => l.ref.off("value", l.cb));
   listeners = [];
-  state.games = {}; state.users = {}; state.plays = {}; state.cats = {}; state.ratings = {};
+  state.games = {}; state.users = {}; state.plays = {}; state.cats = {}; state.ratings = {}; state.versions = {};
   Object.keys(state.loaded).forEach(k => { state.loaded[k] = false; });
 }
 function listen(path, key) {
@@ -359,6 +359,7 @@ auth.onAuthStateChanged(async u => {
   listen("plays", "plays");
   listen("categories", "cats");
   listen("ratingStats", "ratings");
+  listen("gameVersions", "versions");
 });
 
 /* ====================== Badge developer ====================== */
@@ -376,6 +377,25 @@ async function ensureAdminProfile(u) {
 /* ====================== Data helper ====================== */
 const gamesList = () => Object.keys(state.games).map(id => Object.assign({ id }, state.games[id]));
 const playsOf = id => state.plays[id] || 0;
+const VER_RE = /^(v([1-9]|10)|legacy)$/;
+const codePath = (gid, vid) => vid === "legacy" ? "gameCode/" + gid : "gameCodeV/" + gid + "/" + vid;
+// Versi baru dari game yang sudah dipublikasikan, menunggu keputusan admin.
+function pendingVers() {
+  const out = [];
+  Object.keys(state.versions).forEach(gid => {
+    const g = state.games[gid];
+    if (!g || g.status !== "approved") return;
+    const vs = state.versions[gid] || {};
+    Object.keys(vs).forEach(vid => { if (vs[vid] && vs[vid].status === "pending") out.push(Object.assign({ gid: gid, vid: vid, game: g }, vs[vid])); });
+  });
+  return out.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+}
+function verLabel(g) {
+  const vs = state.versions[g.id] || {};
+  const n = Object.keys(vs).length + (g.versioned ? 0 : 1);
+  const cur = g.currentVer && vs[g.currentVer] ? vs[g.currentVer].name : "1.0";
+  return esc(cur) + " (" + n + " versi)";
+}
 function ratingText(id) {
   const r = state.ratings[id];
   return r && r.count > 0 ? (r.sum / r.count).toFixed(1) + " dari 5 (" + fmtNum(r.count) + " penilaian)" : "belum ada";
@@ -384,7 +404,7 @@ const catName = id => (state.cats[id] && state.cats[id].name) || "Tanpa kategori
 const newest = (a, b) => (b.createdAt || 0) - (a.createdAt || 0);
 
 function updateBadge() {
-  const n = gamesList().filter(g => g.status === "pending").length;
+  const n = gamesList().filter(g => g.status === "pending").length + pendingVers().length;
   const b = $("#badge-review");
   b.textContent = n; b.hidden = n === 0;
 }
@@ -414,7 +434,7 @@ function renderShell() {
 function renderBody() {
   const body = $("#body");
   if (!body || $("#app").hidden) return;
-  const need = { stats: ["games", "users", "plays"], review: ["games"], games: ["games"], cats: ["cats", "games"], users: ["users", "games"] }[state.tab];
+  const need = { stats: ["games", "users", "plays"], review: ["games", "versions"], games: ["games"], cats: ["cats", "games"], users: ["users", "games"] }[state.tab];
   if (!need.every(k => state.loaded[k])) { body.innerHTML = '<div class="state"><div class="spin"></div><p>Memuat data...</p></div>'; return; }
   body.innerHTML = ({ stats: bodyStats, review: bodyReview, games: bodyGames, cats: bodyCats, users: bodyUsers })[state.tab]();
 }
@@ -424,7 +444,7 @@ function bodyStats() {
   const by = s => gl.filter(g => g.status === s).length;
   const total = Object.keys(state.plays).reduce((a, k) => a + (state.plays[k] || 0), 0);
   const cards = [
-    ["Pengguna", Object.keys(state.users).length], ["Total game", gl.length],
+    ["Pengguna", Object.keys(state.users).length], ["Total game", gl.length], ["Versi menunggu", pendingVers().length],
     ["Menunggu tinjauan", by("pending")], ["Dipublikasikan", by("approved")],
     ["Ditolak", by("rejected")], ["Game unggulan", gl.filter(g => g.featured).length],
     ["Total permainan", total], ["Game multiplayer", gl.filter(g => g.multiplayer).length]
@@ -449,13 +469,23 @@ function rowHTML(g) {
   if (g.status === "approved") acts.push(`<button class="btn sm" data-act="feature" data-id="${id}">${g.featured ? "Batalkan unggulan" : "Jadikan unggulan"}</button>`);
   acts.push(`<button class="btn danger sm" data-act="delete" data-id="${id}">Hapus</button>`);
   return `<article class="rowc"><div class="rthumb">${cover}</div><div><div class="rtitle">${esc(g.title)} <span class="badge ${esc(g.status)}">${esc(STATUS[g.status] || g.status)}</span>${g.featured ? '<span class="badge feat">Unggulan</span>' : ""}${g.multiplayer ? '<span class="badge mp">Multiplayer</span>' : ""}</div>
-    <div class="rmeta"><span>Pembuat: ${esc((owner && owner.name) || g.ownerName)}${owner && owner.email ? " (" + esc(owner.email) + ")" : ""}</span><span>Kategori: ${esc(catName(g.category))}</span><span>Diunggah ${fmtDate(g.createdAt)}, ${fmtNum(playsOf(g.id))} kali dimainkan</span><span>Rating: ${ratingText(g.id)}</span></div>
+    <div class="rmeta"><span>Pembuat: ${esc((owner && owner.name) || g.ownerName)}${owner && owner.email ? " (" + esc(owner.email) + ")" : ""}</span><span>Kategori: ${esc(catName(g.category))}</span><span>Versi: ${verLabel(g)}</span><span>Diunggah ${fmtDate(g.createdAt)}, ${fmtNum(playsOf(g.id))} kali dimainkan</span><span>Rating: ${ratingText(g.id)}</span></div>
     ${g.description ? `<p class="rdesc">${esc(g.description)}</p>` : ""}${g.reviewNote ? `<p class="rnote">Catatan penolakan: ${esc(g.reviewNote)}</p>` : ""}</div>
     <div class="racts">${acts.join("")}</div></article>`;
 }
+function verRowHTML(v) {
+  const id = esc(v.gid), vid = esc(v.vid);
+  return `<article class="rowc"><div class="rthumb"><div class="ph">${esc((v.name || "?").trim().charAt(0).toUpperCase())}</div></div><div><div class="rtitle">${esc(v.game.title)} <span class="badge pending">Versi ${esc(v.name)}</span></div>
+    <div class="rmeta"><span>Pembuat: ${esc((state.users[v.game.ownerId] && state.users[v.game.ownerId].name) || v.game.ownerName)}</span><span>Dikirim ${fmtDate(v.createdAt)}${v.size ? ", " + (v.size / 1048576).toFixed(2) + " MB" : ""}</span></div>
+    ${v.notes ? `<p class="rdesc">${esc(v.notes)}</p>` : ""}</div>
+    <div class="racts"><button class="btn sm" data-act="preview-ver" data-id="${id}" data-vid="${vid}">Pratinjau</button><button class="btn primary sm" data-act="approve-ver" data-id="${id}" data-vid="${vid}">Setujui</button><button class="btn sm" data-act="reject-ver" data-id="${id}" data-vid="${vid}">Tolak</button></div></article>`;
+}
 function bodyReview() {
   const list = gamesList().filter(g => g.status === "pending").sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-  return list.length ? list.map(rowHTML).join("") : '<div class="empty">Tidak ada game yang menunggu tinjauan.</div>';
+  const vers = pendingVers();
+  let html = '<h2 style="font-size:18px;margin:0 0 12px">Game baru atau diedit (' + list.length + ")</h2>" + (list.length ? list.map(rowHTML).join("") : '<div class="empty">Tidak ada game yang menunggu tinjauan.</div>');
+  html += '<h2 style="font-size:18px;margin:26px 0 12px">Versi baru (' + vers.length + ")</h2>" + (vers.length ? vers.map(verRowHTML).join("") : '<div class="empty">Tidak ada versi baru yang menunggu tinjauan.</div>');
+  return html;
 }
 function bodyGames() {
   const q = state.filter.q.trim().toLowerCase(), s = state.filter.status;
@@ -488,7 +518,30 @@ async function run(fn, okMsg) {
   finally { showLoader(false); }
 }
 async function approve(id) {
-  await run(() => db.ref().update({ ["games/" + id + "/status"]: "approved", ["games/" + id + "/reviewNote"]: null }), "Game disetujui dan dipublikasikan.");
+  const g = state.games[id];
+  const up = { ["games/" + id + "/status"]: "approved", ["games/" + id + "/reviewNote"]: null };
+  // Versi yang dikirim bersama game ikut disetujui.
+  const cv = g && g.currentVer && (state.versions[id] || {})[g.currentVer];
+  if (cv && cv.status !== "approved") { up["gameVersions/" + id + "/" + g.currentVer + "/status"] = "approved"; up["gameVersions/" + id + "/" + g.currentVer + "/reviewNote"] = null; }
+  await run(() => db.ref().update(up), "Game disetujui dan dipublikasikan.");
+}
+async function approveVer(gid, vid) {
+  const g = state.games[gid], vs = state.versions[gid] || {}, v = vs[vid];
+  if (!g || !v || !/^v([1-9]|10)$/.test(vid)) return;
+  const up = {};
+  up["gameVersions/" + gid + "/" + vid + "/status"] = "approved";
+  up["gameVersions/" + gid + "/" + vid + "/reviewNote"] = null;
+  // Versi terbaru yang disetujui menjadi versi bawaan; versi lama tetap bisa dimainkan.
+  const curAt = g.currentVer && vs[g.currentVer] ? (vs[g.currentVer].createdAt || 0) : (g.createdAt || 0);
+  if ((v.createdAt || 0) >= curAt) up["games/" + gid + "/currentVer"] = vid;
+  await run(() => db.ref().update(up), 'Versi "' + v.name + '" disetujui.');
+}
+async function rejectVer(gid, vid) {
+  const g = state.games[gid], v = (state.versions[gid] || {})[vid];
+  if (!g || !v) return;
+  const note = await promptBox({ title: 'Tolak versi "' + v.name + '"', label: "Alasan penolakan (ditampilkan kepada pembuat)", multiline: true, max: 300, ok: "Tolak versi" });
+  if (note === null) return;
+  await run(() => db.ref().update({ ["gameVersions/" + gid + "/" + vid + "/status"]: "rejected", ["gameVersions/" + gid + "/" + vid + "/reviewNote"]: note || null }), "Versi ditolak.");
 }
 async function reject(id) {
   const g = state.games[id];
@@ -505,17 +558,19 @@ async function removeGame(id) {
   const g = state.games[id];
   const ok = await confirmBox({ title: "Hapus game ini?", text: 'Game "' + (g ? g.title : "") + '" beserta kode dan statistik permainannya akan dihapus permanen.', ok: "Hapus permanen", danger: true });
   if (!ok) return;
-  await run(() => db.ref().update({ ["games/" + id]: null, ["gameCode/" + id]: null, ["plays/" + id]: null, ["ratings/" + id]: null, ["ratingStats/" + id]: null }), "Game dihapus.");
+  await run(() => db.ref().update({ ["games/" + id]: null, ["gameCode/" + id]: null, ["plays/" + id]: null, ["ratings/" + id]: null, ["ratingStats/" + id]: null, ["gameVersions/" + id]: null, ["gameCodeV/" + id]: null }), "Game dihapus.");
 }
-async function preview(id) {
+async function preview(id, vid) {
   if (!ID_RE.test(id)) return;
   const g = state.games[id];
+  const v = vid || (g && g.currentVer) || "legacy";
+  if (!VER_RE.test(v)) return;
   showLoader(true);
   try {
-    const snap = await db.ref("gameCode/" + id).once("value");
+    const snap = await db.ref(codePath(id, v)).once("value");
     const code = snap.val();
     if (typeof code !== "string" || !code) throw new Error("Kode game tidak ditemukan.");
-    openPlayer((g && g.title) || "Game", code);
+    openPlayer(((g && g.title) || "Game") + (vid ? ", versi " + (((state.versions[id] || {})[vid] || {}).name || vid) : ""), code);
   } catch (e) { toast(errMsg(e), "error"); }
   finally { showLoader(false); }
 }
@@ -569,6 +624,9 @@ document.addEventListener("click", e => {
   if (a === "login") login();
   else if (a === "logout") logout();
   else if (a === "preview") preview(id);
+  else if (a === "preview-ver") preview(id, el.dataset.vid);
+  else if (a === "approve-ver") approveVer(id, el.dataset.vid);
+  else if (a === "reject-ver") rejectVer(id, el.dataset.vid);
   else if (a === "approve") approve(id);
   else if (a === "reject") reject(id);
   else if (a === "feature") toggleFeature(id);
