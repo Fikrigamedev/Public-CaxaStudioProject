@@ -259,12 +259,33 @@ input[type=email]:focus,input[type=password]:focus{border-color:#fff;outline:0}
 .ib.off{color:var(--bad);border-color:#5c2b2b}
 .ib.danger{color:var(--bad);border-color:#5c2b2b}
 .mp-bar .vbar{display:flex;gap:6px;margin-left:auto;min-width:0;overflow:hidden}
-.mp-body{flex:1 1 0;min-height:0;position:relative}
+.mp-body{position:absolute;inset:0}
 .mp.split .mp-body{display:grid;grid-template-columns:repeat(var(--cols,1),minmax(0,1fr));grid-template-rows:repeat(var(--rows,2),minmax(0,1fr));gap:2px;background:#fff}
 .mp.single .pane.full{position:absolute;inset:0}
 .vview{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;z-index:1}
 .pnote{position:absolute;left:8px;bottom:8px;z-index:3;font-size:11px;background:rgba(0,0,0,.75);border:1px solid var(--line2);border-radius:6px;padding:1px 8px;color:var(--mu);pointer-events:none}
 .plabel{opacity:.88;padding:2px 8px}
+/* v6: layar penuh, dock, versi */
+.dock{position:absolute;left:0;top:50%;transform:translateY(-50%);z-index:60;display:flex;flex-direction:row-reverse;align-items:center}
+.dock-h{width:22px;height:46px;border:1px solid rgba(255,255,255,.35);border-left:0;border-radius:0 12px 12px 0;background:rgba(0,0,0,.55);color:#fff;display:grid;place-items:center;cursor:pointer;padding:0;opacity:.5}
+.dock-h svg{width:16px;height:16px;transition:transform .15s}
+.dock[data-open="1"] .dock-h{opacity:1}
+.dock[data-open="1"] .dock-h svg{transform:rotate(180deg)}
+.dock-i{display:none;flex-direction:column;gap:6px;padding:6px;background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.25);border-left:0}
+.dock[data-open="1"] .dock-i{display:flex}
+.dock .ib{width:34px;height:34px;background:rgba(0,0,0,.6)}
+.vchips{position:absolute;top:6px;right:6px;z-index:6;display:flex;gap:6px;pointer-events:none;max-width:80%;flex-wrap:wrap;justify-content:flex-end}
+.vchips .vchip{display:none}
+.vchips .vchip.speaking{display:inline-block}
+.rg-act{display:flex;gap:6px;flex-wrap:wrap}
+.vlist{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.vlist li{display:flex;gap:10px;justify-content:space-between;align-items:flex-start;border-top:1px solid var(--line);padding-top:10px}
+.vlist li:first-child{border-top:0;padding-top:0}
+.vl-main{min-width:0}
+.vl-meta{font-size:12px}
+.vl-notes{font-size:13px;margin-top:2px;overflow-wrap:anywhere}
+.vl-act{display:flex;gap:6px;flex:none}
+.facts select{width:auto;max-width:100%;padding:4px 8px}
 @media (max-width:860px){
   .top-in{gap:10px}
   .search{order:5;flex:1 1 100%;max-width:none}
@@ -330,10 +351,13 @@ const db = firebase.database();
 const TS = firebase.database.ServerValue.TIMESTAMP;
 
 // Batas ini HARUS sama dengan yang ada di Security Rules.
-const LIMIT = { html: 5 * 1024 * 1024, cover: 45000, titleMin: 3, titleMax: 60, desc: 500, nameMin: 2, nameMax: 30, photo: 13000 };
+const LIMIT = { html: 5 * 1024 * 1024, cover: 45000, titleMin: 3, titleMax: 60, desc: 500, nameMin: 2, nameMax: 30, photo: 13000, verName: 20, verNotes: 300 };
 const ADMIN_EMAIL = "kriiaja48@gmail.com"; // hanya untuk tampilan; penegak sebenarnya adalah Security Rules
 const GPHOTO_RE = /^https:\/\/lh[0-9]\.googleusercontent\.com\//;
 const ID_RE = /^[A-Za-z0-9_-]{6,40}$/;
+const VER_RE = /^(v([1-9]|10)|legacy)$/;
+const MAX_VERSIONS = 10;
+const codePath = (gid, vid) => vid === "legacy" ? "gameCode/" + gid : "gameCodeV/" + gid + "/" + vid;
 const ROOM_RE = /^[A-Z2-9]{6}$/;
 const ROOM_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 32 karakter, tanpa I dan O
 const STATUS = { pending: "Menunggu tinjauan", approved: "Dipublikasikan", rejected: "Ditolak" };
@@ -347,11 +371,12 @@ const state = {
   query: "", cat: "", sort: "new",
   detail: null, detailId: null, touched: false,
   room: null, roomId: null, srvOff: 0, disc: {}, leaving: false, seenRoom: null, prevMembers: null,
-  profiles: {}, myProfile: null, ratingStats: {}, myRating: null, pendingName: null
+  profiles: {}, myProfile: null, ratingStats: {}, myRating: null, pendingName: null,
+  vers: null, selVer: null, updVers: null, updFor: null, verCache: {}
 };
 let route = { name: "home", id: null };
 let detailRef = null, detailCb = null, favRef = null, mineRef = null;
-let roomRef = null, roomCb = null, mp = null, profRef = null, refreshT = null;
+let roomRef = null, roomCb = null, mp = null, profRef = null, refreshT = null, versRef = null, versCb = null;
 
 /* ====================== Util ====================== */
 const $ = (s, r) => (r || document).querySelector(s);
@@ -409,6 +434,43 @@ const playsOf = id => state.plays[id] || 0;
 const catName = id => (state.cats[id] && state.cats[id].name) || "Tanpa kategori";
 const newest = (a, b) => (b.createdAt || 0) - (a.createdAt || 0);
 const popular = (a, b) => playsOf(b.id) - playsOf(a.id) || newest(a, b);
+
+/* ====================== Versi game ====================== */
+// Game lama (sebelum ada versi) dianggap satu versi "1.0" yang kodenya tetap di gameCode/{id}.
+function versionList(g, raw) {
+  const list = Object.keys(raw || {}).filter(k => VER_RE.test(k)).map(k => Object.assign({ vid: k }, raw[k]));
+  if (g && !g.versioned && !(raw && raw.legacy)) list.push({ vid: "legacy", name: "1.0", createdAt: g.createdAt, status: "approved", virtual: true });
+  return list.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+}
+const currentVid = g => g.currentVer || "legacy";
+const playableVersions = (g, own, raw) => versionList(g, raw).filter(v => v.status === "approved" || own);
+function chosenVid(g, own) {
+  const list = playableVersions(g, own, state.vers);
+  if (state.selVer && list.some(v => v.vid === state.selVer)) return state.selVer;
+  const cur = list.find(v => v.vid === currentVid(g));
+  return cur ? cur.vid : (list.length ? list[list.length - 1].vid : null);
+}
+function verNameIn(raw, g, vid) {
+  const v = versionList(g, raw).find(x => x.vid === vid);
+  return v ? v.name : (vid === "legacy" ? "1.0" : vid);
+}
+const verPending = {};
+function ensureVers(gid) {
+  if (!gid || gid in state.verCache || verPending[gid]) return;
+  verPending[gid] = 1;
+  db.ref("gameVersions/" + gid).once("value")
+    .then(s => { state.verCache[gid] = s.val() || {}; })
+    .catch(() => { state.verCache[gid] = {}; })
+    .then(() => { delete verPending[gid]; refresh(); });
+}
+async function readGameFile(file) {
+  if (!/\.html?$/i.test(file.name)) throw new Error("File harus berformat .html atau .htm.");
+  if (file.size > LIMIT.html) throw new Error("Ukuran file " + fmtBytes(file.size) + " melebihi batas " + fmtBytes(LIMIT.html) + ". Kecilkan ukuran gambar atau aset di dalam game.");
+  const code = await file.text();
+  if (code.length > LIMIT.html) throw new Error("Isi file melebihi batas " + fmtBytes(LIMIT.html) + ".");
+  if (!/<\s*(!doctype|html|head|body|script|canvas|div)/i.test(code)) throw new Error("Isi file tidak terlihat seperti dokumen HTML.");
+  return code;
+}
 
 /* ====================== Profil dan rating (helper) ====================== */
 const VERIFIED = '<svg class="vchk" viewBox="0 0 24 24" width="16" height="16" role="img" aria-label="Developer terverifikasi"><title>Developer terverifikasi</title><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -688,7 +750,7 @@ function cardHTML(g, manage) {
   const id = esc(g.id);
   let foot;
   if (manage) {
-    foot = `<div class="manage"><span class="badge ${esc(g.status)}">${esc(STATUS[g.status] || g.status)}</span><span class="grow"></span><a class="btn sm" href="#/edit/${id}">Edit</a><button class="btn danger sm" data-act="delete" data-id="${id}">Hapus</button></div>` +
+    foot = `<div class="manage"><span class="badge ${esc(g.status)}">${esc(STATUS[g.status] || g.status)}</span><span class="grow"></span><a class="btn sm" href="#/update/${id}">Update</a><a class="btn sm" href="#/edit/${id}">Edit</a><button class="btn danger sm" data-act="delete" data-id="${id}">Hapus</button></div>` +
       (g.status === "rejected" && g.reviewNote ? `<p class="reason">Alasan penolakan: ${esc(g.reviewNote)}</p>` : "");
   } else {
     const on = !!state.favs[g.id];
@@ -740,17 +802,39 @@ function viewFavorites() {
 }
 
 /* ====================== Detail game ====================== */
+function versionsBox(id, g, own) {
+  const all = versionList(g, state.vers).filter(v => v.status === "approved" || own);
+  if (!all.length) return "";
+  const cur = currentVid(g);
+  const rows = all.slice().reverse().map(v => {
+    const st = own && v.status !== "approved" ? ' <span class="badge ' + esc(v.status) + '">' + esc(STATUS[v.status] || v.status) + "</span>" : "";
+    const del = own && v.vid !== cur && !v.virtual && v.vid !== "legacy" ? '<button class="btn danger sm" data-act="del-ver" data-id="' + id + '" data-vid="' + esc(v.vid) + '">Hapus</button>' : "";
+    return '<li><div class="vl-main"><b>' + esc(v.name) + "</b>" + (v.vid === cur ? ' <span class="badge approved">Terbaru</span>' : "") + st +
+      '<div class="muted vl-meta">' + fmtDate(v.createdAt) + (v.size ? ", " + fmtBytes(v.size) : "") + "</div>" +
+      (v.notes ? '<div class="vl-notes">' + esc(v.notes) + "</div>" : "") +
+      (own && v.status === "rejected" && v.reviewNote ? '<div class="reason">Alasan: ' + esc(v.reviewNote) + "</div>" : "") +
+      '</div><div class="vl-act"><button class="btn sm" data-act="play-ver" data-id="' + id + '" data-vid="' + esc(v.vid) + '">Mainkan</button>' + del + "</div></li>";
+  }).join("");
+  return '<details class="doc vers"><summary>Riwayat versi (' + all.length + ')</summary><ul class="vlist">' + rows + "</ul></details>";
+}
+
 function viewGame() {
-  if (state.detailId !== route.id && state.detailId !== "bad") return loadingBlock("Memuat game...");
+  if ((state.detailId !== route.id && state.detailId !== "bad") || (state.detailId === route.id && state.vers === null)) return loadingBlock("Memuat game...");
   const g = state.detail;
   const u = state.user;
   const own = !!(u && g && g.ownerId === u.uid);
   if (!g || (g.status !== "approved" && !own)) return notFound("Game ini tidak ada atau belum dipublikasikan.");
   const id = esc(route.id);
   const on = !!state.favs[route.id];
+  const plist = playableVersions(g, own, state.vers);
+  const sel = chosenVid(g, own);
+  const cur = currentVid(g);
   let banner = "";
   if (own && g.status === "pending") banner = '<div class="notice warn">Menunggu tinjauan admin. Game ini belum tampil untuk pengguna lain.</div>';
-  if (own && g.status === "rejected") banner = `<div class="notice bad">Game ditolak admin.${g.reviewNote ? " Alasan: " + esc(g.reviewNote) : ""} Perbaiki lalu kirim ulang lewat tombol Edit.</div>`;
+  if (own && g.status === "rejected") banner = `<div class="notice bad">Game ditolak admin.${g.reviewNote ? " Alasan: " + esc(g.reviewNote) : ""} Perbaiki lalu kirim ulang lewat tombol Edit, atau unggah versi baru lewat Update game.</div>`;
+  const verRow = plist.length > 1
+    ? `<select id="ver-sel" aria-label="Pilih versi">${plist.slice().reverse().map(v => `<option value="${esc(v.vid)}" ${v.vid === sel ? "selected" : ""}>${esc(v.name)}${v.vid === cur ? " (terbaru)" : ""}${v.status !== "approved" ? " [" + esc(STATUS[v.status] || v.status) + "]" : ""}</option>`).join("")}</select>`
+    : esc(plist.length ? plist[0].name : "-");
   return `<section class="wrap">
     <a class="back" href="#/">Kembali</a>
     <div class="d-grid">
@@ -760,6 +844,7 @@ function viewGame() {
         <h1>${esc(g.title)}</h1>
         <dl class="facts">
           <dt>Pembuat</dt><dd><span class="nameline">${nameHTML(g.ownerId, g.ownerName)}${isDev(g.ownerId) ? '<span class="devtag">Developer</span>' : ""}</span></dd>
+          <dt>Versi</dt><dd>${verRow}</dd>
           <dt>Mode</dt><dd>${g.multiplayer ? "Multiplayer, hingga 5 pemain" : "Satu pemain, atau bersama teman (layar terbagi)"}</dd>
           <dt>Kategori</dt><dd>${esc(catName(g.category))}</dd>
           <dt>Dimainkan</dt><dd>${fmtNum(playsOf(route.id))} kali</dd>
@@ -768,12 +853,13 @@ function viewGame() {
         ${g.description ? `<p class="desc">${esc(g.description)}</p>` : ""}
         ${ratingBox(route.id, g, own, u)}
         <div class="actions">
-          <button class="btn primary" data-act="play" data-id="${id}">Mainkan</button>
+          <button class="btn primary" data-act="play" data-id="${id}" ${sel ? "" : "disabled"}>Mainkan</button>
           <button class="btn" data-act="fav" data-id="${id}" aria-pressed="${on}">${heart(on)} ${on ? "Hapus dari favorit" : "Favorit"}</button>
           <button class="btn" data-act="share" data-id="${id}">Bagikan</button>
-          ${own ? `<a class="btn" href="#/edit/${id}">Edit</a><button class="btn danger" data-act="delete" data-id="${id}">Hapus</button>` : ""}
+          ${own ? `<a class="btn" href="#/update/${id}">Update game</a><a class="btn" href="#/edit/${id}">Edit</a><button class="btn danger" data-act="delete" data-id="${id}">Hapus</button>` : ""}
         </div>
         ${!u ? '<p class="hint">Masuk agar permainan Anda dihitung dan untuk menyimpan favorit.</p>' : ""}
+        <div style="margin-top:16px">${versionsBox(id, g, own)}</div>
       </div>
     </div>
   </section>`;
@@ -849,7 +935,11 @@ function viewForm() {
           <li>Game dipastikan memiliki teknologi multiplayer yang lengkap</li>
         </ul>
       </details>
-      <label>${editing ? "Ganti file game (opsional)" : "File game (.html)"}<input type="file" name="gfile" accept=".html,.htm,text/html"><small>Satu file HTML mandiri, maksimal ${fmtBytes(LIMIT.html)}. Letakkan CSS, JavaScript, dan gambar di dalam file itu sendiri. Untuk layar terbagi, panggil <code>window.Caxa &amp;&amp; Caxa.gameOver()</code> saat pemain kalah. Tanpa itu, sistem hanya mencoba mendeteksi tulisan seperti "Game Over" di layar.</small></label>
+      ${editing
+        ? `<div class="notice">Untuk mengganti file game, rilis versi baru lewat <a href="#/update/${esc(route.id)}" style="text-decoration:underline">Update game</a>. Versi sebelumnya tetap bisa dimainkan.</div>`
+        : `<label>Nama versi<input type="text" name="gversion" maxlength="${LIMIT.verName}" value="1.0.0" required><small>Contoh: 1.0.0. Nanti Anda bisa merilis versi baru lewat Update game, dan pemain tetap bisa memainkan versi sebelumnya.</small></label>
+      <label>Catatan versi (opsional)<textarea name="gnotes" maxlength="${LIMIT.verNotes}" rows="2"></textarea></label>
+      <label>File game (.html)<input type="file" name="gfile" accept=".html,.htm,text/html"><small>Satu file HTML mandiri, maksimal ${fmtBytes(LIMIT.html)}. Letakkan CSS, JavaScript, dan gambar di dalam file itu sendiri. Untuk layar terbagi, panggil <code>window.Caxa &amp;&amp; Caxa.gameOver()</code> saat pemain kalah. Tanpa itu, sistem hanya mencoba mendeteksi tulisan seperti "Game Over" di layar.</small></label>`}
       <label>Gambar sampul (opsional)<input type="file" name="gcover" accept="image/png,image/jpeg,image/webp,image/gif"><small>Akan dikecilkan otomatis agar di bawah ${Math.round(LIMIT.cover / 1000)} KB.</small></label>
       <div class="cover-prev" id="cover-prev" ${v.cover ? "" : "hidden"}>${v.cover ? `<img src="${esc(v.cover)}" alt="Sampul saat ini">` : ""}</div>
       ${editing && v.cover ? '<label class="check"><input type="checkbox" name="rmcover"> Hapus sampul saat ini</label>' : ""}
@@ -918,12 +1008,16 @@ async function submitForm(f) {
   const title = el.gtitle.value.trim();
   const desc = el.gdesc.value.trim();
   const cat = el.gcat.value;
-  const file = el.gfile.files[0];
+  const file = el.gfile ? el.gfile.files[0] : null;
   const coverFile = el.gcover.files[0];
+  const vname = el.gversion ? el.gversion.value.trim() : "";
+  const vnotes = el.gnotes ? el.gnotes.value.trim() : "";
 
   if (title.length < LIMIT.titleMin || title.length > LIMIT.titleMax) return toast("Nama game harus " + LIMIT.titleMin + " sampai " + LIMIT.titleMax + " karakter.", "error");
   if (desc.length > LIMIT.desc) return toast("Deskripsi maksimal " + LIMIT.desc + " karakter.", "error");
   if (!state.cats[cat]) return toast("Pilih kategori.", "error");
+  if (!editing && (vname.length < 1 || vname.length > LIMIT.verName)) return toast("Nama versi harus 1 sampai " + LIMIT.verName + " karakter.", "error");
+  if (vnotes.length > LIMIT.verNotes) return toast("Catatan versi maksimal " + LIMIT.verNotes + " karakter.", "error");
   if (!editing && !file) return toast("Pilih file HTML game.", "error");
 
   if (editing && state.mine[id] && state.mine[id].status === "approved") {
@@ -936,13 +1030,7 @@ async function submitForm(f) {
   showLoader(true);
   try {
     let code = null, cover = null;
-    if (file) {
-      if (!/\.html?$/i.test(file.name)) throw new Error("File harus berformat .html atau .htm.");
-      if (file.size > LIMIT.html) throw new Error("Ukuran file " + fmtBytes(file.size) + " melebihi batas " + fmtBytes(LIMIT.html) + ". Kecilkan ukuran gambar atau aset di dalam game.");
-      code = await file.text();
-      if (code.length > LIMIT.html) throw new Error("Isi file melebihi batas " + fmtBytes(LIMIT.html) + ".");
-      if (!/<\s*(!doctype|html|head|body|script|canvas|div)/i.test(code)) throw new Error("Isi file tidak terlihat seperti dokumen HTML.");
-    }
+    if (file) code = await readGameFile(file);
     if (coverFile) cover = await makeCover(coverFile);
 
     const up = {};
@@ -957,7 +1045,6 @@ async function submitForm(f) {
       up[base + "updatedAt"] = TS;
       if (cover) up[base + "cover"] = cover;
       else if (el.rmcover && el.rmcover.checked) up[base + "cover"] = null;
-      if (code) up["gameCode/" + id] = code;
     } else {
       const newId = db.ref("games").push().key;
       const rec = { ownerId: u.uid, ownerName: dispName(u).slice(0, 100), title: title, category: cat, status: "pending", featured: false, createdAt: TS, updatedAt: TS };
@@ -965,7 +1052,10 @@ async function submitForm(f) {
       if (el.gmulti.checked) rec.multiplayer = true;
       if (cover) rec.cover = cover;
       up["games/" + newId] = rec;
-      up["gameCode/" + newId] = code;
+      rec.versioned = true;
+      rec.currentVer = "v1";
+      up["gameVersions/" + newId + "/v1"] = Object.assign({ name: vname, createdAt: TS, size: file.size, status: "pending" }, vnotes ? { notes: vnotes } : {});
+      up["gameCodeV/" + newId + "/v1"] = code;
     }
     await db.ref().update(up);
     toast(editing ? "Perubahan dikirim untuk ditinjau." : "Game dikirim. Admin akan meninjau sebelum dipublikasikan.", "ok");
@@ -976,6 +1066,100 @@ async function submitForm(f) {
     showLoader(false);
     btn.disabled = false;
   }
+}
+
+/* ====================== Update game (versi baru) ====================== */
+function loadUpdVers(id) {
+  state.updVers = null; state.updFor = null;
+  if (!ID_RE.test(id || "")) return;
+  db.ref("gameVersions/" + id).once("value").then(s => {
+    if (route.name === "update" && route.id === id) { state.updVers = s.val() || {}; state.updFor = id; renderView(); }
+  }).catch(e => { onDbErr(e); if (route.name === "update" && route.id === id) { state.updVers = {}; state.updFor = id; renderView(); } });
+}
+function viewUpdate() {
+  if (!state.authReady) return loadingBlock();
+  if (!state.user) return needLogin("Masuk untuk memperbarui game.");
+  if (!state.loaded.mine) return loadingBlock();
+  const g = state.mine[route.id];
+  if (!g) return notFound("Game tidak ditemukan atau bukan milik Anda.");
+  if (state.updFor !== route.id || state.updVers === null) return loadingBlock("Memuat versi...");
+  const list = versionList(g, state.updVers);
+  const cur = list.find(v => v.vid === currentVid(g));
+  const used = Object.keys(state.updVers).filter(k => /^v([1-9]|10)$/.test(k)).length;
+  const full = used >= MAX_VERSIONS;
+  const approved = g.status === "approved";
+  return `<section class="wrap narrow">
+    <a class="back" href="#/game/${esc(route.id)}">Kembali</a>
+    <h1>Update game</h1>
+    <p class="muted" style="margin-top:6px">${esc(g.title)}. Versi saat ini: <b style="color:#fff">${esc(cur ? cur.name : "-")}</b>. Total ${list.length} versi.</p>
+    <div class="notice ${approved ? "" : "warn"}" style="margin-top:14px">${approved ? "Versi baru ditinjau admin dulu. Selama menunggu, versi yang sudah ada tetap tampil dan bisa dimainkan. Versi lama juga tetap bisa dimainkan setelah versi baru disetujui." : "Game ini belum dipublikasikan. Mengirim versi baru akan mengirim ulang game untuk ditinjau."}</div>
+    ${full ? `<div class="notice bad">Batas ${MAX_VERSIONS} versi tercapai. Hapus versi lama dari halaman game dulu.</div>` : ""}
+    <form id="uform" class="form" novalidate>
+      <label>Nama versi baru<input type="text" name="gversion" maxlength="${LIMIT.verName}" required placeholder="Contoh: 1.1.0"></label>
+      <label>Catatan versi (opsional)<textarea name="gnotes" maxlength="${LIMIT.verNotes}" rows="3" placeholder="Apa yang berubah di versi ini"></textarea></label>
+      <label>File game baru (.html)<input type="file" name="gfile" accept=".html,.htm,text/html"><small>Satu file HTML mandiri, maksimal ${fmtBytes(LIMIT.html)}.</small></label>
+      <div class="actions"><button class="btn primary" type="submit" id="usubmit" ${full ? "disabled" : ""}>Kirim versi baru</button><a class="btn" href="#/game/${esc(route.id)}">Batal</a></div>
+    </form>
+  </section>`;
+}
+function bindUpdate() {
+  const f = $("#uform");
+  if (!f) return;
+  const mark = () => { state.touched = true; };
+  f.addEventListener("input", mark);
+  f.addEventListener("change", mark);
+  f.addEventListener("submit", e => { e.preventDefault(); submitUpdate(f); });
+}
+async function submitUpdate(f) {
+  const u = state.user, id = route.id, g = state.mine[id];
+  if (!u || !g) return;
+  const el = f.elements;
+  const name = el.gversion.value.trim(), notes = el.gnotes.value.trim(), file = el.gfile.files[0];
+  if (name.length < 1 || name.length > LIMIT.verName) return toast("Nama versi harus 1 sampai " + LIMIT.verName + " karakter.", "error");
+  if (notes.length > LIMIT.verNotes) return toast("Catatan versi maksimal " + LIMIT.verNotes + " karakter.", "error");
+  if (!file) return toast("Pilih file HTML versi baru.", "error");
+  const raw = state.updVers || {};
+  if (versionList(g, raw).some(v => (v.name || "").toLowerCase() === name.toLowerCase())) return toast("Nama versi itu sudah dipakai. Gunakan nama lain.", "error");
+  const free = [];
+  for (let i = 1; i <= MAX_VERSIONS; i++) if (!raw["v" + i]) free.push("v" + i);
+  if (!free.length) return toast("Batas " + MAX_VERSIONS + " versi tercapai. Hapus versi lama dulu.", "error");
+  const vid = free[0];
+  const btn = $("#usubmit");
+  btn.disabled = true;
+  showLoader(true);
+  try {
+    const code = await readGameFile(file);
+    const up = {};
+    up["gameVersions/" + id + "/" + vid] = Object.assign({ name: name, createdAt: TS, size: file.size, status: "pending" }, notes ? { notes: notes } : {});
+    up["gameCodeV/" + id + "/" + vid] = code;
+    if (g.status !== "approved") {
+      const b = "games/" + id + "/";
+      up[b + "currentVer"] = vid;
+      up[b + "status"] = "pending";
+      up[b + "reviewNote"] = null;
+      up[b + "updatedAt"] = TS;
+    }
+    await db.ref().update(up);
+    toast(g.status === "approved" ? "Versi baru dikirim. Admin akan meninjau; versi lama tetap bisa dimainkan." : "Versi baru dikirim untuk ditinjau.", "ok");
+    location.hash = "#/game/" + id;
+  } catch (e) { toast(errMsg(e), "error"); btn.disabled = false; }
+  finally { showLoader(false); }
+}
+async function delVersion(id, vid) {
+  if (!state.user || !ID_RE.test(id) || !/^v([1-9]|10)$/.test(vid)) return;
+  const nm = verNameIn(state.vers, state.detail, vid);
+  const ok = await confirmBox({ title: "Hapus versi ini?", text: 'Versi "' + nm + '" akan dihapus permanen dan tidak bisa dimainkan lagi.', ok: "Hapus versi", danger: true });
+  if (!ok) return;
+  showLoader(true);
+  try {
+    const up = {};
+    up["gameVersions/" + id + "/" + vid] = null;
+    up["gameCodeV/" + id + "/" + vid] = null;
+    await db.ref().update(up);
+    if (state.selVer === vid) state.selVer = null;
+    toast("Versi dihapus.", "ok");
+  } catch (e) { toast(errMsg(e), "error"); }
+  finally { showLoader(false); }
 }
 
 /* ====================== Aksi ====================== */
@@ -998,6 +1182,8 @@ async function deleteGame(id) {
     const up = {};
     up["games/" + id] = null;
     up["gameCode/" + id] = null;
+    up["gameVersions/" + id] = null;
+    up["gameCodeV/" + id] = null;
     up["plays/" + id] = null;
     up["ratings/" + id] = null;
     up["ratingStats/" + id] = null;
@@ -1032,12 +1218,14 @@ function countPlay(id, g) {
   db.ref("plays/" + id).transaction(c => (c || 0) + 1).catch(() => {});
 }
 
-async function playGame(id) {
+async function playGame(id, vid) {
   if (!ID_RE.test(id)) return;
   const g = state.detail;
+  const v = vid || (g ? chosenVid(g, !!(state.user && g.ownerId === state.user.uid)) : null);
+  if (!v || !VER_RE.test(v)) { toast("Belum ada versi yang bisa dimainkan.", "error"); return; }
   showLoader(true);
   try {
-    const snap = await db.ref("gameCode/" + id).once("value");
+    const snap = await db.ref(codePath(id, v)).once("value");
     const code = snap.val();
     if (typeof code !== "string" || !code) throw new Error("Kode game tidak tersedia atau belum dipublikasikan.");
     openPlayer((g && g.title) || "Game", code);
@@ -1046,10 +1234,34 @@ async function playGame(id) {
   finally { showLoader(false); }
 }
 
+/* Dock: tombol berupa ikon di tepi kiri layar, bisa dilipat, agar game memenuhi seluruh layar. */
+const ico = d => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + "</svg>";
+const icoExit = ico('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>');
+const icoFs = ico('<path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/>');
+function dockHTML(items) {
+  return '<div class="dock" data-open="0"><button type="button" class="dock-h" data-dock="toggle" aria-label="Menu" title="Menu">' + ico('<path d="M9 18l6-6-6-6"/>') + '</button><div class="dock-i">' + items + "</div></div>";
+}
+function bindDock(root) {
+  const d = $(".dock", root);
+  if (!d) return;
+  let t = null;
+  const set = open => {
+    d.dataset.open = open ? "1" : "0";
+    clearTimeout(t);
+    if (open) t = setTimeout(() => set(false), 5000);
+  };
+  d.addEventListener("click", e => {
+    if (e.target.closest("[data-dock]")) set(d.dataset.open !== "1");
+    else if (e.target.closest("button")) set(true);
+  });
+  set(true);
+}
+
 function openPlayer(title, code) {
   const w = document.createElement("div");
   w.className = "player";
-  w.innerHTML = `<div class="pbar"><strong>${esc(title)}</strong>${document.fullscreenEnabled ? '<button class="btn sm" data-p="fs">Layar penuh</button>' : ""}<button class="btn primary sm" data-p="close">Tutup</button></div><iframe title="${esc(title)}" sandbox="allow-scripts allow-pointer-lock allow-modals" referrerpolicy="no-referrer" allow="fullscreen" allowfullscreen></iframe>`;
+  const items = '<button class="ib danger" data-p="close" title="Keluar" aria-label="Keluar">' + icoExit + "</button>" + (document.fullscreenEnabled ? '<button class="ib" data-p="fs" title="Layar penuh" aria-label="Layar penuh">' + icoFs + "</button>" : "");
+  w.innerHTML = `<iframe title="${esc(title)}" sandbox="allow-scripts allow-pointer-lock allow-modals" referrerpolicy="no-referrer" allow="fullscreen" allowfullscreen></iframe>` + dockHTML(items);
   const close = () => {
     document.removeEventListener("keydown", onKey);
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
@@ -1061,11 +1273,13 @@ function openPlayer(title, code) {
     const b = e.target.closest("[data-p]");
     if (!b) return;
     if (b.dataset.p === "close") close();
+    else if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     else if (w.requestFullscreen) w.requestFullscreen().catch(() => {});
   });
   document.addEventListener("keydown", onKey);
   document.body.style.overflow = "hidden";
   document.body.appendChild(w);
+  bindDock(w);
   // Tanpa "allow-same-origin": game berjalan di origin terpisah dan tidak bisa
   // membaca halaman, cookie, localStorage, maupun sesi Firebase kita.
   $("iframe", w).srcdoc = code;
@@ -1375,22 +1589,26 @@ function modal(html) {
 function playMenu(id) {
   const g = state.detail;
   if (!g) return;
-  const canRoom = g.status === "approved";
+  const own = !!(state.user && g.ownerId === state.user.uid);
+  const vid = chosenVid(g, own);
+  if (!vid) { toast("Belum ada versi yang bisa dimainkan.", "error"); return; }
+  const ver = versionList(g, state.vers).find(v => v.vid === vid);
+  const canRoom = g.status === "approved" && !!ver && ver.status === "approved";
   let roomNote;
-  if (!canRoom) roomNote = "Tersedia setelah game dipublikasikan.";
+  if (!canRoom) roomNote = "Tersedia setelah game dan versi ini dipublikasikan.";
   else if (!state.user) roomNote = "Perlu masuk akun. Buat room lalu bagikan kodenya.";
   else if (g.multiplayer) roomNote = "Hingga 5 pemain dalam satu layar penuh.";
   else roomNote = "Hingga 5 pemain. Layar terbagi, tiap pemain memainkan game sendiri.";
-  const m = modal('<h3>Pilih mode permainan</h3><p>' + esc(g.title) + '</p><div class="choices"><button class="choice" data-m="solo"><b>Mainkan sendiri</b><span>Satu pemain, langsung mulai.</span></button><button class="choice" data-m="room" ' + (canRoom ? "" : "disabled") + '><b>Mainkan bersama teman</b><span>' + esc(roomNote) + '</span></button></div><div class="dlg-act"><button class="btn" data-close>Batal</button></div>');
+  const m = modal('<h3>Pilih mode permainan</h3><p>' + esc(g.title) + (ver ? ", versi " + esc(ver.name) : "") + '</p><div class="choices"><button class="choice" data-m="solo"><b>Mainkan sendiri</b><span>Satu pemain, langsung mulai.</span></button><button class="choice" data-m="room" ' + (canRoom ? "" : "disabled") + '><b>Mainkan bersama teman</b><span>' + esc(roomNote) + '</span></button></div><div class="dlg-act"><button class="btn" data-close>Batal</button></div>');
   m.el.addEventListener("click", e => {
     const b = e.target.closest("[data-m]");
     if (!b || b.disabled) return;
     m.close();
-    if (b.dataset.m === "solo") playGame(id); else createRoom(id);
+    if (b.dataset.m === "solo") playGame(id, vid); else createRoom(id, vid);
   });
 }
 
-async function createRoom(gameId) {
+async function createRoom(gameId, vid) {
   const u = state.user;
   if (!u) { toast("Masuk untuk membuat room.", "error"); return; }
   let g = null;
@@ -1407,7 +1625,7 @@ async function createRoom(gameId) {
       const mem = {};
       mem[u.uid] = { name: myName(), slot: "s1" };
       const room = { hostId: u.uid, status: "waiting", round: 0, createdAt: TS, members: mem, slots: { s1: u.uid } };
-      if (g) { room.gameId = gameId; room.gameTitle = g.title; room.gameMulti = !!g.multiplayer; }
+      if (g) { room.gameId = gameId; room.gameTitle = g.title; room.gameMulti = !!g.multiplayer; room.gameVer = vid || currentVid(g); }
       await ref.set(room);
       location.hash = "#/room/" + code;
       return;
@@ -1535,6 +1753,7 @@ function pickGame() {
       up[base + "gameId"] = b.dataset.id;
       up[base + "gameTitle"] = g.title;
       up[base + "gameMulti"] = !!g.multiplayer;
+      up[base + "gameVer"] = currentVid(g);
       await db.ref().update(up);
       toast("Game room diganti.", "ok");
     } catch (err) { toast(errMsg(err), "error"); }
@@ -1542,9 +1761,28 @@ function pickGame() {
   });
 }
 
+function pickVersion() {
+  const r = state.room, g = r && state.games[r.gameId];
+  if (!r || !g || !state.user || r.hostId !== state.user.uid || r.status === "playing") return;
+  db.ref("gameVersions/" + r.gameId).once("value").then(snap => {
+    const list = versionList(g, snap.val() || {}).filter(v => v.status === "approved").reverse();
+    state.verCache[r.gameId] = snap.val() || {};
+    const m = modal('<h3>Pilih versi</h3><div class="pick-list" id="pv-list">' + list.map(v => '<button class="pick" data-vid="' + esc(v.vid) + '"><b>' + esc(v.name) + (v.vid === currentVid(g) ? " (terbaru)" : "") + (v.vid === (r.gameVer || "legacy") ? " [dipakai]" : "") + '</b><span class="muted">' + fmtDate(v.createdAt) + (v.notes ? ", " + esc(v.notes) : "") + "</span></button>").join("") + '</div><div class="dlg-act"><button class="btn" data-close>Tutup</button></div>');
+    $("#pv-list", m.el).addEventListener("click", async e => {
+      const b = e.target.closest("[data-vid]");
+      if (!b) return;
+      m.close();
+      showLoader(true);
+      try { await db.ref("rooms/" + state.roomId + "/gameVer").set(b.dataset.vid); toast("Versi room diganti.", "ok"); }
+      catch (err) { toast(errMsg(err), "error"); }
+      finally { showLoader(false); }
+    });
+  }).catch(e => toast(errMsg(e), "error"));
+}
+
 async function startRound() {
   const r = state.room, code = state.roomId;
-  if (!r || !r.gameId || !state.user || Object.keys(r.members || {}).length < 2) return;
+  if (!r || !r.gameId || !r.gameVer || !state.user || Object.keys(r.members || {}).length < 2) return;
   const b = "rooms/" + code + "/";
   const up = {};
   up[b + "status"] = "playing";
@@ -1898,7 +2136,7 @@ function viewRoom() {
     return '<section class="wrap narrow"><h1>Gabung ke room ' + esc(code) + '</h1><div class="roomgame"><div><span class="muted">Game</span><b>' + esc(r.gameTitle || "Belum dipilih") + '</b></div><div><span class="muted">Pemain</span><b>' + list.length + " dari " + MAX_PLAYERS + '</b></div></div><div class="actions" style="margin-top:20px"><button class="btn primary" data-act="join-room-now" data-id="' + esc(code) + '">Gabung room</button><a class="btn" href="#/">Batal</a></div></section>';
   }
   const isHost = r.hostId === uid;
-  const canStart = !!r.gameId && list.length >= 2 && ((isHost && r.status === "waiting") || r.status === "finished");
+  const canStart = !!r.gameId && !!r.gameVer && list.length >= 2 && ((isHost && r.status === "waiting") || r.status === "finished");
   const byId = {};
   list.forEach(x => { byId[x.id] = x; });
   const cards = SLOT_KEYS.map((k, idx) => {
@@ -1931,7 +2169,7 @@ function viewRoom() {
     '<div class="roomcode"><div><span class="muted">Kode room</span><output>' + esc(code) + '</output></div><button class="btn sm" data-act="copy-code" data-id="' + esc(code) + '">Salin kode</button></div>' +
     '<div class="sec-head" style="margin:0 0 10px"><h2 style="font-size:18px">Pemain (' + list.length + "/" + MAX_PLAYERS + ')</h2></div><div class="players">' + cards + "</div>" +
     '<div class="micbar"><button class="btn" data-act="mic-toggle">' + (mesh.micOn ? "Matikan mic" : "Nyalakan mic") + '</button><button class="btn" data-act="mic-mute"' + (mesh.micOn ? "" : " hidden") + '>' + (mesh.micMuted ? "Aktifkan suara mic" : "Bisukan mic") + '</button><button class="btn" data-act="mute-all">' + (voice.allMuted ? "Suarakan semua" : "Bisukan semua") + '</button><span class="muted">Suara tersambung langsung antar pemain. Jika jaringan memblokir koneksi langsung, suara tidak akan tersambung.</span></div>' +
-    '<div class="roomgame"><div><span class="muted">Game</span><b>' + esc(r.gameTitle || "Belum dipilih") + '</b><span class="muted">' + esc(modeText) + "</span></div>" + (isHost ? '<button class="btn sm" data-act="pick-game">' + (r.gameId ? "Ganti game" : "Pilih game") + "</button>" : "") + "</div>" +
+    '<div class="roomgame"><div><span class="muted">Game</span><b>' + esc(r.gameTitle || "Belum dipilih") + '</b>' + (r.gameId ? '<span class="muted">Versi ' + esc(verNameIn(state.verCache[r.gameId], state.games[r.gameId], r.gameVer || "legacy")) + "</span>" : "") + '<span class="muted">' + esc(modeText) + "</span></div>" + (isHost ? '<div class="rg-act">' + (r.gameId ? '<button class="btn sm" data-act="pick-ver">Versi</button>' : "") + '<button class="btn sm" data-act="pick-game">' + (r.gameId ? "Ganti game" : "Pilih game") + "</button></div>" : "") + "</div>" +
     (wait ? '<p class="hint">' + esc(wait) + "</p>" : "") +
     '<div class="actions" style="margin-top:22px">' + startArea + '<button class="btn danger" data-act="leave-room">' + (isHost ? "Tutup room" : "Keluar room") + "</button></div></section>";
 }
@@ -1977,9 +2215,13 @@ function startMp(r) {
   const el = document.createElement("div");
   el.className = "mp " + mode;
   const micT = mesh.micOn ? "Matikan mic" : "Nyalakan mic", spkT = voice.allMuted ? "Suarakan semua" : "Bisukan semua";
-  // Bar tipis berisi ikon saja; berada di luar area game sehingga tidak menutupi tampilan.
-  let bar = '<div class="mp-bar"><button class="ib danger" data-act="mp-surrender" title="Menyerah" aria-label="Menyerah">' + flagIcon + '</button><button class="ib' + (mesh.micOn ? " on" : "") + '" data-act="mic-toggle" data-ic="1" title="' + micT + '" aria-label="' + micT + '">' + micIcon(mesh.micOn) + '</button><button class="ib' + (voice.allMuted ? " off" : "") + '" data-act="mute-all" data-ic="1" title="' + spkT + '" aria-label="' + spkT + '">' + spkIcon(!voice.allMuted) + "</button>";
-  let body;
+  // Game memenuhi seluruh layar. Tombol berupa ikon di dock tepi kiri yang bisa dilipat.
+  const items = '<button class="ib danger" data-act="mp-exit" title="Keluar dari room" aria-label="Keluar dari room">' + icoExit + "</button>" +
+    (document.fullscreenEnabled ? '<button class="ib" data-act="mp-fs" title="Layar penuh" aria-label="Layar penuh">' + icoFs + "</button>" : "") +
+    '<button class="ib danger" data-act="mp-surrender" title="Menyerah" aria-label="Menyerah">' + flagIcon + "</button>" +
+    '<button class="ib' + (mesh.micOn ? " on" : "") + '" data-act="mic-toggle" data-ic="1" title="' + micT + '" aria-label="' + micT + '">' + micIcon(mesh.micOn) + "</button>" +
+    '<button class="ib' + (voice.allMuted ? " off" : "") + '" data-act="mute-all" data-ic="1" title="' + spkT + '" aria-label="' + spkT + '">' + spkIcon(!voice.allMuted) + "</button>";
+  let body, chips = "";
   if (mode === "split") {
     const n = list.length;
     const cols = n >= 4 ? 2 : 1;
@@ -1987,16 +2229,18 @@ function startMp(r) {
     el.style.setProperty("--rows", Math.ceil(n / cols));
     body = '<div class="mp-body">' + list.map((x, idx) => '<div class="pane' + (cols === 2 && n % 2 === 1 && idx === n - 1 ? " wide" : "") + '" data-pane="' + esc(x.id) + '">' + paneLabel(x, uid) + '<div class="pout" hidden>Game over</div></div>').join("") + "</div>";
   } else {
-    bar += '<span class="vbar">' + list.map(x => '<span class="vchip" data-voice="' + esc(x.id) + '">P' + x.slot + " " + esc(nameOf(x.id, x.name)) + (x.id === uid ? " (Anda)" : "") + "</span>").join("") + "</span>";
+    // Nama pemain hanya muncul saat sedang berbicara, supaya tidak menutupi game.
+    chips = '<div class="vchips">' + list.map(x => '<span class="vchip" data-voice="' + esc(x.id) + '">P' + x.slot + " " + esc(nameOf(x.id, x.name)) + (x.id === uid ? " (Anda)" : "") + "</span>").join("") + "</div>";
     body = '<div class="mp-body"><div class="pane full" data-pane="single"></div></div>';
   }
-  el.innerHTML = bar + "</div>" + body + '<div class="cd" id="mp-cd" aria-live="assertive"></div>';
+  el.innerHTML = body + chips + dockHTML(items) + '<div class="cd" id="mp-cd" aria-live="assertive"></div>';
   document.body.appendChild(el);
   document.body.style.overflow = "hidden";
   m.el = el;
   m.body = $(".mp-body", el);
+  bindDock(el);
   applySpeaking();
-  const codePromise = db.ref("gameCode/" + r.gameId).once("value").then(s => s.val());
+  const codePromise = db.ref(codePath(r.gameId, r.gameVer || "legacy")).once("value").then(s => s.val());
   codePromise.catch(() => {});
   const startAt = (r.startedAt || (Date.now() + state.srvOff)) + 3000;
   const cd = $("#mp-cd", el);
@@ -2365,6 +2609,7 @@ function onRoomUpdate() {
   const me = r.members && r.members[u.uid];
   const isHost = r.hostId === u.uid;
   ensureProfiles(list.map(x => x.id));
+  ensureVers(r.gameId);
   if (me) { setupDisconnect(r); meshStart(); meshSync(list); } else { meshStop(false); }
 
   const cur = {};
@@ -2405,18 +2650,23 @@ function onRoute() {
   state.leaving = false;
   attachRoom();
   if (detailRef) { detailRef.off("value", detailCb); detailRef = null; }
-  state.detail = null; state.detailId = null; state.myRating = null;
+  if (versRef) { versRef.off("value", versCb); versRef = null; }
+  state.detail = null; state.detailId = null; state.myRating = null; state.vers = null; state.selVer = null;
+  if (route.name === "update") loadUpdVers(route.id);
   if (route.name === "game") {
     const rid = route.id;
     loadMyRating(rid);
     if (!ID_RE.test(rid || "")) { state.detailId = "bad"; }
     else {
       detailCb = s => { if (route.id !== rid) return; state.detail = s.val(); state.detailId = rid; renderView(); };
+      versCb = s => { if (route.id !== rid) return; state.vers = s.val() || {}; renderView(); };
+      versRef = db.ref("gameVersions/" + rid);
+      versRef.on("value", versCb, e => { if (route.id !== rid) return; state.vers = {}; onDbErr(e); renderView(); });
       detailRef = db.ref("games/" + rid);
       detailRef.on("value", detailCb, e => { if (route.id !== rid) return; state.detail = null; state.detailId = rid; onDbErr(e); renderView(); });
     }
   }
-  const navKey = route.name === "edit" ? "upload" : route.name;
+  const navKey = route.name === "edit" || route.name === "update" ? "upload" : route.name;
   document.querySelectorAll("[data-nav]").forEach(a => a.classList.toggle("on", a.dataset.nav === navKey));
   window.scrollTo(0, 0);
   renderView();
@@ -2430,6 +2680,7 @@ function renderView() {
     case "profile": v.innerHTML = viewProfile(); break;
     case "room": v.innerHTML = viewRoom(); break;
     case "upload": case "edit": v.innerHTML = viewForm(); bindForm(); break;
+    case "update": v.innerHTML = viewUpdate(); bindUpdate(); break;
     default: v.innerHTML = notFound("Halaman tidak ada.");
   }
   applySpeaking();
@@ -2441,7 +2692,7 @@ function refresh() {
   refreshT = setTimeout(() => {
     refreshT = null;
     if (mp && route.name === "room") return;
-    if ((route.name === "upload" || route.name === "edit") && state.touched) return;
+    if ((route.name === "upload" || route.name === "edit" || route.name === "update") && state.touched) return;
     renderView();
   }, 60);
 }
@@ -2465,6 +2716,16 @@ document.addEventListener("click", e => {
   else if (a === "mp-surrender") {
     confirmBox({ title: "Menyerah?", text: "Anda akan dinyatakan kalah di ronde ini.", ok: "Menyerah", danger: true }).then(ok => { if (ok) reportOut(); });
   }
+  else if (a === "mp-exit") leaveRoom();
+  else if (a === "mp-fs") {
+    if (mp && mp.el) {
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+      else if (mp.el.requestFullscreen) mp.el.requestFullscreen().catch(() => {});
+    }
+  }
+  else if (a === "play-ver") { state.selVer = el.dataset.vid; playMenu(id); }
+  else if (a === "del-ver") delVersion(id, el.dataset.vid);
+  else if (a === "pick-ver") pickVersion();
   else if (a === "mic-toggle") micToggle();
   else if (a === "mic-mute") micMuteToggle();
   else if (a === "mute-peer") toggleMutePeer(id);
@@ -2477,6 +2738,7 @@ document.addEventListener("click", e => {
 });
 document.addEventListener("change", e => {
   if (e.target.id === "sort") { state.sort = e.target.value; renderView(); }
+  if (e.target.id === "ver-sel") { state.selVer = e.target.value; renderView(); }
 });
 let qTimer = null;
 $("#q").addEventListener("input", e => {
