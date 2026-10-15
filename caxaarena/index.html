@@ -435,6 +435,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf
       <button class="lb-back" onclick="handleGo('menu')" aria-label="Kembali">&#10094;</button>
       <div class="lb-title"><b id="lbTitleB">CLASSIC</b><span id="lbTitleS">DRAFT PICK &middot; 5 VS 5</span></div>
       <div class="lb-hint" id="lobbyHint">Pilih hero untuk dimainkan</div>
+      <button id="lbCode" class="lb-emb hidden" onclick="olCopyCode()"><span class="eb" style="background:#2a3a66">&#10697;</span><span class="et"><b id="lbCodeTxt">-----</b><small id="lbCodeSm">Salin kode tim</small></span></button>
       <button class="lb-emb" onclick="openEmblemModal()"><span class="eb" id="lbEmbIcon">E</span><span class="et"><b id="lbEmbName">EMBLEM</b><small id="lbEmbLv">Lv 1</small></span></button>
     </div>
     <div class="lb-body">
@@ -2939,7 +2940,7 @@ function joinRoom(){
     if(!ms[FB.user.uid]){
       if(data.state!=='lobby'){olMsg('Tim sedang bermain.');return;}
       if(Object.keys(ms).length>=5){olMsg('Tim sudah penuh (maks 5).');return;}
-      return withTimeout(ref.child('members/'+FB.user.uid).set(myMember(freeHeroFor(ms))),12000).then(function(){olMsg('');watchRoom(code);});
+      return withTimeout(ref.child('members/'+FB.user.uid).set(myMember(freeHeroFor(ms),freeRoleFor(ms))),12000).then(function(){olMsg('');watchRoom(code);});
     }
     olMsg('');watchRoom(code);
   }).catch(function(e){olMsg('Gagal masuk: '+fbErr(e));});
@@ -3038,7 +3039,7 @@ function r1(v){return Math.round((v||0)*10)/10;}
 function lref(p){return FB.db.ref('rooms/'+FB.room.code+'-L'+(p?'/'+p:''));}
 function sendCmd(c){c.u=FB.user.uid;lref('cmd').push(c);}
 function myInput(){var mx=0,my=0,K=G.keys;if(K['w']||K['arrowup'])my--;if(K['s']||K['arrowdown'])my++;if(K['a']||K['arrowleft'])mx--;if(K['d']||K['arrowright'])mx++;
-  if(Input.joyActive){mx=Input.joyX;my=Input.joyY;var m=Math.hypot(mx,my);if(m>1){mx/=m;my/=m;}if(m<0.15){mx=0;my=0;}}return{mx:mx,my:my};}
+  if(Input.joyActive){mx=Input.joyX;my=Input.joyY;var m=Math.hypot(mx,my);if(m>1){mx/=m;my/=m;}if(m<0.15){mx=0;my=0;}}return{mx:fin(mx),my:fin(my)};}
 function addItemBonus(h,it){var b=h.itemBonus,s=it.stat;if(s==='regen'){b.hpRegen+=it.val;b.mpRegen+=10;}else if(b[s]!==undefined)b[s]+=it.val;}
 function watchRoom(code){
   if(FB.unsub)FB.unsub();FB.started=false;
@@ -3096,7 +3097,10 @@ startMatch=function(a,b,c,d){_startMatch(a,b,c,d);if(FBM.mode==='pending')online
 function onlinePostStart(){
   var me=FB.user.uid,i,n=0,bi=[];
   FBM.offs.forEach(function(f){try{f();}catch(e){}});FBM.offs=[];
+  if(FB.unsub){FB.unsub();FB.unsub=null;}
   FBM.host=FB.room.data.host===me;FBM.mode=FBM.host?'host':'client';
+  var hr=FB.db.ref('rooms/'+FB.room.code+'/host'),c5=hr.on('value',function(s){if(!s.exists()&&!G.ended&&!FBM.host){notify('Host keluar. Pertandingan dibubarkan.','red');setTimeout(function(){handleGo('menu');},2500);}});
+  FBM.offs.push(function(){hr.off('value',c5);});
   FBM.hero={};FBM.in={};FBM.inAt={};FBM.ev=[];FBM.mm={};FBM.mo={};FBM.pz=false;FBM.first=true;FBM.win=null;FBM.T=G.turrets.slice();FBM.C=G.cores.slice();
   for(i=0;i<ROLES.length;i++){if(teamComp[i])bi[i]=n++;if(enemyComp[i])n++;}
   installOnlineHooks();
@@ -3107,8 +3111,8 @@ function onlinePostStart(){
   if(FBM.host){
     for(var u in FBM.roles){if(u===me)continue;var h=G.heroes[bi[FBM.roles[u]]];if(h){h.isRemote=true;h.uid=u;FBM.hero[u]=h;FBM.inAt[u]=performance.now();}}
     var ri=lref('in'),rc=lref('cmd');
-    var c1=ri.on('value',function(s){var v=s.val()||{};for(var k in v)if(!FBM.in[k]||FBM.in[k].n!==v[k].n)FBM.inAt[k]=performance.now();FBM.in=v;});
-    var c2=rc.on('child_added',function(s){var c=s.val();s.ref.remove();try{hostCmd(c);}catch(e){console.error(e);}});
+    var c1=ri.on('value',function(s){var v=s.val()||{};for(var k in v)if(!FBM.in[k]||FBM.in[k].n!==v[k].n)FBM.inAt[k]=performance.now();FBM.in=v;},liveErr);
+    var c2=rc.on('child_added',function(s){var c=s.val();s.ref.remove();try{hostCmd(c);}catch(e){console.error(e);}},liveErr);
     FBM.offs.push(function(){ri.off('value',c1);rc.off('child_added',c2);});
   }else{
     var p=G.playerHero;G.waveTimer=1e9;G.camps=[];
@@ -3117,12 +3121,12 @@ function onlinePostStart(){
       sendCmd({k:'s',i:i,a:a==null?null:+(+a).toFixed(3),f:f==null?null:+(+f).toFixed(3),x:r0(G.mouse.wx),y:r0(G.mouse.wy)});return true;};
     p.buyItem=function(id){sendCmd({k:'b',id:id});return true;};
     p.useRegen=function(){sendCmd({k:'r'});return true;};
-    var sr=lref('snap'),c3=sr.on('value',function(s){var v=s.val();if(v)try{applySnap(JSON.parse(v));}catch(e){console.error(e);}});
+    var sr=lref('snap'),c3=sr.on('value',function(s){var v=s.val();if(v)try{applySnap(JSON.parse(v));}catch(e){liveErr(e);}},liveErr);
     FBM.offs.push(function(){sr.off('value',c3);});
   }
   notify(FBM.host?'Kamu host. Tim online siap bertanding!':'Terhubung ke host. Satu tim!','blue');
 }
-function stopOnline(){FBM.offs.forEach(function(f){try{f();}catch(e){}});FBM.offs=[];FBM.mode=null;FBM.sk=null;try{leaveRoom(true);}catch(e){}}
+function stopOnline(){FBM.offs.forEach(function(f){try{f();}catch(e){}});FBM.offs=[];FBM.mode=null;FBM.sk=null;FBM.lobbyOpen=false;try{leaveRoom(true);}catch(e){}}
 function hostCmd(c){
   var h=FBM.hero[c.u];if(!h||h.dead||G.ended)return;
   if(c.k==='s'){
@@ -3245,7 +3249,7 @@ function installOnlineHooks(){
     if(!FBM.mode||FBM.mode==='pending')return _tp();
     if(!G.running||G.ended)return;FBM.pz=!FBM.pz;showScreen(FBM.pz?'screen-pause':null);
   };
-  var _hg=handleGo;handleGo=function(){if(FBM.mode)stopOnline();return _hg.apply(this,arguments);};
+  var _hg=handleGo;handleGo=function(){if(FBM.mode||FBM.lobbyOpen)stopOnline();return _hg.apply(this,arguments);};
   setInterval(function(){
     var t=performance.now();
     if(FBM.mode==='host'&&document.hidden&&G.running&&!G.paused&&!G.ended){
@@ -3256,14 +3260,17 @@ function installOnlineHooks(){
   },50);
   setInterval(function(){
     if(FBM.mode!=='host'||!G.running||!FB.room)return;
-    lref('snap').set(packSnap()).catch(function(){});
+    lref('snap').set(packSnap()).catch(liveErr);
   },125);
   setInterval(function(){
-    if(FBM.mode!=='client'||!G.running||G.ended||!FB.room||!G.playerHero)return;
-    var me=G.playerHero,q=myInput(),att=(Input.attackHeld||FBM.atk)?1:0,fa=+Math.atan2(G.mouse.wy-me.y,G.mouse.wx-me.x).toFixed(1),now=performance.now();
-    FBM.atk=0;
-    var tm=G.settings.targetMode==='low'?'low':'near',key=[q.mx.toFixed(2),q.my.toFixed(2),att,fa,tm].join();
-    if(key!==FBM.lk||now-FBM.ls>1000){FBM.lk=key;FBM.ls=now;FBM.n++;lref('in/'+FB.user.uid).set({mx:+q.mx.toFixed(2),my:+q.my.toFixed(2),att:att,fa:fa,tm:tm,n:FBM.n}).catch(function(){});}
+    try{
+      if(FBM.mode!=='client'||!G.running||G.ended||!FB.room||!G.playerHero)return;
+      var me=G.playerHero,q=myInput(),att=(Input.attackHeld||FBM.atk)?1:0,now=performance.now();
+      var fa=Math.atan2(G.mouse.wy-me.y,G.mouse.wx-me.x);if(!isFinite(fa))fa=fin(me.facing,0);fa=+fa.toFixed(1);
+      FBM.atk=0;
+      var mx=+fin(q.mx).toFixed(2),my=+fin(q.my).toFixed(2),tm=G.settings.targetMode==='low'?'low':'near',key=[mx,my,att,fa,tm].join();
+      if(key!==FBM.lk||now-FBM.ls>1000){FBM.lk=key;FBM.ls=now;FBM.n++;lref('in/'+FB.user.uid).set({mx:mx,my:my,att:att,fa:fa,tm:tm,n:FBM.n}).catch(liveErr);}
+    }catch(e){liveErr(e);}
   },80);
 }
 
@@ -3277,6 +3284,156 @@ function olSetHero(k){
 }
 function setTargetMode(m){G.settings.targetMode=(m==='low')?'low':'near';try{Sfx.ui();}catch(e){}saveSettings();applyTargetUI();}
 function applyTargetUI(){var b=document.querySelectorAll('#segTarget button');for(var i=0;i<b.length;i++)b[i].classList.toggle('on',b[i].dataset.v===(G.settings.targetMode||'near'));}
+
+/* ===== LOBBY ONLINE (tampilan lobby biasa + kode tim) ===== */
+function fin(v,d){return(typeof v==='number'&&isFinite(v))?v:(d||0);}
+function liveErr(e){
+  var m=String((e&&(e.code||e.message))||e),t=performance.now();
+  if(FBM.le&&FBM.le.m===m&&t-FBM.le.t<8000)return;FBM.le={m:m,t:t};console.error('[online]',e);
+  var txt=/PERMISSION/i.test(m)?'Data pertandingan ditolak server (Rules Database). Izinkan baca/tulis "rooms" untuk user login.':'Masalah online: '+m;
+  try{if(FBM.mode)notify(txt,'red');else olMsg(txt);}catch(x){}
+}
+function lref(p){return FB.db.ref('rooms/'+FB.room.code+'/live'+(p?'/'+p:''));}
+function sendCmd(c){c.u=FB.user.uid;try{lref('cmd').push(c).catch(liveErr);}catch(e){liveErr(e);}}
+function myMember(hero,role){hero=hero||'aegis';return{name:userName(),hero:hero,skin:(PROFILE.skin&&PROFILE.skin[hero])||'base',role:role==null?1:role,t:Date.now()};}
+function freeRoleFor(ms){var u={};Object.keys(ms).forEach(function(k){u[ms[k].role]=1;});var o=[1,2,0,3,4];for(var i=0;i<5;i++)if(!u[o[i]])return o[i];return 1;}
+function resolveRoles(ms){
+  var ids=Object.keys(ms).sort(function(a,c){return(ms[a].t||0)-(ms[c].t||0);}).slice(0,5),R={},Hh={},uR={},uH={},keys=Object.keys(HERO_DEFS);
+  ids.forEach(function(id){
+    var m=ms[id],r=m.role;
+    if(!(r>=0&&r<5)||uR[r])r=[1,2,0,3,4].filter(function(x){return !uR[x];})[0];
+    uR[r]=1;R[id]=r;
+    var k=m.hero;if(!HERO_DEFS[k]||uH[k])k=keys.filter(function(x){return !uH[x];})[0];
+    uH[k]=1;Hh[id]=k;
+  });
+  return{ids:ids,role:R,hero:Hh};
+}
+function olSync(){
+  if(!FB.room||!FB.user)return;var k=teamComp[playerRole];if(!k)return;
+  FB.db.ref('rooms/'+FB.room.code+'/members/'+FB.user.uid).update({hero:k,role:playerRole,skin:(PROFILE.skin&&PROFILE.skin[k])||'base'}).catch(liveErr);
+}
+function olApplyRoom(){
+  var ms=FB.room.data.members||{},rs=resolveRoles(ms),me=FB.user.uid;
+  teamComp=[null,null,null,null,null];enemyComp=[null,null,null,null,null];
+  rs.ids.forEach(function(id){teamComp[rs.role[id]]=rs.hero[id];});
+  if(rs.role[me]!==undefined){
+    playerRole=rs.role[me];activeSlot=playerRole;selectedHeroKey=rs.hero[me];
+    var m=ms[me];if(m.role!==rs.role[me]||m.hero!==rs.hero[me])olSync();
+  }
+}
+function openOnlineLobby(){
+  try{
+    FBM.lobbyOpen=true;lobbyMode='online';heroFilter='Semua';
+    var tb=document.getElementById('lbTitleB'),ts=document.getElementById('lbTitleS');
+    if(tb)tb.textContent='ONLINE';if(ts)ts.textContent='TIM ONLINE \u00b7 LAWAN AI';
+    buildTabs();closeEmblemModal();showScreen('screen-lobby');olApplyRoom();refreshLobby();
+  }catch(e){showErr('openOnlineLobby: '+e.message);}
+}
+function olLeaveUI(){FBM.lobbyOpen=false;if(lobbyMode==='online')lobbyMode='classic';try{showScreen('screen-online');}catch(e){}olRender();}
+function olCopyCode(){
+  var c=FB.room&&FB.room.code;if(!c)return;
+  function done(){var s=document.getElementById('lbCodeSm');if(s){s.textContent='Tersalin!';setTimeout(function(){s.textContent='Salin kode tim';},1500);}try{Sfx.ui();}catch(e){}}
+  function fb(){var t=document.createElement('textarea');t.value=c;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();try{document.execCommand('copy');}catch(e){}document.body.removeChild(t);done();}
+  try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(c).then(done,fb);return;}}catch(e){}
+  fb();
+}
+function olSlots(){
+  var box=document.getElementById('mySlots');if(!box)return;box.innerHTML='';
+  var d=FB.room.data,ms=d.members||{},rs=resolveRoles(ms),me=FB.user.uid,host=d.host===me,byRole={};
+  rs.ids.forEach(function(id){byRole[rs.role[id]]=id;});
+  for(var i=0;i<ROLES.length;i++)(function(i){
+    var id=byRole[i],el=document.createElement('div'),rn=ROLES[i].name.replace(' LANE','');
+    if(!id){
+      el.className='lb-slot empty';
+      el.innerHTML='<div class="plus">AI</div><div class="si"><small>'+rn+'</small><b>Bot AI</b></div>';
+      el.onclick=function(){setRole(i);};
+    }else{
+      var k=rs.hero[id],mine=id===me;
+      el.className='lb-slot'+(mine?' active':'');
+      var cv=document.createElement('canvas');cv.width=68;cv.height=68;el.appendChild(cv);
+      var si=document.createElement('div');si.className='si';
+      si.innerHTML='<small>'+rn+(id===d.host?' &#9733;':'')+'</small><b>'+esc(ms[id].name||'-')+'</b>';el.appendChild(si);
+      el.insertAdjacentHTML('beforeend','<div class="you">'+(mine?'ANDA':esc(HERO_DEFS[k].name))+'</div>');
+      if(host&&!mine){var x=document.createElement('button');x.className='x';x.textContent='\u2715';x.onclick=function(e){e.stopPropagation();olKick(id);};el.appendChild(x);}
+      drawPortrait2(cv,mine?skinDef(k):HERO_DEFS[k],TEAM_BLUE);
+    }
+    box.appendChild(el);
+  })(i);
+  var tc=document.getElementById('teamCount');if(tc)tc.textContent=rs.ids.length+'/5';
+  var es=document.getElementById('enemySlots');if(es)es.innerHTML='';
+}
+var _o_rts=refreshTeamSlots;refreshTeamSlots=function(){if(lobbyMode==='online'&&FB.room)return olSlots();return _o_rts();};
+var _o_sel=selectHero;selectHero=function(key){
+  if(lobbyMode!=='online')return _o_sel(key);
+  var i=teamComp.indexOf(key);
+  if(i>=0&&i!==playerRole){try{Sfx.ui();}catch(e){}var lh=document.getElementById('lobbyHint');if(lh)lh.textContent=HERO_DEFS[key].name+' sudah dipakai teman satu tim';return;}
+  teamComp[playerRole]=key;selectedHeroKey=key;try{Sfx.ui();}catch(e){}olSync();refreshLobby();
+};
+var _o_role=setRole;setRole=function(i){
+  if(lobbyMode!=='online')return _o_role(i);
+  if(i===playerRole||teamComp[i])return;
+  teamComp[i]=teamComp[playerRole];teamComp[playerRole]=null;playerRole=i;activeSlot=i;try{Sfx.ui();}catch(e){}olSync();refreshLobby();
+};
+var _o_skin=equipSkin;equipSkin=function(key,id){_o_skin(key,id);if(lobbyMode==='online')olSync();};
+var _o_rl=refreshLobby;refreshLobby=function(){
+  _o_rl();
+  var chip=document.getElementById('lbCode'),on=lobbyMode==='online'&&FB.room;
+  if(chip)chip.classList.toggle('hidden',!on);
+  if(!on)return;
+  var ct=document.getElementById('lbCodeTxt');if(ct)ct.textContent=FB.room.code;
+  var host=FB.room.data.host===FB.user.uid,st=document.getElementById('btnStartMatch');
+  if(st){st.disabled=!host||!selectedHeroKey;st.textContent=host?'MULAI':'MENUNGGU HOST';}
+  var n=Object.keys(FB.room.data.members||{}).length,lh=document.getElementById('lobbyHint');
+  if(lh&&selectedHeroKey)lh.textContent='Hero: '+HERO_DEFS[selectedHeroKey].name+' \u00b7 '+ROLES[playerRole].name+' \u00b7 '+n+'/5 pemain, sisa slot diisi bot AI';
+  var le=document.querySelector('.lb-enemy');if(le)le.style.display='none';
+};
+var _o_hsm=handleStartMatch;handleStartMatch=function(){
+  if(lobbyMode!=='online')return _o_hsm();
+  if(FB.room&&FB.room.data.host===FB.user.uid){try{Sfx.ui();}catch(e){}startRoom();}
+};
+function startRoom(){
+  if(!FB.room||FB.room.data.host!==FB.user.uid)return;
+  var ms=FB.room.data.members||{},rs=resolveRoles(ms),roles={},sk={b:[],r:[]},i;
+  lobbyMode='classic';teamComp=[null,null,null,null,null];enemyComp=[null,null,null,null,null];
+  rs.ids.forEach(function(id){teamComp[rs.role[id]]=rs.hero[id];roles[id]=rs.role[id];});
+  for(i=0;i<5;i++)if(!teamComp[i])addBot(i);
+  generateEnemy();
+  rs.ids.forEach(function(id){var r=rs.role[id],k=rs.hero[id],sid=ms[id].skin;sk.b[r]=(sid&&getSkins(k).some(function(s){return s.id===sid;}))?sid:'base';});
+  for(i=0;i<5;i++){if(teamComp[i]&&!sk.b[i])sk.b[i]=randomSkinId(teamComp[i]);if(enemyComp[i])sk.r[i]=randomSkinId(enemyComp[i]);}
+  var comp=JSON.stringify({b:teamComp,r:enemyComp,roles:roles,sk:sk});
+  lref().remove().catch(function(){}).then(function(){return FB.db.ref('rooms/'+FB.room.code).update({comp:comp,state:'playing'});}).catch(liveErr);
+}
+function leaveRoom(silent){
+  var r=FB.room;if(FB.unsub){FB.unsub();FB.unsub=null;}FB.room=null;FB.started=false;FBM.lobbyOpen=false;
+  if(!r||!FB.user)return;
+  var ref=FB.db.ref('rooms/'+r.code);
+  if(r.data.host===FB.user.uid)ref.remove().catch(function(){});
+  else ref.child('members/'+FB.user.uid).remove().catch(function(){});
+  if(!silent)olLeaveUI();
+}
+function watchRoom(code){
+  if(FB.unsub)FB.unsub();FB.started=false;
+  var ref=FB.db.ref('rooms/'+code),uid=FB.user.uid;
+  if(!FBM.mode)ref.child('members/'+uid).onDisconnect().remove();
+  var cb=ref.on('value',function(snap){
+    if(!snap.exists()){
+      var was=FB.room;FB.room=null;if(FB.unsub){FB.unsub();FB.unsub=null;}
+      if(FBM.mode&&was&&!G.ended){notify('Host keluar. Pertandingan dibubarkan.','red');setTimeout(function(){handleGo('menu');},2500);}
+      else{olMsg('Tim dibubarkan oleh host.');olLeaveUI();}
+      return;
+    }
+    var data=snap.val();data.members=data.members||{};FB.room={code:code,data:data};
+    if(data.host===uid&&!FBM.mode&&data.state!=='playing')ref.onDisconnect().remove();
+    if(!data.members[uid]){
+      if(FBM.mode){ref.child('members/'+uid).set({name:userName(),hero:teamComp[playerRole]||'aegis',skin:'base',role:playerRole,t:Date.now()}).catch(liveErr);return;}
+      FB.room=null;if(FB.unsub){FB.unsub();FB.unsub=null;}olMsg('Kamu dikeluarkan dari tim.');olLeaveUI();return;
+    }
+    if(data.state==='lobby')FB.started=false;
+    if(data.state==='playing'&&!FB.started){FB.started=true;FBM.lobbyOpen=false;startOnline();return;}
+    if(!FBM.mode&&data.state!=='playing'){if(!FBM.lobbyOpen)openOnlineLobby();else{olApplyRoom();refreshLobby();}}
+  },function(e){olMsg('Koneksi tim terputus: '+fbErr(e));});
+  FB.unsub=function(){ref.off('value',cb);};
+}
 
 /* ===== MATCH FLOW ===== */
 function startMatch(playerKey,teamComp,enemyComp,playerRole){
