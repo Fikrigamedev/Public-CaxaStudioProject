@@ -825,6 +825,19 @@ var HERO_DEFS={
       {name:'Tebasan Naga Giok',icon:'Q',cd:6.5,cost:50,type:'custom',fx:'dragonslash',aimAs:'line',range:420,width:90,desc:'Roh naga giok menyapu lurus ke depan: damage dan slow 30% selama 1,5 detik pada semua musuh yang tertembus.'},
       {name:'Formasi Bagua',icon:'E',cd:13,cost:70,type:'custom',fx:'bagua',aimAs:'area',range:440,radius:160,desc:'Lingkaran Bagua 4,5 detik: musuh di dalamnya melambat 40% dan terkena denyut damage. Xin Yuan di dalamnya lebih cepat dan mendapat perisai tiap denyut.'},
       {name:'Tarian Naga Langit',icon:'R',cd:40,cost:130,type:'custom',fx:'dragon',aimAs:'self',radius:230,desc:'Naga merah-emas mengitarinya 4 detik: melukai musuh di sekitar dan menambah kecepatan Xin Yuan. Di akhir, naga mengaum: damage besar dan stun 0,8 detik.'}
+    ]},
+  louise:{name:'LOUISE',role:'Fighter',color:'#ff6fa8',accent:'#7fe8ff',weapon:'mecha',
+    desc:'Gadis jenius bertema robot. Selalu ditemani robot raksasa pendamping yang ikut menghajar target yang ia serang. Ultimate Mecha Louise membawanya masuk ke dalam robot selama 75 detik dengan set skill baru: pesawat tempur, robot pengejar, dan lompatan penghancur.',
+    hp:1130,hpRegen:8,mp:380,mpRegen:7,dmg:70,range:90,atkSpeed:1.0,armor:16,speed:222,
+    skills:[
+      {name:'Lemparan Titan',icon:'Q',cd:11,cost:70,type:'custom',fx:'lou_throw',aimAs:'line',range:420,width:80,desc:'Robot pendamping menerjang hero musuh terdekat lalu melemparnya ke arah bidik (340 jarak): damage dan stun sekitar 1,7 detik. Hero musuh lain di titik jatuh ikut terkena.'},
+      {name:'Pasukan Robot',icon:'E',cd:18,cost:80,type:'custom',fx:'lou_army',aimAs:'self',radius:200,desc:'Memanggil 5 robot kecil yang menyerang musuh selama 7 detik. Robot memprioritaskan target yang sedang diserang Louise.'},
+      {name:'Mecha Louise',icon:'R',cd:60,cost:150,type:'custom',fx:'lou_ult',aimAs:'self',radius:200,desc:'Masuk ke dalam robot selama 75 detik: HP, damage dan armor naik, skill berubah menjadi Pesawat Tempur, Robot Pengejar, dan Loncat Dentuman. Setelah 75 detik Louise keluar dari robot (cooldown ultimate 60 detik dimulai).'}
+    ],
+    mech:[
+      {name:'Pesawat Tempur',icon:'Q',cd:9,cost:60,type:'custom',fx:'lou_plane',aimAs:'target',range:720,desc:'Meluncurkan pesawat yang mengejar hero musuh dan menabraknya: damage besar dan stun 1,4 detik.'},
+      {name:'Robot Pengejar',icon:'E',cd:8,cost:55,type:'custom',fx:'lou_mini',aimAs:'self',range:620,desc:'Melepas 5 robot kecil yang mengejar musuh hingga kena: tiap robot memberi damage kritikal dan slow 45% selama 2,5 detik.'},
+      {name:'Loncat Dentuman',icon:'R',cd:14,cost:80,type:'custom',fx:'lou_slam',aimAs:'area',range:430,radius:230,desc:'Melompat tinggi lalu mendarat di area bidik: damage area besar dan slow 50% selama 5 detik. Kebal saat di udara.'}
     ]}
 };
 
@@ -990,6 +1003,11 @@ var Sfx=(function(){
     [['t',120,70,.5,'sine',.3],['n',.5,.2,'lowpass',1500,200]],
     [['t',900,100,.4,'sawtooth',.22],['n',.3,.25,'highpass',3000,3000],['t',200,200,.1,'square',.2,.2],['t',150,150,.1,'square',.2,.3]]];
   HIT.rin=[['n',.06,.2,'highpass',4000,4000],['t',500,150,.08,'sawtooth',.14]];
+  ATK.louise=[['t',420,160,.09,'square',.18],['n',.08,.2,'bandpass',1800,700,2],['t',900,500,.05,'triangle',.1,.04]];
+  SK.louise=[[['t',300,1500,.4,'sawtooth',.2],['n',.35,.22,'bandpass',1200,4000,2],['t',150,80,.15,'square',.2,.3]],
+    [['t',500,900,.1,'square',.16],['t',600,1100,.1,'square',.16,.1],['t',700,1300,.1,'square',.16,.2],['n',.3,.15,'highpass',4000,6000,1,.05]],
+    [['t',100,40,.8,'sawtooth',.35],['n',.8,.3,'lowpass',2500,150],['t',60,35,.6,'sine',.4,.2],['t',800,1600,.2,'square',.12,.5]]];
+  HIT.louise=[['t',380,140,.08,'square',.16],['n',.06,.2,'bandpass',1500,600,2]];
   return {
     debtPay:function(e){play([['t',160,60,.3,'square',.4],['n',.3,.3,'lowpass',1800,150],['t',1500,1500,.1,'sine',.2,.02],['t',2000,2000,.1,'sine',.15,.08]],vol(e));},
     bounce:function(e){if(!gate('bnc',50))return;play([['t',1800,900,.1,'triangle',.2],['n',.06,.15,'highpass',4000,4000]],vol(e));},
@@ -1258,7 +1276,7 @@ Hero.prototype.inBase=function(){
   return dist(this,b)<BASE_RADIUS;
 };
 Hero.prototype.update=function(dt){
-  if(this.dead){this.respawnTimer-=dt;if(this.respawnTimer<=0)this.respawn();return;}
+  if(this.dead){this.respawnTimer-=dt;for(var _ci=0;_ci<3;_ci++)if(this.skillCd[_ci]>0)this.skillCd[_ci]=Math.max(0,this.skillCd[_ci]-dt);if(this.atkCooldown>0)this.atkCooldown-=dt;if(this.regenCd>0)this.regenCd-=dt;if(this.respawnTimer<=0)this.respawn();return;}
   if(this.invuln>0)this.invuln-=dt;
   if(this.hasteT>0)this.hasteT-=dt;
   if(this.surgeT>0){this.surgeT-=dt;if(this.surgeT<=0&&this.surgeN>0){this.surgeN=0;this.skillCd[this.surgeIdx]=this.def.skills[this.surgeIdx].cd;}}
@@ -1316,9 +1334,10 @@ Hero.prototype.update=function(dt){
     if(this.lastAttackerTime>0){this.recallTimer=0;this.recalling=false;if(this.isPlayer)notify('Recall dibatalkan!','red');}
     else if(this.recallTimer<=0){
       var b=this.team===TEAM_BLUE?WORLD.blueBase:WORLD.redBase;
+      try{recallFxDepart(this);}catch(e){}
       this.x=b.x+(this.team===TEAM_BLUE?40:-40);this.y=b.y+(this.team===TEAM_BLUE?40:-40);
       this.recalling=false;
-      Sfx.recallEnd();spawnBurst(this.x,this.y,'#8ccfff',30,true);
+      Sfx.recallEnd();try{recallFxArrive(this);}catch(e){spawnBurst(this.x,this.y,'#8ccfff',30,true);}
       if(this.isPlayer)notify('Recall berhasil!','blue');
     }
   }
@@ -1773,7 +1792,7 @@ Hero.prototype.tryAIUseSkills=function(target){
     if(this.skillCd[i]>0||this.mp<sk.cost)continue;
     if(sk.fx==='rewind'){if(this.hp/this.maxHp<0.4&&this.hist&&this.hist.length>20)this.useSkill(i);continue;}
     if(sk.fx==='thread'&&this.pinA){if(G.time-this.pinA.t0>0.45&&dist(this,target)<560)this.useSkill(i,target);continue;}
-    if((sk.fx==='invert'||sk.fx==='debt'||sk.fx==='eclipse')&&!(target instanceof Hero))continue;
+    if((sk.fx==='invert'||sk.fx==='debt'||sk.fx==='eclipse'||sk.fx==='lou_throw'||sk.fx==='lou_plane')&&!(target instanceof Hero))continue;
     var d=dist(this,target);
     var rng=sk.range||300;
     if(i===2)rng*=1.1;
@@ -2822,7 +2841,8 @@ var HERO_THEME={
   reyun:{shape:'swirl',cols:['#5ac8ff','#e6faff']},
   kia:{shape:'hex',cols:['#ff8ad0','#ffe3f4']},
   rin:{shape:'wisp',cols:['#a98bff','#2b1b3d']},
-  xinyuan:{shape:'rune',cols:['#ffd45a','#ff4a3a']}
+  xinyuan:{shape:'rune',cols:['#ffd45a','#ff4a3a']},
+  louise:{shape:'hex',cols:['#7fe8ff','#ff6fa8']}
 };
 function heroCastFx(h,idx){
   var k=h.defKey,x=h.x,y=h.y,big=idx===2,R=big?150:90,P=G.particles,i,a;
@@ -2918,6 +2938,7 @@ function heroImpact(h,x,y,a,type){
   else if(k==='nox'){pfan(x,y,a,pcount(3,big),270,0.5,'crescent','#ff6a8a',5,PI);pfan(x,y,a,pcount(2,big),180,0.6,'wisp','#b090ff',3,PI);psmoke(x,y,'#2a2a3a',big?3:1,10);}
   else if(k==='chrona'){pring(x,y,'#9ffcf0',big?70:44,0.35);pfan(x,y,a,pcount(3,big),200,0.5,'clock','#ffe9a0',4,PI);}
   else if(k==='sigit'){pfan(x,y,a,pcount(4,big),420,0.4,'needle','#ff9ab0',3.4,0.7);pring(x,y,'#a3202c',big?60:36,0.3);}
+  else if(k==='louise'){pfan(x,y,a,pcount(4,big),300,0.5,'hex','#7fe8ff',4,PI);pring(x,y,'#ff6fa8',big?70:44,0.35);pflash(x,y,'#bff4ff',big?50:30,0.14);}
   else if(k==='xinyuan'){pfan(x,y,a,pcount(4,big),300,0.5,'rune','#ffd45a',4,PI);pring(x,y,'#d8262f',big?70:44,0.35);pflash(x,y,'#ffd45a',big?50:30,0.14);}
   else if(k==='kia'){pfan(x,y,a,pcount(4,big),300,0.5,'hex','#ff9ad6',4,PI);pring(x,y,'#ff8ad0',big?70:44,0.35);}
   else if(k==='rin'){pfan(x,y,a,pcount(4,big),300,0.45,'wisp','#a98bff',4,PI);pring(x,y,'#3a2466',big?66:40,0.35);psmoke(x,y,'#120826',big?3:1,9);}
@@ -2952,6 +2973,7 @@ function footFx(h){
   else if(k==='chrona')pushP({x:x,y:y,vx:vx,vy:-rand(8,20),shape:'clock',rot:0,life:L,maxLife:L,color:'#ffe9a0',size:2.6});
   else if(k==='vora')pushP({x:x,y:y,vx:vx,vy:vy,shape:'swirl',rot:rand(0,6),life:L,maxLife:L,color:'#b080ff',size:2.6});
   else if(k==='reyun')pushP({x:x,y:y,vx:vx,vy:vy,shape:'swirl',rot:rand(0,6),life:L,maxLife:L,color:'#6ad0ff',size:2.6});
+  else if(k==='louise')pushP({x:x,y:y,vx:vx,vy:vy,shape:'hex',rot:rand(0,6),life:L,maxLife:L,color:'#7fe8ff',size:2.6});
   else if(k==='xinyuan')pushP({x:x,y:y,vx:vx,vy:vy,shape:'rune',rot:rand(0,6),life:L,maxLife:L,color:'#ffd45a',size:2.6});
   else if(k==='kia')pushP({x:x,y:y,vx:vx,vy:vy,shape:'hex',rot:rand(0,6),life:L,maxLife:L,color:'#ff9ad6',size:2.6});
   else if(k==='rin')pushP({x:x,y:y,vx:vx,vy:vy,shape:'wisp',life:L,maxLife:L,color:'#a98bff',size:3});
@@ -3487,7 +3509,7 @@ function packPx(){var L=FBM.px||[];FBM.px=[];var im=[],sp=[];L.forEach(function(
   return im.slice(0,80).concat(sp.slice(0,30)).map(cleanP);}
 function packL(A,n){return (A||[]).slice(0,n).map(function(o){var c=cleanP(o);c._o=G.heroes.indexOf(o.owner);if(o.dot)c._dot=1;return c;});}
 function packSnap(){
-  var H=G.heroes.map(function(h){return [r0(h.x),r0(h.y),r0(h.hp),r0(h.mp),+(h.facing||0).toFixed(2),h.dead?1:0,h.level,r0(h.gold),h.kills,h.deaths,h.assists,r1(h.respawnTimer),r1(h.stunTime>0?h.stunTime:0),h.slowTime>0?+(h.slowAmt||0.3).toFixed(2):0,r0(h.shield),h.recalling?1:0,h.skillCd.map(r1),h.items.map(function(i){return i.id;}),[r1(h.buffT.blue),r1(h.buffT.red),r1(h.buffT.turtle),r1(h.buffT.lord)],r0(h.vx),r0(h.vy),r0(h.xp),r1(h.reflectT||0)];});
+  var H=G.heroes.map(function(h){return [r0(h.x),r0(h.y),r0(h.hp),r0(h.mp),+(h.facing||0).toFixed(2),h.dead?1:0,h.level,r0(h.gold),h.kills,h.deaths,h.assists,r1(h.respawnTimer),r1(h.stunTime>0?h.stunTime:0),h.slowTime>0?+(h.slowAmt||0.3).toFixed(2):0,r0(h.shield),h.recalling?1:0,h.skillCd.map(r1),h.items.map(function(i){return i.id;}),[r1(h.buffT.blue),r1(h.buffT.red),r1(h.buffT.turtle),r1(h.buffT.lord)],r0(h.vx),r0(h.vy),r0(h.xp),r1(h.reflectT||0),h.mech?1:0];});
   var LN=['top','mid','bot'];
   var M=G.minions.filter(function(m){return !m.dead;}).map(function(m){if(!m._id)m._id=++FBM.nid;return [m._id,m.team,LN.indexOf(m.lane),r0(m.x),r0(m.y),r0(m.hp),r0(m.maxHp),m.isLord?1:0,r0(m.vx),r0(m.vy),+(m.facing||0).toFixed(2),m.isRobot?Math.max(1,r0(m.robotLife)):0];});
   var O=G.monsters.filter(function(m){return !m.dead;}).map(function(m){if(!m._id)m._id=++FBM.nid;return [m._id,m.type,r0(m.x),r0(m.y),r0(m.hp),r0(m.maxHp),m.side,r0(m.vx),r0(m.vy),+(m.facing||0).toFixed(2)];});
@@ -3506,7 +3528,7 @@ function applySnap(S){
     if(h._ik!==ik){h._ik=ik;h.items=[];h.itemBonus={hp:0,mp:0,dmg:0,armor:0,speed:0,hpRegen:0,mpRegen:0,ls:0,crit:0};a[17].forEach(function(id){var it=itemById(id);if(it){h.items.push(it);addItemBonus(h,it);}});}
     h.level=a[6];h.buffT.blue=a[18][0];h.buffT.red=a[18][1];h.buffT.turtle=a[18][2];h.buffT.lord=a[18][3];h.recomputeStats();
     h.hp=a[2];h.mp=a[3];h.gold=a[7];h.kills=a[8];h.deaths=a[9];h.assists=a[10];h.respawnTimer=a[11];h.stunTime=a[12];h.slowAmt=a[13];h.slowTime=a[13]>0?1:0;
-    h.shield=a[14];h.shieldTime=a[14]>0?1:0;h.recalling=!!a[15];h.skillCd=a[16].slice();h.vx=a[19];h.vy=a[20];h.xp=a[21];h.reflectT=a[22]||0;
+    h.shield=a[14];h.shieldTime=a[14]>0?1:0;h.recalling=!!a[15];h.skillCd=a[16].slice();h.vx=a[19];h.vy=a[20];h.xp=a[21];h.reflectT=a[22]||0;if(h.defKey==='louise'&&!!a[23]!==!!h.mech){try{louSetForm(h,!!a[23],true);}catch(er){}}
     if(h!==me)h.facing=a[4];
     if(a[5]&&!wasDead){h.dead=true;spawnBurst(h.x,h.y,TC[h.team].main,30,true);if(h===me){G.deathDetail=false;try{fillDeathCard(h);}catch(e){}}}
     else if(!a[5]&&wasDead){h.dead=false;spawnBurst(h.x,h.y,'#8ccfff',26,true);
@@ -5121,6 +5143,48 @@ function drawHeroShape(c,d,flash,team){
     c.beginPath();c.moveTo(22,-12);c.lineTo(31,-3);c.lineTo(27,13);c.lineTo(22,19);c.lineTo(17,13);c.lineTo(13,-3);c.closePath();c.fill();c.stroke();
     c.strokeStyle='#fff';c.lineWidth=1.4;c.beginPath();c.moveTo(19,-3);c.lineTo(23,9);c.moveTo(26,-5);c.lineTo(22,4);c.stroke();
     c.fillStyle='#fff';c.globalAlpha=0.5+0.5*Math.sin(kt*3);c.beginPath();c.arc(-19+Math.cos(kt)*4,-2+Math.sin(kt)*4,1.8,0,Math.PI*2);c.fill();c.globalAlpha=1;
+  }else if(d.weapon==='mecha'){
+    c.fillStyle=flash?'#fff':ac;
+    c.beginPath();c.ellipse(0,3,12,16,0,0,Math.PI*2);c.fill();c.stroke();
+    c.fillStyle=flash?'#fff':'#dfe8f5';
+    c.beginPath();c.moveTo(-8,-1);c.lineTo(8,-1);c.lineTo(6,11);c.lineTo(-6,11);c.closePath();c.fill();c.stroke();
+    c.fillStyle=ac2;c.beginPath();c.arc(0,5,2.6,0,Math.PI*2);c.fill();
+    c.strokeStyle=flash?'#fff':ac;c.lineWidth=4;
+    c.beginPath();c.moveTo(-8,-12);c.quadraticCurveTo(-19,-6,-14,9);c.stroke();
+    c.beginPath();c.moveTo(8,-12);c.quadraticCurveTo(19,-6,14,9);c.stroke();
+    c.strokeStyle='#0d1428';c.lineWidth=3;
+    c.fillStyle=flash?'#fff':'#f5d5c0';c.beginPath();c.arc(0,-9,8,0,Math.PI*2);c.fill();c.stroke();
+    c.fillStyle=flash?'#fff':'#3a2a5a';c.beginPath();c.arc(0,-11,8.5,Math.PI,0);c.fill();c.stroke();
+    c.fillStyle=ac2;c.fillRect(-6,-10.5,12,3.4);
+    c.beginPath();c.arc(-9,-9,3,0,Math.PI*2);c.fill();c.stroke();
+    c.beginPath();c.arc(9,-9,3,0,Math.PI*2);c.fill();c.stroke();
+    c.fillStyle='#9aa8c0';c.fillRect(12,-14,7,22);c.strokeRect(12,-14,7,22);
+    c.fillStyle=ac2;c.fillRect(13.5,-18,4,5);
+  }else if(d.weapon==='mechsuit'){
+    c.save();c.scale(1.5,1.5);
+    var mt=performance.now()*0.006;
+    c.fillStyle='rgba(127,232,255,'+(0.5+0.3*Math.sin(mt))+')';
+    c.beginPath();c.moveTo(-8,15);c.lineTo(-5,25+Math.sin(mt)*3);c.lineTo(-2,15);c.closePath();c.fill();
+    c.beginPath();c.moveTo(2,15);c.lineTo(5,25+Math.sin(mt+1)*3);c.lineTo(8,15);c.closePath();c.fill();
+    c.lineWidth=2.2;
+    c.fillStyle=flash?'#fff':'#7e8ba6';
+    c.fillRect(-21,-6,8,19);c.strokeRect(-21,-6,8,19);c.fillRect(13,-6,8,19);c.strokeRect(13,-6,8,19);
+    c.fillStyle=flash?'#fff':ac;
+    c.beginPath();c.arc(-17,-9,5.5,0,Math.PI*2);c.fill();c.stroke();c.beginPath();c.arc(17,-9,5.5,0,Math.PI*2);c.fill();c.stroke();
+    c.fillStyle=flash?'#fff':'#5c5686';
+    c.beginPath();c.moveTo(-12,-4);c.lineTo(12,-4);c.lineTo(14,14);c.lineTo(-14,14);c.closePath();c.fill();c.stroke();
+    c.fillStyle=flash?'#fff':'#e6edf8';c.fillRect(-7,0,14,8);c.strokeRect(-7,0,14,8);
+    c.fillStyle=teamCol.main;c.fillRect(-13,10,26,3);
+    c.fillStyle=ac2;c.beginPath();c.arc(0,4,2.4,0,Math.PI*2);c.fill();
+    c.fillStyle=flash?'#fff':ac;
+    c.beginPath();c.arc(-13,-4,6,0,Math.PI*2);c.fill();c.stroke();c.beginPath();c.arc(13,-4,6,0,Math.PI*2);c.fill();c.stroke();
+    c.fillStyle=flash?'#fff':'#59657e';c.beginPath();c.arc(0,-9,8.5,0,Math.PI*2);c.fill();c.stroke();
+    c.fillStyle=ac2;c.globalAlpha=0.9;c.beginPath();c.arc(0,-9,6,0,Math.PI*2);c.fill();c.globalAlpha=1;
+    c.fillStyle='#f5d5c0';c.beginPath();c.arc(0,-9,3.2,0,Math.PI*2);c.fill();
+    c.fillStyle='#3a2a5a';c.beginPath();c.arc(0,-10,3.4,Math.PI,0);c.fill();
+    c.strokeStyle='#e6edf8';c.lineWidth=1.6;c.beginPath();c.moveTo(0,-17);c.lineTo(0,-22);c.stroke();
+    c.fillStyle=ac;c.beginPath();c.arc(0,-23,1.8,0,Math.PI*2);c.fill();
+    c.restore();
   }else if(d.weapon==='shadow'){
     var rt=performance.now()*0.004,ps=Math.sin(rt)*3;
     c.lineJoin='round';c.strokeStyle='#050309';c.lineWidth=3;
@@ -5366,7 +5430,7 @@ function drawAmbient(){
 
 
 /* ===== UNIQUE ATTACK FX ===== */
-var MELEE_STYLE={aegis:'bash',raven:'cross',terra:'chop',kael:'thrust',brom:'slam',nox:'crescent',sigit:'stitch',reyun:'thrust',kia:'bash',rin:'crescent',xinyuan:'thrust'};
+var MELEE_STYLE={aegis:'bash',raven:'cross',terra:'chop',kael:'thrust',brom:'slam',nox:'crescent',sigit:'stitch',reyun:'thrust',kia:'bash',rin:'crescent',xinyuan:'thrust',louise:'bash'};
 var RANGED_SHAPE={pyra:'fire',vex:'arrow',lumi:'star',zora:'bullet',chrona:'sand',vora:'void'};
 var ATK_SPEED={fire:520,arrow:860,star:600,bullet:1100,sand:640,void:700};
 var ATK_COLOR={fire:'#ff8a3a',arrow:'#c8ffb0',star:'#ffe27a',bullet:'#c8f4ff',sand:'#ffe9a0',void:'#c9a0ff'};
@@ -5520,6 +5584,8 @@ function drawSkillFx(p){
   c.save();c.globalAlpha=Math.max(0,a);c.strokeStyle=C;c.fillStyle=C;c.lineCap='round';c.lineJoin='round';c.shadowColor=C;c.shadowBlur=glow(14);
   switch(k){
   /* ---- AEGIS : heksagon & perisai ---- */
+  case 'louise0':case 'louise1':case 'louise2':
+    c.lineWidth=FT*3;fxPoly(c,6,R*(0.3+t*0.6),t*2,x,y);c.stroke();c.globalAlpha=a*0.9;c.fillStyle=C2;for(i=0;i<4;i++){q=an+i*1.57+t*3;c.fillRect(x+Math.cos(q)*(10+t*R*0.5)-3,y+Math.sin(q)*(10+t*R*0.5)-3,6,6);}break;
   case 'aegis0':
     c.lineWidth=FT*(5*a+1);fxPoly(c,6,16+t*62,t*2,x,y);c.stroke();
     c.fillStyle=C2;for(i=0;i<4;i++){q=an+i*1.57+t;c.fillRect(x+Math.cos(q)*(10+t*60)-4,y+Math.sin(q)*(10+t*60)-4,8,8);}break;
@@ -5996,6 +6062,14 @@ function fillHeroDetail(key,ids){
     div.className='ski';
     div.innerHTML='<div class="k">'+s.icon+'</div><div><b>'+s.name+' | CD '+s.cd+'s | '+s.cost+' MP</b>'+s.desc+'</div>';
     sk.appendChild(div);
+  }
+  if(d.mech){
+    var sep=document.createElement('div');sep.className='ski';sep.innerHTML='<div class="k">R</div><div><b>Skill saat di dalam robot (75 detik)</b>Skill berubah selama Mecha Louise aktif:</div>';sk.appendChild(sep);
+    for(var mi=0;mi<d.mech.length;mi++){
+      var ms=d.mech[mi],md=document.createElement('div');md.className='ski';
+      md.innerHTML='<div class="k">'+ms.icon+'</div><div><b>'+ms.name+' | CD '+ms.cd+'s | '+ms.cost+' MP</b>'+ms.desc+'</div>';
+      sk.appendChild(md);
+    }
   }
   var cv=document.getElementById(ids.portrait);
   var c=cv.getContext('2d');
@@ -6590,16 +6664,18 @@ function openInfo(kind){
     h='<div class="hp-wrap"><div class="hp-grid" id="hpGrid"></div><div class="hp-detail"><div class="hi-top"><canvas id="hpPortrait" width="120" height="120"></canvas><div class="hi-info"><h3 id="hpName">-</h3><span id="hpRole" class="role">-</span><p id="hpDesc">-</p></div></div><div id="hpSkinRow" class="skin-row2"></div><div id="hpStats" class="hi-stats"></div><div id="hpSkills" class="hi-skills"></div></div></div>';
   }else if(kind==='backpack'){
     t.textContent='BACKPACK';
-    h='<div class="ilist">'+irow('Koin','Mata uang akun',String(PROFILE.coins))+irow('Streak Check-in','Hari berturut-turut',String(currentStreakView()))+irow('Item Tersimpan','Belum ada item','0')+'</div>';
+    h='<div class="ilist">'+irow('Koin','Mata uang akun',String(PROFILE.coins))+irow('Streak Check-in','Hari berturut-turut',String(currentStreakView()))+irow('Efek Recall','Efek aktif saat recall',recallFxDef(PROFILE.recallFx||'default').name)+'</div>';
   }else if(kind==='emblem'){
     t.textContent='EMBLEM';
     h='<p class="about-text dim">Pilih emblem aktif dan tingkatkan levelnya dengan koin. Bonus diterapkan ke hero Anda di awal pertandingan.</p><div id="embList2" class="emb-list"></div>';
   }
-  var pn=document.querySelector('#screen-info .panel');if(pn)pn.classList.toggle('wide',kind==='hero'||kind==='shop'||kind==='emblem');
+  var pn=document.querySelector('#screen-info .panel');if(pn)pn.classList.toggle('wide',kind==='hero'||kind==='shop'||kind==='emblem'||kind==='backpack');
   b.innerHTML=h;showScreen('screen-info');
   if(kind==='hero')buildHeroPage();
   if(kind==='shop')buildShopPage();
   if(kind==='emblem')renderEmblems(document.getElementById('embList2'));
+  b.style.maxHeight=(kind==='backpack')?'56vh':'';b.style.overflowY=(kind==='backpack')?'auto':'';
+  if(kind==='backpack'){try{buildBackpack();}catch(e){showErr('backpack: '+e.message);}}
 }
 
 /* ===== LOGO ===== */
@@ -6744,6 +6820,573 @@ var dm=drawMinion;drawMinion=function(m){
 };
 ['drawZones','drawPendingFx','drawTrapUnique'].forEach(function(n){var f=window[n];if(typeof f==='function')window[n]=function(){try{return f.apply(this,arguments);}catch(e){}};});
 })();
+
+/* =====================================================================
+   UPDATE: LOUISE (robot), EFEK RECALL KUSTOM (BACKPACK), CD JALAN SAAT MATI
+   ===================================================================== */
+(function(){
+var st=document.createElement('style');
+st.textContent=
+'#louTimer{position:absolute;left:50%;bottom:150px;transform:translateX(-50%);width:200px;background:rgba(8,14,28,.9);border:1px solid #7fe8ff;border-radius:10px;padding:6px 10px;text-align:center;pointer-events:none;z-index:9;display:none}'+
+'#louTimer .lt-l{font-size:10.5px;letter-spacing:.14em;color:#bff4ff;font-weight:700;margin-bottom:4px}#louTimer .lt-l b{color:#ff9fc8}'+
+'#louTimer .lt-track{height:7px;border-radius:4px;background:rgba(0,0,0,.6);overflow:hidden}#louTimer .lt-fill{height:100%;background:linear-gradient(90deg,#ff6fa8,#7fe8ff);width:100%}'+
+'.rfx-wrap{margin-top:12px}.rfx-h{font-size:12px;letter-spacing:.18em;color:#8ec0ff;font-weight:800;margin-bottom:4px}'+
+'#rfxPrev{width:100%;max-width:340px;height:auto;display:block;margin:8px auto;border:1px solid #2c3d6e;border-radius:10px;background:#0b1224}'+
+'.rfx-cur{text-align:center;font-size:12px;color:#c8d6f0;margin-bottom:8px}.rfx-cur b{color:#ffd76e}'+
+'.rfx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px}'+
+'.rfx-card{background:#131c34;border:1px solid #2c3d6e;border-radius:10px;padding:8px;text-align:left;color:#c8d6f0;cursor:pointer;font-family:inherit}'+
+'.rfx-card.on{border-color:#ffd76e;box-shadow:0 0 0 1px #ffd76e inset;background:#1a2442}'+
+'.rfx-card .sw{height:10px;border-radius:5px;margin-bottom:6px}.rfx-card b{display:block;font-size:12px;color:#e4ecff}'+
+'.rfx-card span{display:block;font-size:10.5px;color:#8ea2c8;margin-top:2px;line-height:1.25}.rfx-card i{display:block;font-style:normal;font-size:10px;color:#ffd76e;margin-top:4px;font-weight:800}';
+document.head.appendChild(st);
+})();
+
+/* ---------- util ---------- */
+function louIsClient(){return typeof FBM!=='undefined'&&FBM&&FBM.mode==='client';}
+function louSafePoint(h,tx,ty){
+  for(var k=0;k<6;k++){
+    var wr=resolveWalls(tx,ty,h.radius);tx=wr.x;ty=wr.y;
+    if(!collideRocks(tx,ty,h.radius))break;
+    tx=h.x+(tx-h.x)*0.85;ty=h.y+(ty-h.y)*0.85;
+  }
+  return {x:clamp(tx,40,MAP_W-40),y:clamp(ty,40,MAP_H-40)};
+}
+function louRefund(h,idx,sk){h.skillCd[idx]=0.3;h.mp=Math.min(h.maxMp,h.mp+sk.cost);}
+function louFindEnemy(h,sk,target,ang){
+  var rng=sk.range,best=null,bs=1e9,i,e;
+  if(ang===null&&target instanceof Hero&&!target.dead&&target.team!==h.team&&dist(h,target)<=rng+target.radius&&!(target.hiddenFrom&&target.hiddenFrom[h.team]))return target;
+  for(i=0;i<G.heroes.length;i++){
+    e=G.heroes[i];if(e.dead||e.team===h.team)continue;
+    if(e.hiddenFrom&&e.hiddenFrom[h.team])continue;
+    var d=dist(h,e);if(d>rng+e.radius)continue;
+    var sc=d;
+    if(ang!==null){var a=angleTo(h,e),df=Math.abs(((a-ang+Math.PI*3)%(Math.PI*2))-Math.PI);sc=d+df*350;}
+    if(sc<bs){bs=sc;best=e;}
+  }
+  return best;
+}
+
+/* ---------- wujud robot (Mecha Louise) ---------- */
+function louEnterFx(h){
+  pring(h.x,h.y,'#7fe8ff',170,0.7);pring(h.x,h.y,'#ff6fa8',110,0.55);pflash(h.x,h.y,'#bff4ff',130,0.35);
+  pfan(h.x,h.y,0,pcount(16,true),380,0.8,'hex','#7fe8ff',4.5,Math.PI);psmoke(h.x,h.y,'#8a96b8',6,10);addShake(6);
+}
+function louSetForm(h,on,vis){
+  on=!!on;if(!!h.mech===on)return;
+  var base=h.louBase||(h.louBase=h.def);
+  if(on){
+    var mx0=h.maxHp;
+    h.mech=true;
+    h.def=Object.assign({},base,{weapon:'mechsuit',skills:base.mech,range:112,atkSpeed:0.9});
+    h.radius=30;
+    if(vis){h.recomputeStats();return;}
+    h.louSaved=h.skillCd.slice();h.skillCd=[0,0,0];h.mechT=75;
+    h.recomputeStats();
+    h.hp=Math.min(h.maxHp,h.hp+(h.maxHp-mx0)+h.maxHp*0.12);
+    h.invuln=Math.max(h.invuln||0,0.5);
+    if(h.louBot&&!h.louBot.dead){h.louBot.dead=true;spawnBurst(h.louBot.x,h.louBot.y,'#7fe8ff',16,true);}
+    h.louBot=null;
+    louEnterFx(h);
+    if(h.isPlayer)notify('MECHA LOUISE aktif - 75 detik','kill');
+  }else{
+    h.mech=false;h.def=base;h.radius=20;h.mechT=0;
+    if(vis){h.recomputeStats();return;}
+    var sv=h.louSaved||[0,0,0];
+    h.skillCd=[sv[0]||0,sv[1]||0,base.skills[2].cd];h.louSaved=null;
+    h.recomputeStats();
+    h.louBotT=1.2;h.louJ=null;
+    if(!h.dead){
+      pring(h.x,h.y,'#7fe8ff',130,0.6);pring(h.x,h.y,'#ff6fa8',90,0.45);pflash(h.x,h.y,'#bff4ff',100,0.3);
+      pfan(h.x,h.y,0,pcount(12,true),320,0.7,'square','#9aa8c0',4,Math.PI);psmoke(h.x,h.y,'#8a96b8',5,10);addShake(4);
+      if(h.isPlayer)notify('Louise keluar dari robot','blue');
+    }
+  }
+}
+function louCleanup(h){
+  if(h.mech)louSetForm(h,false);
+  if(h.louBot){h.louBot.dead=true;h.louBot=null;}
+  h.louBotT=0;h.louAir=[];h.louJ=null;
+  for(var i=0;i<G.minions.length;i++){var m=G.minions[i];if(m.louKind&&m.owner===h)m.dead=true;}
+}
+(function(){
+  var _rs=Hero.prototype.recomputeStats;
+  Hero.prototype.recomputeStats=function(){
+    _rs.call(this);
+    if(this.mech){var lv=this.level;this.maxHp+=450+lv*45;this.baseDmg*=1.15;this.baseArmor+=22;this.armor=this.baseArmor;this.speed*=0.96;}
+  };
+  var _od=Hero.prototype.onDeath;
+  Hero.prototype.onDeath=function(k){
+    this.fling=null;this.louJ=null;
+    if(this.defKey==='louise')louCleanup(this);
+    return _od.call(this,k);
+  };
+  var _at=Hero.prototype.attack;
+  Hero.prototype.attack=function(t){if(this.louJ)return;return _at.call(this,t);};
+  var _us=Hero.prototype.useSkill,_nt=0;
+  Hero.prototype.useSkill=function(idx,target,aimAng,aimFrac){
+    if(this.louJ)return false;
+    var sk=this.def.skills[idx];
+    if(sk&&(sk.fx==='lou_throw'||sk.fx==='lou_plane')&&!this.dead&&this.stunTime<=0&&this.skillCd[idx]<=0&&this.mp>=sk.cost){
+      var an=(aimAng!==undefined&&aimAng!==null)?aimAng:null;
+      if(!louFindEnemy(this,sk,target,an)){
+        if(this.isPlayer&&G.time-_nt>1){_nt=G.time;notify('Tidak ada hero musuh dalam jangkauan','red');}
+        return false;
+      }
+    }
+    return _us.call(this,idx,target,aimAng,aimFrac);
+  };
+  var _cc=Hero.prototype.castCustom;
+  Hero.prototype.castCustom=function(idx,sk,target){
+    if(sk.fx&&sk.fx.indexOf('lou_')===0)return louCast(this,idx,sk,target);
+    return _cc.call(this,idx,sk,target);
+  };
+  /* hero yang diserang Louise = fokus robot pendampingnya */
+  var _dd=dealDamage;
+  dealDamage=function(src,tgt,amount,type){
+    if(src&&src.defKey==='louise'&&tgt&&!tgt.dead&&tgt.team!==src.team&&tgt.team!==TEAM_NEUTRAL){src.louFocus=tgt;src.louFocusT=G.time;}
+    return _dd.apply(this,arguments);
+  };
+  /* Louise kebal saat melompat */
+  var _td=Entity.prototype.takeDamage;
+  Entity.prototype.takeDamage=function(dmg,src){
+    if(this.louJ&&this instanceof Hero)return 0;
+    return _td.call(this,dmg,src);
+  };
+})();
+
+function louCast(h,idx,sk,target){
+  var fx=sk.fx;
+  if(fx==='lou_throw')return louThrow(h,idx,sk,target);
+  if(fx==='lou_army')return louArmy(h,idx,sk);
+  if(fx==='lou_ult'){louSetForm(h,true);return;}
+  if(fx==='lou_plane')return louPlane(h,idx,sk,target);
+  if(fx==='lou_mini')return louMini(h,idx,sk);
+  if(fx==='lou_slam')return louSlam(h,idx,sk,target);
+}
+
+/* ---- Q: robot melempar hero musuh ---- */
+function louThrow(h,idx,sk,target){
+  var tg=louFindEnemy(h,sk,target,h.aimOverride?h.facing:null);
+  if(!tg){louRefund(h,idx,sk);return;}
+  var ang=h.aimOverride?h.facing:angleTo(h,tg),ca=Math.cos(ang),sa=Math.sin(ang);
+  h.facing=angleTo(h,tg);
+  var bot=(h.louBot&&!h.louBot.dead)?h.louBot:null,ox=bot?bot.x:h.x,oy=bot?bot.y:h.y,k;
+  if(bot){var gap=bot.radius+tg.radius+6;bot.x=tg.x-ca*gap;bot.y=tg.y-sa*gap;bot.facing=ang;bot.atkT0=performance.now();bot.vx=0;bot.vy=0;}
+  for(k=0;k<=8;k++){var f=k/8;pushP({x:ox+(tg.x-ox)*f,y:oy+(tg.y-oy)*f,vx:0,vy:0,life:0.35,maxLife:0.35,color:k%2?'#7fe8ff':'#ff6fa8',size:5});}
+  var dur=0.55,D=340;
+  tg.fling={vx:ca*D/dur,vy:sa*D/dur,t:dur,dur:dur,src:h,ang:ang};
+  tg.stunTime=Math.max(tg.stunTime||0,dur+1.2);tg.recallTimer=0;tg.recalling=false;
+  dealDamage(h,tg,h.baseDmg*0.7,'skill');
+  pring(tg.x,tg.y,'#ff6fa8',80,0.4);pflash(tg.x,tg.y,'#bff4ff',70,0.2);addShake(3);
+  pushP({x:tg.x,y:tg.y-48,dmgText:'DILEMPAR!',life:0.9,maxLife:0.9,color:'#ff9fc8',isCrit:true,size:1});
+}
+function louThrowLand(tg,F){
+  var src=F.src,i,e;
+  dealDamage(src,tg,src.baseDmg*1.5,'skill');
+  for(i=0;i<G.entities.length;i++){
+    e=G.entities[i];
+    if(!e||e.dead||e===tg||e.team===src.team||!(e instanceof Hero||e instanceof Minion||e instanceof Monster))continue;
+    if(dist(tg,e)<110+e.radius){dealDamage(src,e,src.baseDmg*0.7,'skill');if(e instanceof Hero)e.stunTime=Math.max(e.stunTime||0,0.6);}
+  }
+  pring(tg.x,tg.y,'#ff6fa8',130,0.5);pring(tg.x,tg.y,'#7fe8ff',90,0.4);pflash(tg.x,tg.y,'#ffffff',90,0.2);
+  psmoke(tg.x,tg.y,'#9a8a6a',5,9);pfan(tg.x,tg.y,0,pcount(10,true),300,0.6,'square','#c8d0e0',4,Math.PI);
+  addShake(5);try{Sfx.bounce(tg);}catch(er){}
+}
+
+/* ---- E: pasukan robot 7 detik ---- */
+function louArmy(h,idx,sk){
+  G.minions.forEach(function(m){if(m.louKind==='army'&&m.owner===h)m.dead=true;});
+  var n=5,i;
+  for(i=0;i<n;i++){
+    var a=i/n*6.2832+(h.facing||0),m=new Minion(h.team,'mid');
+    m.x=h.x+Math.cos(a)*55;m.y=h.y+Math.sin(a)*55;
+    m.isRobot=true;m.louKind='army';m.owner=h;m.radius=12;m.maxHp=240+h.level*28;m.hp=m.maxHp;
+    m.dmg=26+h.level*4;m.armor=8;m.speed=285;m.range=42;m.xp=0;m.gold=0;m.robotLife=7;
+    m.atkCooldown=rand(0,0.4);m.offA=a;m.facing=a;
+    G.minions.push(m);G.entities.push(m);
+    spawnBurst(m.x,m.y,'#7fe8ff',8,false);
+  }
+  pring(h.x,h.y,'#ff6fa8',110,0.5);pring(h.x,h.y,'#7fe8ff',80,0.4);
+  if(h.isPlayer)notify('Pasukan robot (7 detik)','blue');
+}
+
+/* ---- Q (mecha): pesawat menabrak hero ---- */
+function louPlane(h,idx,sk,target){
+  var tg=louFindEnemy(h,sk,target,h.aimOverride?h.facing:null);
+  if(!tg){louRefund(h,idx,sk);return;}
+  h.facing=angleTo(h,tg);
+  var side=Math.random()<0.5?1:-1;
+  (h.louAir||(h.louAir=[])).push({k:'plane',x:h.x,y:h.y,ang:h.facing+side*1.2,tgt:tg,spd:1000,life:2.8,age:0});
+  pring(h.x,h.y,'#7fe8ff',90,0.35);
+}
+/* ---- E (mecha): robot kecil pengejar ---- */
+function louMiniTarget(h,o){
+  var i,e,L=[],best=null,bd=1e9;
+  for(i=0;i<G.heroes.length;i++){e=G.heroes[i];if(e.dead||e.team===h.team)continue;if(e.hiddenFrom&&e.hiddenFrom[h.team])continue;if(dist(h,e)<=760)L.push(e);}
+  if(L.length)return L[(o.n||0)%L.length];
+  for(i=0;i<G.entities.length;i++){
+    e=G.entities[i];if(!e||e.dead||e.team===h.team||!(e instanceof Minion||e instanceof Monster))continue;
+    var d=dist(h,e);if(d<760&&d<bd){bd=d;best=e;}
+  }
+  return best;
+}
+function louMini(h,idx,sk){
+  var L=h.louAir||(h.louAir=[]),i,n=5;
+  for(i=0;i<n;i++){
+    var o={k:'mini',x:h.x,y:h.y,ang:(h.facing||0)+(i-(n-1)/2)*0.75,spd:560,life:5,age:0,n:i,rt:0};
+    o.tgt=louMiniTarget(h,o);L.push(o);
+  }
+  pring(h.x,h.y,'#ff6fa8',100,0.4);pfan(h.x,h.y,h.facing||0,pcount(8,true),300,0.5,'hex','#7fe8ff',3.6,1.2);
+}
+/* ---- R3 (mecha): loncat, damage area + slow 5 detik ---- */
+function louSlam(h,idx,sk,target){
+  var pt=h.customAim(sk,target);
+  var sp=louSafePoint(h,pt.x,pt.y);
+  h.louJ={sx:h.x,sy:h.y,tx:sp.x,ty:sp.y,t:0,dur:0.85,r:sk.radius};
+  h.facing=Math.atan2(sp.y-h.y,sp.x-h.x);
+  pring(h.x,h.y,'#9aa8c0',80,0.4);psmoke(h.x,h.y,'#8a96b8',4,9);
+}
+function louLandSlam(h,J){
+  var i,e,r=J.r;
+  for(i=0;i<G.entities.length;i++){
+    e=G.entities[i];
+    if(!e||e.dead||e.team===h.team||!(e instanceof Hero||e instanceof Minion||e instanceof Monster))continue;
+    if(dist(h,e)<r+e.radius){
+      dealDamage(h,e,h.baseDmg*2.6,'skill');
+      if(e.slowTime!==undefined){e.slowTime=Math.max(e.slowTime,5);e.slowAmt=Math.max(e.slowAmt||0,0.5);}
+    }
+  }
+  pring(h.x,h.y,'#ff6fa8',r,0.6);pring(h.x,h.y,'#7fe8ff',r*0.7,0.5);pflash(h.x,h.y,'#ffffff',r*0.6,0.25);
+  pushP({crack:true,x:h.x,y:h.y,r:r*0.5,life:0.7,maxLife:0.7,color:'#9aa8c0'});
+  psmoke(h.x,h.y,'#8a7a5a',8,12);pfan(h.x,h.y,0,pcount(16,true),420,0.8,'rock','#a09080',4.5,Math.PI);
+  addShake(7);try{Sfx.zoneEnd('tsunami',h);}catch(er){}
+}
+
+/* ---- pesawat & robot kecil: update + gambar ---- */
+function louTickAir(h,dt){
+  var L=h.louAir;if(!L||!L.length)return;
+  for(var i=L.length-1;i>=0;i--){
+    var o=L[i];o.life-=dt;o.age+=dt;
+    var tg=o.tgt;
+    if(o.k==='mini'){
+      o.rt-=dt;
+      if(!tg||tg.dead||(tg.hiddenFrom&&tg.hiddenFrom[h.team])){if(o.rt<=0){o.rt=0.3;o.tgt=louMiniTarget(h,o);}tg=(o.tgt&&!o.tgt.dead)?o.tgt:null;}
+    }else if(tg&&tg.dead)tg=null;
+    var want=o.ang;
+    if(tg)want=Math.atan2(tg.y-o.y,tg.x-o.x);
+    var da=((want-o.ang+Math.PI*3)%(Math.PI*2))-Math.PI;
+    var turn=(o.k==='plane'?7:6)*dt;
+    if(o.k==='mini'&&o.age<0.2)turn=0;
+    o.ang+=Math.max(-turn,Math.min(turn,da));
+    o.x+=Math.cos(o.ang)*o.spd*dt;o.y+=Math.sin(o.ang)*o.spd*dt;
+    if(Math.random()<(G.quality==='low'?0.3:0.9))pushP({x:o.x,y:o.y,vx:0,vy:0,life:0.3,maxLife:0.3,color:o.k==='plane'?'#bff4ff':'#ff8fc0',size:o.k==='plane'?4:2.6});
+    var done=false;
+    if(tg&&Math.hypot(tg.x-o.x,tg.y-o.y)<tg.radius+(o.k==='plane'?24:10)){
+      if(o.k==='plane'){
+        dealDamage(h,tg,h.baseDmg*2.4,'skill');
+        if(tg instanceof Hero){tg.stunTime=Math.max(tg.stunTime||0,1.4);tg.recallTimer=0;tg.recalling=false;}
+        pring(tg.x,tg.y,'#ff9a3a',120,0.5);pring(tg.x,tg.y,'#7fe8ff',80,0.35);pflash(tg.x,tg.y,'#ffe9a0',110,0.3);
+        pfan(tg.x,tg.y,0,pcount(14,true),420,0.7,'square','#ffb060',4,Math.PI);psmoke(tg.x,tg.y,'#3a3a44',5,10);
+        addShake(6);try{Sfx.turretBoom(tg);}catch(er){}
+      }else{
+        dealDamage(h,tg,h.baseDmg*0.7*1.75,'crit');
+        if(tg.slowTime!==undefined){tg.slowTime=Math.max(tg.slowTime,2.5);tg.slowAmt=Math.max(tg.slowAmt||0,0.45);}
+        pring(tg.x,tg.y,'#ff6fa8',48,0.3);pfan(tg.x,tg.y,0,pcount(5),260,0.4,'hex','#7fe8ff',3,Math.PI);
+      }
+      done=true;
+    }else if(o.life<=0){
+      pring(o.x,o.y,o.k==='plane'?'#ff9a3a':'#ff6fa8',o.k==='plane'?70:36,0.3);spawnBurst(o.x,o.y,'#ffb060',o.k==='plane'?12:5,false);
+      done=true;
+    }
+    if(done)L.splice(i,1);
+  }
+}
+function drawLouAir(h){
+  var L=h.louAir,t=performance.now()/1000;
+  for(var i=0;i<L.length;i++){
+    var o=L[i];
+    ctx.save();ctx.translate(o.x,o.y);ctx.rotate(o.ang);
+    ctx.strokeStyle='#0d1428';ctx.lineWidth=2;
+    if(o.k==='plane'){
+      if(G.quality==='high'){ctx.shadowColor='#7fe8ff';ctx.shadowBlur=12;}
+      ctx.fillStyle='rgba(255,170,60,'+(0.6+0.3*Math.sin(t*40))+')';
+      ctx.beginPath();ctx.moveTo(-20,0);ctx.lineTo(-34-Math.random()*6,-3);ctx.lineTo(-34-Math.random()*6,3);ctx.closePath();ctx.fill();
+      ctx.fillStyle='#e6edf8';
+      ctx.beginPath();ctx.moveTo(26,0);ctx.lineTo(8,-5);ctx.lineTo(-16,-5);ctx.lineTo(-20,0);ctx.lineTo(-16,5);ctx.lineTo(8,5);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.fillStyle='#ff6fa8';
+      ctx.beginPath();ctx.moveTo(6,-4);ctx.lineTo(-10,-22);ctx.lineTo(-16,-22);ctx.lineTo(-10,-4);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(6,4);ctx.lineTo(-10,22);ctx.lineTo(-16,22);ctx.lineTo(-10,4);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.fillStyle='#7fe8ff';ctx.beginPath();ctx.ellipse(8,0,7,3.2,0,0,6.2832);ctx.fill();
+    }else{
+      ctx.fillStyle='#ff6fa8';ctx.beginPath();ctx.arc(0,0,5.5,0,6.2832);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#7fe8ff';ctx.beginPath();ctx.arc(2.5,0,2,0,6.2832);ctx.fill();
+      ctx.strokeStyle='#e6edf8';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(-3,-7+Math.sin(t*30+o.n)*2);ctx.lineTo(-3,7-Math.sin(t*30+o.n)*2);ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+/* ---- tick utama Louise ---- */
+function louTick(h,dt){
+  if(louIsClient())return;
+  var i;
+  if(h.dead){if(h.louBot||h.mech||(h.louAir&&h.louAir.length))louCleanup(h);return;}
+  if(h.mech){
+    h.mechT-=dt;
+    if(h.louSaved)for(i=0;i<3;i++)if(h.louSaved[i]>0)h.louSaved[i]=Math.max(0,h.louSaved[i]-dt);
+    if(h.mechT<=0)louSetForm(h,false);
+    else if(G.quality!=='low'&&Math.random()<dt*6)pushP({x:h.x+rand(-10,10),y:h.y+14,vx:rand(-15,15),vy:rand(10,40),life:0.6,maxLife:0.6,color:'#7fe8ff',size:3});
+  }else{
+    var b=h.louBot;
+    if(b&&b.dead){h.louBot=null;h.louBotT=10;if(h.isPlayer)notify('Robot Louise hancur! Kembali dalam 10 detik','red');}
+    if(!h.louBot){
+      h.louBotT=(h.louBotT||0)-dt;
+      if(h.louBotT<=0)louSpawnBot(h);
+    }
+  }
+  louTickAir(h,dt);
+}
+function louSpawnBot(h){
+  var m=new Minion(h.team,'mid'),a=(h.facing||0)+2.4;
+  m.x=h.x+Math.cos(a)*70;m.y=h.y+Math.sin(a)*70;
+  m.isRobot=true;m.louKind='big';m.owner=h;m.radius=26;m.maxHp=1500+h.level*140;m.hp=m.maxHp;
+  m.dmg=46+h.level*8;m.armor=34;m.speed=265;m.range=72;m.xp=0;m.gold=0;m.robotLife=999;m.atkCooldown=0;m.offA=2.4;m.facing=a;
+  G.minions.push(m);G.entities.push(m);h.louBot=m;
+  pring(m.x,m.y,'#7fe8ff',70,0.5);spawnBurst(m.x,m.y,'#ff6fa8',14,true);
+}
+Minion.prototype.louBotUpdate=function(dt){
+  if(this.dead)return;
+  var o=this.owner,big=this.louKind==='big',i,e,d;
+  if(!o||o.dead||G.heroes.indexOf(o)<0||(big&&o.mech)){this.dead=true;spawnBurst(this.x,this.y,'#7fe8ff',12,false);return;}
+  if(!big){this.robotLife-=dt;if(this.robotLife<=0){this.dead=true;spawnBurst(this.x,this.y,'#7fe8ff',10,false);pring(this.x,this.y,'#ff6fa8',40,0.35);return;}}
+  if(this.atkCooldown>0)this.atkCooldown-=dt;
+  if(this.slowTime>0)this.slowTime-=dt;
+  if(this.hitFlash>0)this.hitFlash-=dt;
+  if(this.stunTime>0){this.stunTime-=dt;this.vx=0;this.vy=0;return;}
+  var best=null,f=o.louFocus;
+  if(f&&!f.dead&&G.time-(o.louFocusT||-99)<5&&dist(f,o)<(big?820:900)&&!(f.hiddenFrom&&f.hiddenFrom[this.team]))best=f;
+  if(!best){
+    var bs=big?320:620,ref=big?o:this;
+    for(i=0;i<G.entities.length;i++){
+      e=G.entities[i];
+      if(!e||e.dead||e.team===this.team||e.team===TEAM_NEUTRAL||!(e instanceof Hero||e instanceof Minion))continue;
+      if(e.hiddenFrom&&e.hiddenFrom[this.team])continue;
+      d=dist(ref,e)-(e instanceof Hero?60:0);
+      if(d<bs){bs=d;best=e;}
+    }
+  }
+  var sp=this.speed*(1-(this.slowTime>0?(this.slowAmt||0):0));
+  if(dist(this,o)>1100){this.x=o.x+Math.cos(this.offA)*70;this.y=o.y+Math.sin(this.offA)*70;return;}
+  if(best){
+    d=dist(this,best);this.facing=angleTo(this,best);
+    if(d<=this.range+best.radius){
+      this.vx=0;this.vy=0;
+      if(this.atkCooldown<=0){
+        this.atkCooldown=big?0.85:0.55;this.atkT0=performance.now();
+        pushP({swing:true,style:'bash',x:this.x,y:this.y,tx:best.x,ty:best.y,ang:this.facing,range:big?90:56,life:0.28,maxLife:0.28,color:big?'#ff9fc8':'#bff4ff'});
+        dealDamage(this,best,this.dmg,'phys');
+      }
+      return;
+    }
+    var gx=best.x-Math.cos(this.offA)*(this.range*0.5),gy=best.y-Math.sin(this.offA)*(this.range*0.5),ga=Math.atan2(gy-this.y,gx-this.x);
+    this.vx=Math.cos(ga)*sp;this.vy=Math.sin(ga)*sp;this.applyMovement(dt);
+  }else{
+    var hx=o.x+Math.cos(this.offA)*(big?90:70),hy=o.y+Math.sin(this.offA)*(big?90:70),dd=Math.hypot(hx-this.x,hy-this.y);
+    if(dd>36){var ha=Math.atan2(hy-this.y,hx-this.x),k=dd>320?1.5:1;this.facing=ha;this.vx=Math.cos(ha)*sp*k;this.vy=Math.sin(ha)*sp*k;this.applyMovement(dt);}
+    else{this.vx=0;this.vy=0;this.facing=o.facing||0;}
+  }
+};
+(function(){
+  var u=Minion.prototype.update;
+  Minion.prototype.update=function(dt){return this.louKind?this.louBotUpdate(dt):u.call(this,dt);};
+
+  var uh=Hero.prototype.update;
+  Hero.prototype.update=function(dt){
+    /* efek lempar: hero terlempar dibawa robot */
+    if(this.fling){
+      var F=this.fling;
+      if(this.dead)this.fling=null;
+      else{
+        F.t-=dt;this.vx=F.vx;this.vy=F.vy;this.applyMovement(dt);this.vx=0;this.vy=0;
+        if(G.quality!=='low'&&Math.random()<0.6)pushP({x:this.x,y:this.y,vx:0,vy:0,life:0.3,maxLife:0.3,color:'#ff9fc8',size:3.4});
+        if(F.t<=0){this.fling=null;louThrowLand(this,F);}
+      }
+    }
+    if(this.defKey==='louise')louTick(this,dt);
+    uh.call(this,dt);
+    if(this.louJ&&!this.dead){
+      var J=this.louJ;J.t+=dt;var p=Math.min(1,J.t/J.dur);
+      this.x=J.sx+(J.tx-J.sx)*p;this.y=J.sy+(J.ty-J.sy)*p;this.vx=0;this.vy=0;
+      if(p>=1){this.louJ=null;louLandSlam(this,J);}
+    }
+    if(this.recalling&&!this.dead){try{recallFxTick(this,dt);}catch(er){}}
+  };
+
+  var dh=drawHero;
+  drawHero=function(h){
+    var lift=0,sc=1;
+    if(h.fling&&!h.dead){var p=1-Math.max(0,h.fling.t)/h.fling.dur;lift=Math.sin(p*Math.PI)*70;sc=1+0.25*Math.sin(p*Math.PI);}
+    else if(h.louJ&&!h.dead){var p2=Math.min(1,h.louJ.t/h.louJ.dur);lift=Math.sin(p2*Math.PI)*130;sc=1+0.45*Math.sin(p2*Math.PI);}
+    if(lift>0){
+      var sh=Math.max(0.35,1-lift/260);
+      ctx.save();ctx.globalAlpha=0.3;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(h.x,h.y+h.radius*0.6,h.radius*sh,h.radius*0.5*sh,0,0,6.2832);ctx.fill();ctx.restore();
+      ctx.save();ctx.translate(h.x,h.y-lift);ctx.scale(sc,sc);ctx.translate(-h.x,-h.y);dh(h);ctx.restore();
+    }else dh(h);
+    if(h.fling&&!h.dead){
+      ctx.save();ctx.translate(h.x,h.y-lift);ctx.rotate(performance.now()/120);ctx.strokeStyle='#ff9fc8';ctx.lineWidth=3;ctx.setLineDash([8,6]);
+      ctx.beginPath();ctx.arc(0,0,h.radius+10,0,6.2832);ctx.stroke();ctx.restore();
+    }
+    if(h.mech&&!h.dead){
+      var t=performance.now()/1000;
+      ctx.save();ctx.translate(h.x,h.y);ctx.rotate(t*1.4);ctx.strokeStyle='rgba(127,232,255,0.75)';ctx.lineWidth=2.5;ctx.setLineDash([12,9]);
+      ctx.beginPath();ctx.arc(0,0,h.radius+12,0,6.2832);ctx.stroke();ctx.restore();
+      if(h.mechT>0){ctx.save();ctx.strokeStyle='#ff6fa8';ctx.lineWidth=3;ctx.globalAlpha=0.85;ctx.beginPath();ctx.arc(h.x,h.y,h.radius+19,-1.5708,-1.5708+6.2832*Math.max(0,h.mechT/75));ctx.stroke();ctx.restore();}
+    }
+    if(h.louAir&&h.louAir.length)drawLouAir(h);
+  };
+
+  var dm=drawMinion;
+  drawMinion=function(m){
+    if(m.louKind)return drawLouBot(m);
+    return dm(m);
+  };
+
+  var usui=updateSkillUI;
+  updateSkillUI=function(){usui();try{louHud();}catch(er){}};
+})();
+
+function drawLouBot(m){
+  var big=m.louKind==='big',col=TC[m.team]||TC[TEAM_BLUE],t=performance.now()/1000,ap=atkProg(m,0.3),s=big?1.55:0.72,fl=m.hitFlash>0;
+  ctx.save();ctx.translate(m.x,m.y);
+  ctx.globalAlpha=0.55;ctx.strokeStyle=col.main;ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(0,0,m.radius+3,0,6.2832);ctx.stroke();ctx.globalAlpha=1;
+  ctx.rotate((m.facing||0)+Math.PI/2);
+  var pk=ap>0?Math.sin(ap*Math.PI):0;
+  ctx.scale(s*(1+0.1*pk),s*(1-0.06*pk));
+  ctx.lineWidth=3/s;ctx.strokeStyle='#0d1428';
+  ctx.fillStyle=fl?'#fff':'#4a4668';ctx.fillRect(-9,8,7,10);ctx.strokeRect(-9,8,7,10);ctx.fillRect(2,8,7,10);ctx.strokeRect(2,8,7,10);
+  var ay=-6-9*pk;
+  ctx.fillStyle=fl?'#fff':'#7e8ba6';ctx.fillRect(-20,ay,8,18);ctx.strokeRect(-20,ay,8,18);ctx.fillRect(12,ay,8,18);ctx.strokeRect(12,ay,8,18);
+  ctx.fillStyle=fl?'#fff':'#ff6fa8';ctx.fillRect(-21,ay-5,10,8);ctx.strokeRect(-21,ay-5,10,8);ctx.fillRect(11,ay-5,10,8);ctx.strokeRect(11,ay-5,10,8);
+  ctx.fillStyle=fl?'#fff':'#5c5686';ctx.fillRect(-13,-10,26,22);ctx.strokeRect(-13,-10,26,22);
+  ctx.fillStyle=fl?'#fff':'#ff6fa8';ctx.fillRect(-9,-6,18,9);
+  ctx.fillStyle='#7fe8ff';ctx.globalAlpha=0.75+0.25*Math.sin(t*6);ctx.beginPath();ctx.arc(0,-1.5,3,0,6.2832);ctx.fill();ctx.globalAlpha=1;
+  ctx.fillStyle=fl?'#fff':col.main;ctx.fillRect(-8,-22,16,12);ctx.strokeRect(-8,-22,16,12);
+  ctx.fillStyle='#7fe8ff';ctx.fillRect(-6,-19,12,4);
+  ctx.restore();
+  if(!big){ctx.save();ctx.strokeStyle='#ff6fa8';ctx.lineWidth=2;ctx.globalAlpha=0.8;ctx.beginPath();ctx.arc(m.x,m.y,m.radius+6,-1.5708,-1.5708+6.2832*Math.max(0,(m.robotLife||0)/7));ctx.stroke();ctx.restore();}
+}
+
+/* ---- HUD timer mecha ---- */
+function louHud(){
+  var p=G.playerHero,el=document.getElementById('louTimer');
+  if(!p||p.defKey!=='louise'||!p.mech||p.dead){if(el)el.style.display='none';return;}
+  if(!el){
+    el=document.createElement('div');el.id='louTimer';
+    el.innerHTML='<div class="lt-l">MECHA LOUISE <b id="louTimerT"></b></div><div class="lt-track"><div class="lt-fill" id="louTimerF"></div></div>';
+    var hud=document.getElementById('hud');(hud||document.body).appendChild(el);
+  }
+  el.style.display='block';
+  var t=p.mechT,te=document.getElementById('louTimerT'),fe=document.getElementById('louTimerF');
+  if(t>0){if(te)te.textContent=Math.ceil(t)+'s';if(fe)fe.style.width=Math.max(0,Math.min(100,t/75*100))+'%';}
+  else{if(te)te.textContent='';if(fe)fe.style.width='100%';}
+}
+
+/* =====================================================================
+   EFEK RECALL KUSTOM
+   ===================================================================== */
+var RECALL_FX=[
+  {id:'default',name:'Biru Klasik',c1:'#4aa8ff',c2:'#bfe4ff',shape:'square',desc:'Cincin cahaya biru standar.'},
+  {id:'flame',name:'Api Neraka',c1:'#ff6a20',c2:'#ffd060',shape:'ember',desc:'Kobaran api naik menyelimuti hero.'},
+  {id:'thunder',name:'Petir Langit',c1:'#5ae0ff',c2:'#ffffff',shape:'bolt',desc:'Sambaran petir biru menyala.'},
+  {id:'sakura',name:'Kelopak Sakura',c1:'#ff9ac4',c2:'#ffe3f0',shape:'leaf',desc:'Kelopak sakura berguguran.'},
+  {id:'galaxy',name:'Galaksi',c1:'#a070ff',c2:'#ffd6ff',shape:'star',desc:'Bintang dan debu kosmik.'},
+  {id:'gold',name:'Cahaya Emas',c1:'#ffd45a',c2:'#fff4c0',shape:'star',desc:'Pilar cahaya keemasan.'},
+  {id:'circuit',name:'Sirkuit Robot',c1:'#7fe8ff',c2:'#ff6fa8',shape:'hex',desc:'Heksagon sirkuit digital.'},
+  {id:'shadow',name:'Kabut Bayangan',c1:'#a98bff',c2:'#1d1530',shape:'wisp',desc:'Kabut gelap yang berputar.'}
+];
+function recallFxDef(id){for(var i=0;i<RECALL_FX.length;i++)if(RECALL_FX[i].id===id)return RECALL_FX[i];return RECALL_FX[0];}
+function recallFxId(h){return h.isPlayer?(PROFILE.recallFx||'default'):(h.recallFx||'default');}
+function recallFxPart(fx,x,y){
+  var L=rand(0.7,1.2),col=Math.random()<0.5?fx.c1:fx.c2;
+  if(fx.shape==='ember')pushP({ember:true,x:x,y:y,vx:rand(-20,20),vy:-rand(60,150),rise:-30,life:L,maxLife:L,color:col,size:rand(2.5,4.5)});
+  else if(fx.id==='shadow')pushP({smoke:true,x:x,y:y,vx:rand(-20,20),vy:-rand(20,60),rise:20,life:L+0.3,maxLife:L+0.3,color:Math.random()<0.5?'#2a1a4a':fx.c1,size:rand(7,11)});
+  else pushP({x:x,y:y,vx:rand(-25,25),vy:-rand(50,130),shape:fx.shape,rot:rand(0,6),life:L,maxLife:L,color:col,size:rand(2.5,4.2)});
+}
+function recallFxTick(h,dt){
+  var fx=recallFxDef(recallFxId(h));
+  if(h.isPlayer&&h._rfxBar!==fx.id){h._rfxBar=fx.id;var fl=document.getElementById('recallFill');if(fl)fl.style.background=fx.c1;}
+  h._rfxT=(h._rfxT||0)-dt;h._rfxR=(h._rfxR||0)-dt;
+  var p=1-Math.max(0,h.recallTimer)/(h.recallMax||RECALL_TIME);
+  if(h._rfxR<=0){h._rfxR=0.45;pring(h.x,h.y+8,fx.c1,50+p*30,0.8);}
+  if(h._rfxT<=0){
+    h._rfxT=G.quality==='low'?0.14:0.06;
+    var n=p>0.5?2:1,k;
+    for(k=0;k<n;k++){var a=Math.random()*6.2832,r=26+Math.random()*18*(1-p*0.5);recallFxPart(fx,h.x+Math.cos(a)*r,h.y+8+Math.sin(a)*r*0.5);}
+    if(fx.id==='thunder'&&Math.random()<0.3)pfan(h.x,h.y,-1.5708,2,260,0.25,'bolt',fx.c1,4,0.6);
+    if(fx.id==='gold')pflash(h.x,h.y,fx.c1,36+p*40,0.15);
+  }
+}
+function recallFxBurst(x,y,id){
+  var fx=recallFxDef(id),i;
+  pring(x,y,fx.c1,110,0.7);pring(x,y,fx.c2,70,0.5);pflash(x,y,fx.c2,90,0.3);
+  for(i=0;i<pcount(18,true);i++)recallFxPart(fx,x+rand(-22,22),y+rand(-10,14));
+  pfan(x,y,0,pcount(10,true),300,0.7,fx.shape==='ember'?'square':fx.shape,fx.c1,4,Math.PI);
+}
+function recallFxDepart(h){var id=recallFxId(h);if(id==='default')spawnBurst(h.x,h.y,'#8ccfff',20,true);else recallFxBurst(h.x,h.y,id);}
+function recallFxArrive(h){var id=recallFxId(h);spawnBurst(h.x,h.y,'#8ccfff',id==='default'?30:10,true);if(id!=='default')recallFxBurst(h.x,h.y,id);}
+
+/* ---- preview di Backpack ---- */
+var RFX_PREV={raf:0,id:'default'};
+function rfxPreviewFrame(cv,id,t){
+  var c=cv.getContext('2d'),W=cv.width,H=cv.height,fx=recallFxDef(id),cx=W/2,cy=H*0.66,i;
+  var g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,'#0b1224');g.addColorStop(1,'#14203d');c.fillStyle=g;c.fillRect(0,0,W,H);
+  c.fillStyle='rgba(255,255,255,0.05)';c.beginPath();c.ellipse(cx,cy+16,60,16,0,0,6.2832);c.fill();
+  if(id==='gold'||id==='default'){var bg=c.createLinearGradient(0,cy-80,0,cy+16);bg.addColorStop(0,'rgba(0,0,0,0)');bg.addColorStop(1,fx.c1+'55');c.fillStyle=bg;c.fillRect(cx-26,cy-80,52,96);}
+  c.save();c.translate(cx,cy);c.scale(1.2,1.2);try{drawHeroShape(c,HERO_DEFS.louise,false,TEAM_BLUE);}catch(e){}c.restore();
+  c.lineWidth=2;
+  for(i=0;i<2;i++){var ph=(t*0.9+i*0.5)%1;c.globalAlpha=1-ph;c.strokeStyle=fx.c1;c.beginPath();c.ellipse(cx,cy+14,26+ph*54,8+ph*16,0,0,6.2832);c.stroke();}
+  for(i=0;i<26;i++){
+    var q=(t*0.8+i/26)%1,ang=i*2.4+t*1.2,r=34*(1-q*0.45),x=cx+Math.cos(ang)*r,y=cy+14-q*88+Math.sin(ang)*r*0.25,s=2.6+(i%3)*0.9;
+    c.globalAlpha=Math.max(0,1-q);c.fillStyle=(i%2)?fx.c1:fx.c2;c.strokeStyle=(i%2)?fx.c1:fx.c2;
+    c.save();c.translate(x,y);c.rotate(ang);
+    if(fx.shape==='ember'||fx.shape==='wisp'){c.beginPath();c.arc(0,0,s*(fx.shape==='wisp'?1.6:1),0,6.2832);c.fill();}
+    else if(fx.shape==='bolt'){c.beginPath();c.moveTo(-s,-s*2);c.lineTo(s*0.3,-s*0.2);c.lineTo(-s*0.3,s*0.2);c.lineTo(s,s*2);c.stroke();}
+    else if(fx.shape==='leaf'){c.beginPath();c.ellipse(0,0,s*1.6,s*0.8,0,0,6.2832);c.fill();}
+    else if(fx.shape==='star'){c.beginPath();for(var k=0;k<8;k++){var rr=k%2?s*0.6:s*1.7,aa=k/8*6.2832;c.lineTo(Math.cos(aa)*rr,Math.sin(aa)*rr);}c.closePath();c.fill();}
+    else if(fx.shape==='hex'){c.beginPath();for(var k2=0;k2<6;k2++){var a2=k2/6*6.2832;c.lineTo(Math.cos(a2)*s*1.4,Math.sin(a2)*s*1.4);}c.closePath();c.stroke();}
+    else c.fillRect(-s,-s,s*2,s*2);
+    c.restore();
+  }
+  c.globalAlpha=1;
+}
+function rfxPreviewLoop(){
+  var cv=document.getElementById('rfxPrev');
+  if(!cv){RFX_PREV.raf=0;return;}
+  rfxPreviewFrame(cv,RFX_PREV.id,performance.now()/1000);
+  RFX_PREV.raf=requestAnimationFrame(rfxPreviewLoop);
+}
+function buildBackpack(){
+  var box=document.getElementById('infoBody');if(!box)return;
+  var wrap=document.createElement('div');wrap.className='rfx-wrap';
+  wrap.innerHTML='<div class="rfx-h">EFEK RECALL</div><p class="about-text dim">Pilih efek yang tampil saat Recall (tombol B) dan ketika tiba di markas.</p><canvas id="rfxPrev" width="340" height="150"></canvas><div class="rfx-cur" id="rfxCur"></div><div class="rfx-grid" id="rfxGrid"></div>';
+  box.appendChild(wrap);
+  var cur=PROFILE.recallFx||'default';RFX_PREV.id=cur;
+  function render(){
+    var sel=PROFILE.recallFx||'default',grid=document.getElementById('rfxGrid'),ce=document.getElementById('rfxCur');
+    if(!grid)return;
+    if(ce)ce.innerHTML='Aktif: <b>'+recallFxDef(sel).name+'</b>';
+    grid.innerHTML='';
+    RECALL_FX.forEach(function(fx){
+      var b=document.createElement('button');b.className='rfx-card'+(fx.id===sel?' on':'');
+      b.innerHTML='<div class="sw" style="background:linear-gradient(90deg,'+fx.c1+','+fx.c2+')"></div><b>'+fx.name+'</b><span>'+fx.desc+'</span>'+(fx.id===sel?'<i>DIPAKAI</i>':'');
+      b.onclick=function(){PROFILE.recallFx=fx.id;RFX_PREV.id=fx.id;saveProfile();try{Sfx.ui();}catch(e){}render();};
+      grid.appendChild(b);
+    });
+  }
+  render();
+  if(!RFX_PREV.raf)RFX_PREV.raf=requestAnimationFrame(rfxPreviewLoop);
+}
+
 </script>
 </body>
 </html>
