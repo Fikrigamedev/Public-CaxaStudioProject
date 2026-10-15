@@ -491,6 +491,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf
       <div class="srow"><label>Bar HP Minion &amp; Creep selalu tampil</label><button id="tBarMinion" class="tg" onclick="toggleSetting('barMinion')"></button></div>
       <div class="srow"><label>Bar HP Hero selalu tampil</label><button id="tBarHero" class="tg" onclick="toggleSetting('barHero')"></button></div>
       <div class="srow"><label>Bar HP Turret selalu tampil</label><button id="tBarTurret" class="tg" onclick="toggleSetting('barTurret')"></button></div>
+      <div class="srow col"><div style="display:flex;justify-content:space-between;align-items:center"><label>Prioritas serangan</label><div class="seg" id="segTarget"><button data-v="near" onclick="setTargetMode('near')">Terdekat</button><button data-v="low" onclick="setTargetMode('low')">HP Terendah</button></div></div><div class="hint">Terdekat: musuh paling dekat (hero diutamakan). HP Terendah: musuh dengan persentase HP paling kecil di dalam jangkauan seranganmu.</div></div>
       <div class="srow"><label>Tampilkan area jangkauan</label><button id="tRange" class="tg" onclick="toggleSetting('showRange')"></button></div>
       <div class="srow col"><div style="display:flex;justify-content:space-between;align-items:center"><label>Sensitivitas geser kamera</label><b id="camSensVal" style="color:#ffd76e;font-size:12px">1.0x</b></div>
         <input id="rngCam" type="range" min="30" max="300" step="10" value="100" oninput="setCamSens(this.value)" style="width:100%"><div class="hint">Geser layar (HP) atau klik kanan + geser (PC) untuk menggeser kamera. Klik dua kali untuk fokus ulang.</div></div>
@@ -1350,7 +1351,8 @@ Hero.prototype.applyMovement=function(dt){
   this.x=px;this.y=py;
 };
 Hero.prototype.findTarget=function(){
-  var best=null,bd=1e9;
+  var mode=this.isPlayer?G.settings.targetMode:this.tmode;
+  var best=null,bd=1e9,low=null,lv=2,ld=1e9;
   var sr=Math.max(this.def.range,260);
   for(var i=0;i<G.entities.length;i++){
     var e=G.entities[i];
@@ -1363,9 +1365,10 @@ Hero.prototype.findTarget=function(){
       if(e instanceof Hero)pr*=0.55;
       else if(e instanceof Minion)pr*=0.85;
       if(pr<bd){bd=pr;best=e;}
+      if(mode==='low'&&d<=this.def.range+e.radius){var f=e.hp/e.maxHp;if(f<lv-1e-6||(Math.abs(f-lv)<=1e-6&&d<ld)){lv=f;ld=d;low=e;}}
     }
   }
-  return best;
+  return (mode==='low'&&low)?low:best;
 };
 Hero.prototype.findTargetNear=function(mx,my,maxDist){
   var best=null,bd=1e9;
@@ -1689,7 +1692,7 @@ Hero.prototype.roamGoal=function(){
   var lanes=['top','mid','bot'],want=lanes[Math.floor(G.time/50)%3],best=null,bs=1e9,i;
   for(i=0;i<G.heroes.length;i++){
     var a=G.heroes[i];
-    if(a===this||a.dead||a.team!==this.team||lanes.indexOf(a.lane)<0)continue;
+    if(a===this||a.dead||a.team!==this.team||lanes.indexOf(a.lane)<0||(FBM.mode&&(a.isPlayer||a.isRemote)))continue;
     var sc=(a.lane===want?0:350)+(1-a.hp/a.maxHp)*-120+dist(this,a)*0.15;
     if(sc<bs){bs=sc;best=a;}
   }
@@ -2710,12 +2713,12 @@ function spawnHeroes(teamComp,enemyComp,playerRole){
   for(var i=0;i<ROLES.length;i++){
     var lane=ROLES[i].lane;
     if(teamComp[i]){
-      var hb=new Hero(teamComp[i],TEAM_BLUE,lane,i===playerRole?((PROFILE.skin&&PROFILE.skin[teamComp[i]])||'base'):randomSkinId(teamComp[i]));
+      var hb=new Hero(teamComp[i],TEAM_BLUE,lane,(FBM.sk&&FBM.sk.b&&FBM.sk.b[i])||(i===playerRole?((PROFILE.skin&&PROFILE.skin[teamComp[i]])||'base'):randomSkinId(teamComp[i])));
       if(i===playerRole){hb.isPlayer=true;G.playerHero=hb;try{applyEmblem(hb);}catch(e){}}
       G.heroes.push(hb);G.entities.push(hb);
     }
     if(enemyComp[i]){
-      var hr=new Hero(enemyComp[i],TEAM_RED,lane,randomSkinId(enemyComp[i]));
+      var hr=new Hero(enemyComp[i],TEAM_RED,lane,(FBM.sk&&FBM.sk.r&&FBM.sk.r[i])||randomSkinId(enemyComp[i]));
       G.heroes.push(hr);G.entities.push(hr);
     }
   }
@@ -3029,7 +3032,7 @@ function startOnline(){
 }
 
 /* ===== ONLINE CO-OP: host-authoritative, 1 tim realtime ===== */
-var FBM={mode:null,hero:{},in:{},inAt:{},ev:[],mm:{},mo:{},offs:[],n:0,lk:'',ls:0,atk:0,nid:0,seq:0,hooked:false,pz:false,T:[],C:[],win:null,first:true,roles:{}};
+var FBM={sk:null,mode:null,hero:{},in:{},inAt:{},ev:[],mm:{},mo:{},offs:[],n:0,lk:'',ls:0,atk:0,nid:0,seq:0,hooked:false,pz:false,T:[],C:[],win:null,first:true,roles:{}};
 function r0(v){return Math.round(v||0);}
 function r1(v){return Math.round((v||0)*10)/10;}
 function lref(p){return FB.db.ref('rooms/'+FB.room.code+'-L'+(p?'/'+p:''));}
@@ -3073,13 +3076,18 @@ function startRoom(){
   ids.forEach(function(id,j){var k=ms[id].hero;if(!HERO_DEFS[k]||teamComp.indexOf(k)>=0)k=keys.filter(function(x){return teamComp.indexOf(x)<0;})[0];teamComp[j]=k;roles[id]=j;});
   for(i=0;i<5;i++)if(!teamComp[i])addBot(i);
   generateEnemy();
-  var comp=JSON.stringify({b:teamComp,r:enemyComp,roles:roles});
+  var sk={b:[],r:[]};
+  for(i=0;i<5;i++){
+    if(teamComp[i]){var hid=ids[i],sid=hid&&ms[hid]&&ms[hid].skin,okS=sid&&getSkins(teamComp[i]).some(function(s){return s.id===sid;});sk.b[i]=okS?sid:(hid?'base':randomSkinId(teamComp[i]));}
+    if(enemyComp[i])sk.r[i]=randomSkinId(enemyComp[i]);
+  }
+  var comp=JSON.stringify({b:teamComp,r:enemyComp,roles:roles,sk:sk});
   lref().remove().catch(function(){}).then(function(){return FB.db.ref('rooms/'+FB.room.code).update({comp:comp,state:'playing'});}).catch(function(e){olMsg(fbErr(e));});
 }
 function startOnline(){
   try{
     var c=JSON.parse(FB.room.data.comp);lobbyMode='classic';teamComp=c.b.slice();enemyComp=c.r.slice();
-    FBM.roles=c.roles;playerRole=c.roles[FB.user.uid]||0;activeSlot=playerRole;selectedHeroKey=teamComp[playerRole];
+    FBM.roles=c.roles;FBM.sk=c.sk||null;playerRole=c.roles[FB.user.uid]||0;activeSlot=playerRole;selectedHeroKey=teamComp[playerRole];
     FBM.mode='pending';resetHudState();startLoading();
   }catch(e){showErr('startOnline: '+e.message);}
 }
@@ -3092,6 +3100,7 @@ function onlinePostStart(){
   FBM.hero={};FBM.in={};FBM.inAt={};FBM.ev=[];FBM.mm={};FBM.mo={};FBM.pz=false;FBM.first=true;FBM.win=null;FBM.T=G.turrets.slice();FBM.C=G.cores.slice();
   for(i=0;i<ROLES.length;i++){if(teamComp[i])bi[i]=n++;if(enemyComp[i])n++;}
   installOnlineHooks();
+  var mem=FB.room.data.members||{};for(var uu in FBM.roles){var hh=G.heroes[bi[FBM.roles[uu]]];if(hh&&mem[uu])hh.uname=mem[uu].name;}
   if(FBM.host){
     for(var u in FBM.roles){if(u===me)continue;var h=G.heroes[bi[FBM.roles[u]]];if(h){h.isRemote=true;h.uid=u;FBM.hero[u]=h;}}
     var ri=lref('in'),rc=lref('cmd');
@@ -3110,7 +3119,7 @@ function onlinePostStart(){
   }
   notify(FBM.host?'Kamu host. Tim online siap bertanding!':'Terhubung ke host. Satu tim!','blue');
 }
-function stopOnline(){FBM.offs.forEach(function(f){try{f();}catch(e){}});FBM.offs=[];FBM.mode=null;try{leaveRoom(true);}catch(e){}}
+function stopOnline(){FBM.offs.forEach(function(f){try{f();}catch(e){}});FBM.offs=[];FBM.mode=null;FBM.sk=null;try{leaveRoom(true);}catch(e){}}
 function hostCmd(c){
   var h=FBM.hero[c.u];if(!h||h.dead||G.ended)return;
   if(c.k==='s'){
@@ -3125,6 +3134,7 @@ function hostCmd(c){
 }
 Hero.prototype.remoteUpdate=function(dt){
   var inp=FBM.in[this.uid]||{},fresh=performance.now()-(FBM.inAt[this.uid]||0)<2500,mx=fresh?(+inp.mx||0):0,my=fresh?(+inp.my||0):0;
+  this.tmode=inp.tm;
   if(this.stunTime>0){this.vx=0;this.vy=0;return;}
   var m=Math.hypot(mx,my);if(m>1){mx/=m;my/=m;}
   if(this.recalling&&(mx||my)){this.recallTimer=0;this.recalling=false;}
@@ -3235,11 +3245,21 @@ function installOnlineHooks(){
     if(FBM.mode!=='client'||!G.running||G.ended||!FB.room||!G.playerHero)return;
     var me=G.playerHero,q=myInput(),att=(Input.attackHeld||FBM.atk)?1:0,fa=+Math.atan2(G.mouse.wy-me.y,G.mouse.wx-me.x).toFixed(1),now=performance.now();
     FBM.atk=0;
-    var key=[q.mx.toFixed(2),q.my.toFixed(2),att,fa].join();
-    if(key!==FBM.lk||now-FBM.ls>1000){FBM.lk=key;FBM.ls=now;FBM.n++;lref('in/'+FB.user.uid).set({mx:+q.mx.toFixed(2),my:+q.my.toFixed(2),att:att,fa:fa,n:FBM.n}).catch(function(){});}
+    var tm=G.settings.targetMode==='low'?'low':'near',key=[q.mx.toFixed(2),q.my.toFixed(2),att,fa,tm].join();
+    if(key!==FBM.lk||now-FBM.ls>1000){FBM.lk=key;FBM.ls=now;FBM.n++;lref('in/'+FB.user.uid).set({mx:+q.mx.toFixed(2),my:+q.my.toFixed(2),att:att,fa:fa,tm:tm,n:FBM.n}).catch(function(){});}
   },80);
 }
 
+
+
+/* ===== skin & prioritas serangan ===== */
+function myMember(hero){hero=hero||'aegis';return {name:userName(),hero:hero,skin:(PROFILE.skin&&PROFILE.skin[hero])||'base',t:Date.now()};}
+function olSetHero(k){
+  if(!FB.room)return;
+  FB.db.ref('rooms/'+FB.room.code+'/members/'+FB.user.uid).update({hero:k,skin:(PROFILE.skin&&PROFILE.skin[k])||'base'}).catch(function(e){olMsg(fbErr(e));});
+}
+function setTargetMode(m){G.settings.targetMode=(m==='low')?'low':'near';try{Sfx.ui();}catch(e){}saveSettings();applyTargetUI();}
+function applyTargetUI(){var b=document.querySelectorAll('#segTarget button');for(var i=0;i<b.length;i++)b[i].classList.toggle('on',b[i].dataset.v===(G.settings.targetMode||'near'));}
 
 /* ===== MATCH FLOW ===== */
 function startMatch(playerKey,teamComp,enemyComp,playerRole){
@@ -4245,6 +4265,7 @@ function drawHealthBar(e){
     ctx.fillStyle='#0d1428';ctx.beginPath();ctx.arc(-6,-2,6,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#a8c4ff';ctx.font='bold 8px Arial';ctx.textAlign='center';ctx.textBaseline='middle';
     ctx.fillText(e.level,-6,-2);
+    if(e.uname){ctx.font='bold 10px Arial';ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,0.85)';ctx.strokeText(e.uname,w/2,-6);ctx.fillStyle=e.team===TEAM_BLUE?'#bfe0ff':'#ffc0c8';ctx.fillText(e.uname,w/2,-6);}
     if(e.recalling){
       var progress=1-e.recallTimer/e.recallMax;
       ctx.fillStyle='rgba(0,0,0,0.7)';
@@ -5830,6 +5851,7 @@ function applySettingsUI(){
   for(var j=0;j<sf.length;j++)sf[j].classList.toggle('on',+sf[j].dataset.v===G.settings.fpsCap);
   var qh=document.getElementById('qualityHint');
   if(qh)qh.textContent=QUALITY_HINT[G.quality]||'';
+  try{applyTargetUI();}catch(e){}
   Sfx.setEnabled(G.settings.sound);
   if(fpsEl)fpsEl.classList.toggle('hidden',!G.settings.fps);
 }
