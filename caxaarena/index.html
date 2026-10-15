@@ -3043,7 +3043,7 @@ function addItemBonus(h,it){var b=h.itemBonus,s=it.stat;if(s==='regen'){b.hpRege
 function watchRoom(code){
   if(FB.unsub)FB.unsub();FB.started=false;
   var ref=FB.db.ref('rooms/'+code),uid=FB.user.uid;
-  ref.child('members/'+uid).onDisconnect().remove();
+  if(!FBM.mode)ref.child('members/'+uid).onDisconnect().remove();
   var cb=ref.on('value',function(snap){
     if(!snap.exists()){
       var was=FB.room;FB.room=null;if(FB.unsub){FB.unsub();FB.unsub=null;}
@@ -3052,10 +3052,10 @@ function watchRoom(code){
       return;
     }
     var data=snap.val();data.members=data.members||{};FB.room={code:code,data:data};
-    if(data.host===uid)ref.onDisconnect().remove();
+    if(data.host===uid&&!FBM.mode&&data.state!=='playing')ref.onDisconnect().remove();
+    if(!data.members[uid]&&FBM.mode){ref.child('members/'+uid).set({name:userName(),hero:teamComp[playerRole]||'aegis',skin:'base',t:Date.now()}).catch(function(){});return;}
     if(!data.members[uid]){FB.room=null;if(FB.unsub){FB.unsub();FB.unsub=null;}olMsg('Kamu dikeluarkan dari tim.');olRender();return;}
     if(data.state==='lobby')FB.started=false;
-    if(FBM.mode==='host')for(var k in FBM.hero)if(!data.members[k]){FBM.hero[k].isRemote=false;delete FBM.hero[k];}
     if(data.state==='playing'&&!FB.started){FB.started=true;startOnline();return;}
     if(!FBM.mode)olRender();
   },function(e){olMsg('Koneksi tim terputus: '+fbErr(e));});
@@ -3100,9 +3100,12 @@ function onlinePostStart(){
   FBM.hero={};FBM.in={};FBM.inAt={};FBM.ev=[];FBM.mm={};FBM.mo={};FBM.pz=false;FBM.first=true;FBM.win=null;FBM.T=G.turrets.slice();FBM.C=G.cores.slice();
   for(i=0;i<ROLES.length;i++){if(teamComp[i])bi[i]=n++;if(enemyComp[i])n++;}
   installOnlineHooks();
+  try{var rr=FB.db.ref('rooms/'+FB.room.code);rr.child('members/'+me).onDisconnect().cancel();rr.onDisconnect().cancel();}catch(e){}
+  var cr=FB.db.ref('.info/connected'),c4=cr.on('value',function(s){if(s.val()===true){if(FBM.wasOff){FBM.wasOff=false;notify('Tersambung kembali','blue');}}else{FBM.wasOff=true;notify('Koneksi terputus, menyambung ulang...','red');}});
+  FBM.offs.push(function(){cr.off('value',c4);});
   var mem=FB.room.data.members||{};for(var uu in FBM.roles){var hh=G.heroes[bi[FBM.roles[uu]]];if(hh&&mem[uu])hh.uname=mem[uu].name;}
   if(FBM.host){
-    for(var u in FBM.roles){if(u===me)continue;var h=G.heroes[bi[FBM.roles[u]]];if(h){h.isRemote=true;h.uid=u;FBM.hero[u]=h;}}
+    for(var u in FBM.roles){if(u===me)continue;var h=G.heroes[bi[FBM.roles[u]]];if(h){h.isRemote=true;h.uid=u;FBM.hero[u]=h;FBM.inAt[u]=performance.now();}}
     var ri=lref('in'),rc=lref('cmd');
     var c1=ri.on('value',function(s){var v=s.val()||{};for(var k in v)if(!FBM.in[k]||FBM.in[k].n!==v[k].n)FBM.inAt[k]=performance.now();FBM.in=v;});
     var c2=rc.on('child_added',function(s){var c=s.val();s.ref.remove();try{hostCmd(c);}catch(e){console.error(e);}});
@@ -3135,6 +3138,11 @@ function hostCmd(c){
 Hero.prototype.remoteUpdate=function(dt){
   var inp=FBM.in[this.uid]||{},fresh=performance.now()-(FBM.inAt[this.uid]||0)<2500,mx=fresh?(+inp.mx||0):0,my=fresh?(+inp.my||0):0;
   this.tmode=inp.tm;
+  if(performance.now()-(FBM.inAt[this.uid]||0)>15000){
+    this.aiBuyT-=dt;if(this.aiBuyT<=0){this.aiBuyT=7;this.aiBuy();}
+    if(this.hp/this.maxHp<0.55)this.useRegen();
+    this.aiUpdate(dt);return;
+  }
   if(this.stunTime>0){this.vx=0;this.vy=0;return;}
   var m=Math.hypot(mx,my);if(m>1){mx/=m;my/=m;}
   if(this.recalling&&(mx||my)){this.recallTimer=0;this.recalling=false;}
@@ -3158,7 +3166,7 @@ function syncStruct(L,hp){for(var i=0;i<L.length;i++){var t=L[i];if(!t||t.dead)c
 function applySnap(S){
   var i,me=G.playerHero,first=FBM.first;FBM.first=false;
   G.time=S.t;G.kills=S.k;
-  for(i=0;i<S.H.length;i++){
+  for(i=0;i<S.H.length;i++){try{
     var a=S.H[i],h=G.heroes[i];if(!h)continue;
     var wasDead=h.dead,ik=a[17].join();
     h._tx=a[0];h._ty=a[1];if(first||(wasDead&&!a[5])){h.x=a[0];h.y=a[1];}
@@ -3170,16 +3178,17 @@ function applySnap(S){
     if(a[5]&&!wasDead){h.dead=true;spawnBurst(h.x,h.y,TC[h.team].main,30,true);if(h===me){G.deathDetail=false;try{fillDeathCard(h);}catch(e){}}}
     else if(!a[5]&&wasDead){h.dead=false;spawnBurst(h.x,h.y,'#8ccfff',26,true);
       if(h===me){G.deathDetail=false;G.camOff={x:0,y:0};var el=document.getElementById('respawnOverlay');if(el)el.classList.add('hidden');var db=document.getElementById('deathBar');if(db)db.classList.add('hidden');}}
+  }catch(er){console.error(er);}
   }
   var seen={},LN=['top','mid','bot'],id;
-  S.M.forEach(function(a){seen[a[0]]=1;var m=FBM.mm[a[0]];
+  S.M.forEach(function(a){try{seen[a[0]]=1;var m=FBM.mm[a[0]];
     if(!m){m=new Minion(a[1],LN[a[2]]||'mid');m.x=a[3];m.y=a[4];if(a[7]){m.isLord=true;m.isSuper=false;m.type='lord';m.def=MONSTER_TYPES.lord;m.radius=40;}FBM.mm[a[0]]=m;G.minions.push(m);G.entities.push(m);}
-    m._tx=a[3];m._ty=a[4];m.hp=a[5];m.maxHp=a[6];m.vx=a[8];m.vy=a[9];m.facing=a[10];});
+    m._tx=a[3];m._ty=a[4];m.hp=a[5];m.maxHp=a[6];m.vx=a[8];m.vy=a[9];m.facing=a[10];}catch(er){}});
   for(id in FBM.mm)if(!seen[id]){FBM.mm[id].dead=true;delete FBM.mm[id];}
   seen={};
-  S.O.forEach(function(a){seen[a[0]]=1;var m=FBM.mo[a[0]];
+  S.O.forEach(function(a){try{seen[a[0]]=1;var m=FBM.mo[a[0]];
     if(!m){m=new Monster(a[1],a[2],a[3],a[6]);FBM.mo[a[0]]=m;G.monsters.push(m);G.entities.push(m);}
-    m._tx=a[2];m._ty=a[3];m.hp=a[4];m.maxHp=a[5];m.vx=a[7];m.vy=a[8];m.facing=a[9];});
+    m._tx=a[2];m._ty=a[3];m.hp=a[4];m.maxHp=a[5];m.vx=a[7];m.vy=a[8];m.facing=a[9];}catch(er){}});
   for(id in FBM.mo)if(!seen[id]){FBM.mo[id].dead=true;delete FBM.mo[id];}
   G.monsters=G.monsters.filter(function(m){return !m.dead;});
   syncStruct(FBM.T,S.T);syncStruct(FBM.C,S.C);
@@ -3237,6 +3246,14 @@ function installOnlineHooks(){
     if(!G.running||G.ended)return;FBM.pz=!FBM.pz;showScreen(FBM.pz?'screen-pause':null);
   };
   var _hg=handleGo;handleGo=function(){if(FBM.mode)stopOnline();return _hg.apply(this,arguments);};
+  setInterval(function(){
+    var t=performance.now();
+    if(FBM.mode==='host'&&document.hidden&&G.running&&!G.paused&&!G.ended){
+      var el=Math.min(2,(t-(FBM.ht||t))/1000);
+      while(el>0.001){var s=Math.min(0.05,el);try{update(s);}catch(e){}el-=s;}
+    }
+    FBM.ht=t;
+  },50);
   setInterval(function(){
     if(FBM.mode!=='host'||!G.running||!FB.room)return;
     lref('snap').set(packSnap()).catch(function(){});
