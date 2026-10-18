@@ -2,6 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
+<link rel="preconnect" href="https://swoabptljqaguyeoazno.supabase.co" crossorigin>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="screen-orientation" content="landscape"><meta name="x5-orientation" content="landscape"><meta name="x5-fullscreen" content="true"><meta name="full-screen" content="yes"><meta name="browsermode" content="application">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#05070c">
@@ -616,7 +617,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf
     <div class="menu-content">
       <canvas id="logoCanvas" width="520" height="130"></canvas>
       <p class="tag">ARENA PERTEMPURAN 5 VS 5</p>
-      <p class="ver">Versi 7.5 &middot; Offline &amp; Online Co-op</p>
+      <p class="ver">Versi 7.6 &middot; Offline &amp; Online Co-op</p>
     </div>
     <div class="mm-bottom">
       <button class="mm-bt" onclick="openInfo('backpack')"><svg viewBox="0 0 24 24"><path d="M6 8h12l1 12H5z"/><path d="M9 8V6a3 3 0 0 1 6 0v2M9 13h6"/></svg>BACKPACK</button>
@@ -9416,7 +9417,9 @@ setInterval(surTick,500);
 /* ===== v7: konfigurasi dashboard (lobby/portrait/ban/event) + sinkron akun & emblem ===== */
 (function(){
 var $=function(i){return document.getElementById(i);},CK='caxa-cfg7';
-window.CFG7={lobby:null,banned:{},events:{}};var lobbyLive=false;
+/* Supabase Storage (sama dengan dashboard): aset lobby, musik, dan portrait */
+window.SBG={url:'https://swoabptljqaguyeoazno.supabase.co',bucket:'game asset',pub:function(p){return this.url+'/storage/v1/object/public/'+encodeURIComponent(this.bucket)+'/'+String(p).split('/').map(encodeURIComponent).join('/');}};
+window.CFG7={lobby:null,banned:{},events:{}};var lobbyLive=false,portLive=false;
 try{var c0=JSON.parse(localStorage.getItem(CK)||'{}');if(c0.banned)CFG7.banned=c0.banned;if(c0.events)CFG7.events=c0.events;if(c0.lobby)CFG7.lobby=c0.lobby;}catch(e){}
 function cache(){try{localStorage.setItem(CK,JSON.stringify(CFG7));}catch(e){}}
 function okSrc(s){return typeof s==='string'&&/^(https:\/\/|data:(image|video)\/)/.test(s);}
@@ -9468,7 +9471,15 @@ function redraw(){try{if($('screen-lobby').classList.contains('active'))refreshL
 function sched(){clearTimeout(PortOv.t);PortOv.t=setTimeout(redraw,120);}
 window.PortOv={imgs:{},t:0,
   draw:function(c,w,h,def){try{var k=def&&keyOf(def.name);if(!k)return false;var sid=def.skinId||'base',im=this.imgs[sid==='base'?k:sid];if(!im||!im.complete||!im.naturalWidth)return false;c.drawImage(im,0,0,w,h);return true;}catch(e){return false;}},
-  set:function(o){var old=this.imgs,n={};this.imgs=n;for(var id in o){var s=o[id];if(typeof s!=='string'||s.indexOf('data:image/')!==0||s.length>250000)continue;(function(id,s){var im=(old[id]&&old[id].src===s)?old[id]:null;if(!im){im=new Image();im.onload=sched;im.src=s;}n[id]=im;})(id,s);}sched();}};
+  set:function(o){var old=this.imgs,n={};this.imgs=n;
+    for(var id in o){
+      var s=o[id];if(typeof s!=='string')continue;
+      if(/^portrait\/[\w.\-]+$/.test(s))s=window.SBG.pub(s);
+      var isData=s.indexOf('data:image/')===0&&s.length<=250000,isUrl=/^https:\/\//.test(s)&&s.length<700;
+      if(!isData&&!isUrl)continue;
+      (function(id,s,isUrl){var im=(old[id]&&old[id].dataset&&old[id].dataset.s===s)?old[id]:null;if(!im){im=new Image();im.dataset.s=s;if(isUrl)im.crossOrigin='anonymous';im.onload=sched;im.onerror=function(){};im.src=s;}n[id]=im;})(id,s,isUrl);
+    }
+    sched();}};
 
 /* --- EVENT --- */
 var ICON={spin:'\uD83C\uDFA1',chest:'\uD83C\uDF81',skin:'\uD83C\uDFAD',coins:'\uD83D\uDCB0',info:'\uD83D\uDCE2'},LABEL={spin:'PUTAR RODA',chest:'BUKA PETI',skin:'KLAIM SKIN',coins:'AMBIL KOIN'};
@@ -9567,7 +9578,7 @@ function listen(){
   on('config/lobby',function(v){lobbyLive=true;CFG7.lobby=v;cache();applyLobby();});
   on('config/banned',function(v){CFG7.banned=v||{};cache();try{if($('screen-lobby').classList.contains('active'))refreshLobby();}catch(e){}});
   on('config/events',function(v){CFG7.events=v||{};cache();evRender($('evBox')?undefined:undefined);});
-  on('config/portraits',function(v){PortOv.set(v||{});});
+  on('config/portraits',function(v){portLive=true;PortOv.set(v||{});});
   if(FB.user)udAuth(FB.user);
 }
 applyLobby();
@@ -9579,6 +9590,11 @@ function lobbyRest(){
   }).catch(function(){});}catch(e){}
 }
 lobbyRest();setTimeout(lobbyRest,4000);
+function portRest(){
+  if(portLive)return;
+  try{fetch(DBURL+'/config/portraits.json').then(function(r){return r.ok?r.json():undefined;}).then(function(v){if(v===undefined||portLive)return;PortOv.set(v||{});}).catch(function(){});}catch(e){}
+}
+portRest();setTimeout(portRest,4000);
 fbLoad(function(e){if(e){setTimeout(lobbyRest,1500);return;}listen();});
 setInterval(function(){evDot();if($('evBox')&&$('screen-info').classList.contains('active'))evRender();},60000);
 })();
