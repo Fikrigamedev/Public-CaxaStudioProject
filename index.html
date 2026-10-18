@@ -570,7 +570,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf
     <div class="menu-content">
       <canvas id="logoCanvas" width="520" height="130"></canvas>
       <p class="tag">ARENA PERTEMPURAN 5 VS 5</p>
-      <p class="ver">Versi 7.0 &middot; Offline &amp; Online Co-op</p>
+      <p class="ver">Versi 7.1 &middot; Offline &amp; Online Co-op</p>
     </div>
     <div class="mm-bottom">
       <button class="mm-bt" onclick="openInfo('backpack')"><svg viewBox="0 0 24 24"><path d="M6 8h12l1 12H5z"/><path d="M9 8V6a3 3 0 0 1 6 0v2M9 13h6"/></svg>BACKPACK</button>
@@ -640,7 +640,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf
       <div class="srow col"><div style="display:flex;justify-content:space-between;align-items:center"><label>Batas FPS</label>
         <div class="seg" id="segFps"><button data-v="20" onclick="changeFpsCap(20)">20</button><button data-v="30" onclick="changeFpsCap(30)">30</button><button data-v="45" onclick="changeFpsCap(45)">45</button><button data-v="60" onclick="changeFpsCap(60)">60</button><button data-v="90" onclick="changeFpsCap(90)">90</button><button data-v="120" onclick="changeFpsCap(120)">120</button><button data-v="0" onclick="changeFpsCap(0)">Maks</button></div></div>
         <div class="hint">Terendah 20 FPS hemat baterai, tertinggi Maks mengikuti refresh rate layar.</div></div>
-      <div class="srow"><label>SFX (Efek Suara)</label><button id="tSound" class="tg on" onclick="toggleSound()"></button></div>
+      <div class="srow"><label>Suara (aktif / senyap semua efek &amp; notifikasi)</label><button id="tSound" class="tg on" onclick="toggleSound()"></button></div>
+      <div class="srow col"><div style="display:flex;justify-content:space-between;align-items:center"><label>Suara Serangan &amp; Efek</label><b id="vSfxVal" style="color:#ffd76e;font-size:12px">100%</b></div><input id="rngVSfx" type="range" min="0" max="100" step="5" value="100" oninput="setVol('sfx',this.value)" style="width:100%"></div><div class="srow col"><div style="display:flex;justify-content:space-between;align-items:center"><label>Suara Pemberitahuan (First Blood, dll)</label><b id="vVoiceVal" style="color:#ffd76e;font-size:12px">100%</b></div><input id="rngVVoice" type="range" min="0" max="100" step="5" value="100" oninput="setVol('voice',this.value)" style="width:100%"></div><div class="srow col"><div style="display:flex;justify-content:space-between;align-items:center"><label>Musik Latar</label><b id="vMusicVal" style="color:#ffd76e;font-size:12px">60%</b></div><input id="rngVMusic" type="range" min="0" max="100" step="5" value="60" oninput="setVol('music',this.value)" style="width:100%"></div>
       <div class="srow"><label>Bar HP Minion &amp; Creep selalu tampil</label><button id="tBarMinion" class="tg" onclick="toggleSetting('barMinion')"></button></div>
       <div class="srow"><label>Bar HP Hero selalu tampil</label><button id="tBarHero" class="tg" onclick="toggleSetting('barHero')"></button></div>
       <div class="srow"><label>Bar HP Turret selalu tampil</label><button id="tBarTurret" class="tg" onclick="toggleSetting('barTurret')"></button></div>
@@ -812,6 +813,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf
         <div class="stat-box"><span>KOIN</span><b id="resCoin">0</b></div>
         <div class="stat-box"><span>SKOR TIM</span><b id="resTeam">0:0</b></div>
       </div>
+      <div id="resBoard"></div>
       <div class="result-buttons back-row">
         <button class="btn primary" onclick="resultNext('stats')">LANJUTKAN</button>
       </div>
@@ -1153,8 +1155,8 @@ function glow(v){if(G.quality==='low'||G.lite)return 0;if(G.particles&&G.particl
 
 /* ===== AUDIO ===== */
 var Sfx=(function(){
-  var actx=null,enabled=true,master=null,lastT={},nbuf=null;
-  function ensure(){if(!actx){try{actx=new (window.AudioContext||window.webkitAudioContext)();master=actx.createGain();master.gain.value=0.28;master.connect(actx.destination);}catch(e){return false;}}try{if(actx.state==='suspended')actx.resume();}catch(e){}return true;}
+  var actx=null,enabled=true,master=null,lastT={},nbuf=null,sv=1;
+  function ensure(){if(!actx){try{actx=new (window.AudioContext||window.webkitAudioContext)();master=actx.createGain();master.gain.value=0.28*sv;master.connect(actx.destination);}catch(e){return false;}}try{if(actx.state==='suspended')actx.resume();}catch(e){}return true;}
   function gate(k,ms){var n=performance.now();if(lastT[k]&&n-lastT[k]<ms)return false;lastT[k]=n;return true;}
   function vol(e){if(!e||typeof G==='undefined'||!G.cam)return 1;var d=Math.hypot(e.x-G.cam.x,e.y-G.cam.y);if(d>1100)return 0;return d<350?1:Math.max(0.12,1-(d-350)/900);}
   function T(f0,f1,d,type,v,dl){
@@ -1316,7 +1318,8 @@ var Sfx=(function(){
     buy:function(){T(700,900,.08,'sine',.35);T(1000,1200,.1,'sine',.35,.07);},
     win:function(){[523,659,784,1046].forEach(function(f,i){T(f,f,.32,'triangle',.42,i*.15);});},
     lose:function(){[400,330,260,180].forEach(function(f,i){T(f,f*0.9,.4,'sine',.42,i*.18);});},
-    setEnabled:function(v){enabled=v;if(v)ensure();}
+    setEnabled:function(v){enabled=v;if(v)ensure();},
+    setVol:function(v){sv=v;if(master)master.gain.value=0.28*sv;}
   };
 })();
 
@@ -1677,7 +1680,7 @@ Hero.prototype.applyMovement=function(dt){
 };
 Hero.prototype.findTarget=function(){
   var mode=this.isPlayer?G.settings.targetMode:this.tmode;
-  var best=null,bd=1e9,low=null,lv=2,ld=1e9;
+  var best=null,bd=1e9,low=null,lv=2,ld=1e9,lh=2;
   var sr=Math.max(this.def.range,260);
   for(var i=0;i<G.entities.length;i++){
     var e=G.entities[i];
@@ -1686,11 +1689,11 @@ Hero.prototype.findTarget=function(){
     if(e.hiddenFrom&&e.hiddenFrom[this.team])continue;
     var d=Math.hypot(e.x-this.x,e.y-this.y);
     if(d<sr){
-      var pr=d;
-      if(e instanceof Hero)pr*=0.55;
+      var pr=d,inr=d<=this.def.range+e.radius;
+      if(e instanceof Hero)pr=inr?d-5000:d*1.3;
       else if(e instanceof Minion)pr*=0.85;
       if(pr<bd){bd=pr;best=e;}
-      if(mode==='low'&&d<=this.def.range+e.radius){var f=e.hp/e.maxHp;if(f<lv-1e-6||(Math.abs(f-lv)<=1e-6&&d<ld)){lv=f;ld=d;low=e;}}
+      if(mode==='low'&&inr){var f=e.hp/e.maxHp,hv=(e instanceof Hero)?0:1;if(hv<lh-0||(hv===lh&&(f<lv-1e-6||(Math.abs(f-lv)<=1e-6&&d<ld)))){lh=hv;lv=f;ld=d;low=e;}}
     }
   }
   return (mode==='low'&&low)?low:best;
@@ -1705,7 +1708,7 @@ Hero.prototype.findTargetNear=function(mx,my,maxDist){
     var d=Math.hypot(e.x-mx,e.y-my);
     var dh=Math.hypot(e.x-this.x,e.y-this.y);
     if(dh>this.def.range+e.radius+maxDist)continue;
-    var score=d+(e instanceof Hero?0:40);
+    var score=d+(e instanceof Hero?0:160);
     if(score<bd){bd=score;best=e;}
   }
   return best;
@@ -4093,7 +4096,7 @@ function playWelcome(){
   try{
     if(G.settings&&G.settings.sound===false)return;
     if(!_welcomeAudio){_welcomeAudio=new Audio(WELCOME_SRC);_welcomeAudio.preload='auto';_welcomeAudio.volume=1;}
-    _welcomeAudio.pause();_welcomeAudio.currentTime=0;
+    _welcomeAudio.pause();_welcomeAudio.currentTime=0;_welcomeAudio.volume=(window.VOL?VOL.voice:1);
     var p=_welcomeAudio.play();if(p&&p.catch)p.catch(function(){});
   }catch(e){}
 }
@@ -4115,7 +4118,7 @@ function playVoice(k){
     if(!VOICE_SRC[k])return;
     if(_voiceCur){try{_voiceCur.pause();}catch(e){}}
     var a=_voiceA[k];if(!a){a=_voiceA[k]=new Audio(VOICE_SRC[k]);a.preload='auto';}
-    a.currentTime=0;_voiceCur=a;
+    a.currentTime=0;a.volume=(window.VOL?VOL.voice:1);_voiceCur=a;
     var pr=a.play();if(pr&&pr.catch)pr.catch(function(){});
   }catch(e){}
 }
@@ -6948,7 +6951,8 @@ function loop(t){
     showErr('update: '+err.message);
   }
   try{
-    render();
+    if(G.running){if(canvas.style.visibility==='hidden')canvas.style.visibility='visible';render();}
+    else if(canvas.style.visibility!=='hidden')canvas.style.visibility='hidden';
   }catch(err){
     showErr('render: '+err.message);
   }
@@ -9396,6 +9400,92 @@ function listen(){
 applyLobby();
 fbLoad(function(e){if(!e)listen();});
 setInterval(function(){evDot();if($('evBox')&&$('screen-info').classList.contains('active'))evRender();},60000);
+})();
+</script>
+<script>
+/* ===== v7.1: volume terpisah, musik latar (dashboard), papan KDA semua pemain ===== */
+(function(){
+var $=function(i){return document.getElementById(i);};
+var VOL=window.VOL={sfx:1,voice:1,music:.6},NAMES={sfx:'volSfx',voice:'volVoice',music:'volMusic'};
+function readVol(){var s=G.settings;VOL.sfx=(s.volSfx==null?100:s.volSfx)/100;VOL.voice=(s.volVoice==null?100:s.volVoice)/100;VOL.music=(s.volMusic==null?60:s.volMusic)/100;}
+function applyVol(){
+  readVol();try{Sfx.setVol(VOL.sfx);}catch(e){}
+  try{if(_voiceCur)_voiceCur.volume=VOL.voice;if(_welcomeAudio)_welcomeAudio.volume=VOL.voice;}catch(e){}
+  MUS.vol();
+  var m={sfx:['rngVSfx','vSfxVal'],voice:['rngVVoice','vVoiceVal'],music:['rngVMusic','vMusicVal']};
+  for(var k in m){var r=$(m[k][0]),l=$(m[k][1]);if(r)r.value=Math.round(VOL[k]*100);if(l)l.textContent=Math.round(VOL[k]*100)+'%';}
+}
+window.setVol=function(k,v){v=Math.max(0,Math.min(100,v|0));G.settings[NAMES[k]]=v;saveSettings();applyVol();if(k==='sfx'){try{Sfx.ui();}catch(e){}}if(k==='music')MUS.start();};
+var _asu=applySettingsUI;applySettingsUI=function(){_asu.apply(this,arguments);applyVol();};
+
+/* --- musik latar: file dari dashboard, atau musik sintetis bawaan --- */
+var C0=[[57,60,64],[53,57,60],[48,52,55],[55,59,62]],ARP=[0,1,2,1,0,2,1,2];
+var MUS=window.MUS={el:null,src:'',ctx:null,gain:null,tm:null,nextT:0,bar:0,on:false,
+  vol:function(){if(this.el)this.el.volume=VOL.music;if(this.gain)this.gain.gain.value=VOL.music*0.9;if(this.on)this.state();},
+  state:function(){
+    var play=VOL.music>0&&!document.hidden;
+    if(this.el){try{if(play&&this.on){var p=this.el.play();if(p&&p.catch)p.catch(function(){});}else this.el.pause();}catch(e){}this.synth(false);}
+    else this.synth(play&&this.on);
+  },
+  start:function(){this.on=true;this.state();},
+  synth:function(run){
+    var me=this;
+    if(!run){clearInterval(me.tm);me.tm=null;if(me.ctx&&me.ctx.state==='running')try{me.ctx.suspend();}catch(e){}return;}
+    if(!me.ctx){try{me.ctx=new (window.AudioContext||window.webkitAudioContext)();me.gain=me.ctx.createGain();me.gain.gain.value=VOL.music*0.9;me.gain.connect(me.ctx.destination);}catch(e){return;}}
+    try{if(me.ctx.state==='suspended')me.ctx.resume();}catch(e){}
+    if(me.tm)return;me.nextT=me.ctx.currentTime+0.1;
+    me.tm=setInterval(function(){me.sched();},300);
+  },
+  note:function(t,f,d,ty,v){var c=this.ctx,o=c.createOscillator(),g=c.createGain();o.type=ty;o.frequency.value=f;g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(v,t+Math.min(0.1,d/3));g.gain.exponentialRampToValueAtTime(0.0001,t+d);o.connect(g);g.connect(this.gain);o.start(t);o.stop(t+d+0.05);},
+  sched:function(){
+    var c=this.ctx,bt=60/84,mf=function(n){return 440*Math.pow(2,(n-69)/12);};
+    while(this.nextT<c.currentTime+0.9){
+      var ch=C0[this.bar%4],t=this.nextT,i;
+      for(i=0;i<3;i++)this.note(t,mf(ch[i]-12),bt*4,'triangle',0.06);
+      this.note(t,mf(ch[0]-24),bt*2,'sine',0.1);this.note(t+bt*2,mf(ch[0]-24),bt*2,'sine',0.08);
+      for(i=0;i<8;i++)this.note(t+i*bt/2,mf(ch[ARP[i]]+12),bt*0.9,'sine',0.045);
+      this.nextT+=bt*4;this.bar++;
+    }
+  },
+  set:function(src){
+    if(src===this.src)return;this.src=src;
+    if(this.el){try{this.el.pause();}catch(e){}this.el=null;}
+    if(src){var a=new Audio();a.loop=true;a.preload='auto';a.src=src;a.volume=VOL.music;this.el=a;}
+    this.state();
+  }};
+['pointerdown','touchstart','keydown'].forEach(function(ev){window.addEventListener(ev,function f(){MUS.start();},{once:true,passive:true});});
+document.addEventListener('visibilitychange',function(){MUS.state();});
+var _mk='';
+function okA(s){return typeof s==='string'&&/^(https:\/\/|data:audio\/)/.test(s);}
+function musicCfg(m){
+  if(!m||!(m.url||m.mode==='db')){_mk='';MUS.set('');return;}
+  var key=(m.ver||0)+'|'+(m.url||'db');if(key===_mk)return;_mk=key;
+  if(m.url&&okA(m.url))MUS.set(m.url);
+  else FB.db.ref('lobbyData/music/data').once('value').then(function(s){var d=s.val();if(okA(d)&&_mk===key)MUS.set(d);}).catch(function(){});
+}
+fbLoad(function(e){if(e)return;try{FB.db.ref('config/music').on('value',function(s){musicCfg(s.val());},function(){});}catch(x){}});
+
+/* --- papan KDA seluruh pemain di layar hasil --- */
+function resBoard(w){
+  var box=$('resBoard');if(!box)return;var out='',tk=G.kills||[0,0],t,mvp=null,bs=-1;
+  G.heroes.forEach(function(h){if(h.team!==w)return;var s=((h.kills|0)*2+(h.assists|0))/(1+(h.deaths|0)*0.5)+(h.gold||0)/3000;if(s>bs){bs=s;mvp=h;}});
+  for(t=0;t<2;t++){
+    out+='<div class="rb-team '+(t===w?'win':'lose')+'"><div class="rb-th"><span>'+(t===w?'MENANG':'KALAH')+' \u00b7 TIM '+(t===TEAM_BLUE?'BIRU':'MERAH')+'</span><b>'+(tk[t]||0)+'</b></div><div class="rb-hd"><span></span><span>PEMAIN</span><span>K / D / A</span><span>GOLD</span></div>';
+    G.heroes.forEach(function(h,i){
+      if(h.team!==t)return;
+      var nm=h.isPlayer?(PROFILE.name||'Anda'):(h.uname||'BOT');
+      out+='<div class="rb-row'+(h.isPlayer?' me':'')+'"><canvas width="64" height="64" data-i="'+i+'"></canvas><div class="rb-n"><b>'+esc(nm)+(h===mvp?' <i>MVP</i>':'')+'</b><small>'+esc(h.def.name)+' \u00b7 Lv '+(h.level|0)+'</small></div><div class="rb-k"><b>'+(h.kills|0)+'</b> / <b>'+(h.deaths|0)+'</b> / <b>'+(h.assists|0)+'</b></div><div class="rb-g">'+Math.floor(h.gold||0)+'</div></div>';
+    });
+    out+='</div>';
+  }
+  box.innerHTML=out;
+  [].forEach.call(box.querySelectorAll('canvas'),function(cv){var h=G.heroes[+cv.dataset.i];if(h)try{drawPortrait2(cv,h.def,h.team);}catch(e){}});
+}
+var _eg=endGame;endGame=function(w){var was=G.ended;_eg.apply(this,arguments);if(!was&&G.ended)try{resBoard(w);}catch(e){}};
+
+var st=document.createElement('style');
+st.textContent='#screen-result,#screen-rank{background:#0b1224}#screen-vd.win{background:radial-gradient(ellipse at 50% 45%,#3a2e08,#040814 72%)}#screen-vd.lose{background:radial-gradient(ellipse at 50% 45%,#46060e,#080204 72%)}#screen-result .result-panel{max-width:780px!important;width:96vw}#screen-result .result-stats{grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}#screen-result .stat-box{padding:6px 4px}#screen-result .stat-box b{font-size:15px}#resBoard{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;text-align:left}@media (max-width:620px){#resBoard{grid-template-columns:1fr}}.rb-team{background:rgba(16,24,48,.9);border:1px solid #2c3d6e;border-radius:10px;padding:6px 8px}.rb-team.win{border-color:#c8a020}.rb-team.lose{border-color:#7a2a3a}.rb-th{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.1em;font-weight:800;padding:3px 2px}.rb-team.win .rb-th{color:#ffd76e}.rb-team.lose .rb-th{color:#ff8a98}.rb-hd,.rb-row{display:grid;grid-template-columns:34px 1fr 74px 44px;gap:6px;align-items:center}.rb-hd{font-size:9px;color:#8ea2c8;letter-spacing:.08em;padding:2px 0}.rb-hd span:nth-child(3),.rb-hd span:nth-child(4){text-align:center}.rb-row{padding:3px 0;border-top:1px solid rgba(120,150,220,.12);font-size:12px}.rb-row.me{background:rgba(61,111,224,.25);border-radius:6px}.rb-row canvas{width:34px;height:34px;border-radius:50%;background:radial-gradient(#23366a,#0e172e)}.rb-n b{display:block;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rb-n i{font-style:normal;background:#ffd76e;color:#2a1c00;font-size:8px;font-weight:900;padding:1px 4px;border-radius:4px;margin-left:3px}.rb-n small{color:#8ea2c8;font-size:10px}.rb-k,.rb-g{text-align:center;font-size:12px}.rb-g{color:#ffd76e}';
+document.head.appendChild(st);
 })();
 </script>
 </body>
