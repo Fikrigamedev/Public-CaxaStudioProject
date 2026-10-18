@@ -508,6 +508,33 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf
 .pf-msg{font-size:12px;color:#ffb46a;min-height:16px;margin-top:4px}
 @media (max-width:620px){.pf-panel{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:calc(100% - 6px)}.pf-left{flex-direction:row;flex-wrap:wrap;justify-content:center;border-right:0;border-bottom:1px solid rgba(110,150,240,.25);max-height:44%}.pf-left .btn{width:auto}}
 
+/* ===== v11: room custom + menyerah ===== */
+.cu-panel{width:min(860px,100%);max-height:calc(100% - 6px);display:flex;flex-direction:column;background:linear-gradient(180deg,#141d36,#0d1426);border:1px solid rgba(232,195,106,.45);border-radius:14px;padding:10px 12px;overflow:hidden}
+.cu-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.cu-top small{display:block;font-size:10px;letter-spacing:.25em;color:#8ea2c8}
+.cu-code{font-size:24px;font-weight:900;letter-spacing:.3em;color:#ffd76e}
+.cu-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;overflow-y:auto;min-height:0}
+.cu-h{font-weight:900;font-size:12px;letter-spacing:.18em;padding:5px 8px;border-radius:8px 8px 0 0;display:flex;justify-content:space-between}
+.cu-h.b{background:linear-gradient(90deg,#2a4fae,#1b3374);color:#dbe6ff}.cu-h.r{background:linear-gradient(90deg,#a83434,#6a1f1f);color:#ffdcdc}
+.cu-s{display:flex;align-items:center;gap:6px;min-height:36px;padding:4px 8px;background:#131c34;border:1px solid rgba(110,150,240,.2);border-top:0;font-size:12px;color:#dfe8ff}
+.cu-s.empty{color:#6b7da6;cursor:pointer}.cu-s.empty:active{background:#1a2650}
+.cu-s.me{background:#1a2a58;border-color:#ffd76e}
+.cu-s .rn{width:44px;font-size:9px;letter-spacing:.08em;color:#8ea2c8;font-weight:800;flex-shrink:0}
+.cu-s .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800}
+.cu-s select{background:#0d1426;color:#dfe8ff;border:1px solid rgba(110,150,240,.35);border-radius:6px;padding:3px 4px;font-size:11px;max-width:96px}
+.cu-s .x{background:#7a2323;color:#fff;border:0;border-radius:6px;width:22px;height:22px;font-size:11px;cursor:pointer;padding:0}
+.cu-foot{display:flex;gap:8px;margin-top:8px;align-items:center;flex-shrink:0}
+.cu-foot .btn{padding:9px 14px}
+#surBanner{position:fixed;top:calc(64px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:90;display:none;padding:10px 26px;border-radius:12px;font-weight:900;font-size:clamp(15px,3.4vw,22px);letter-spacing:.12em;color:#fff;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.6);animation:surpulse 1s ease-in-out infinite;pointer-events:none}
+#surBanner.us{background:linear-gradient(180deg,#d84a4a,#8a2424);border:2px solid #ffb0b0}
+#surBanner.them{background:linear-gradient(180deg,#3a8a4a,#1f5a2c);border:2px solid #b0ffc0}
+@keyframes surpulse{50%{transform:translateX(-50%) scale(1.05)}}
+#surVote{position:fixed;top:calc(112px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:89;display:none;background:rgba(14,22,44,.96);border:1px solid #ffd76e;border-radius:12px;padding:10px 14px;text-align:center;color:#fff;font-size:13px;box-shadow:0 8px 30px rgba(0,0,0,.6);min-width:230px}
+#surVote small{display:block;color:#8ea2c8;font-size:11px;margin:3px 0 8px}
+#surVote .row{display:flex;gap:8px;justify-content:center}
+#surVote .btn{padding:8px 16px;font-size:12px}
+@media (max-width:620px){.cu-cols{grid-template-columns:1fr}}
+
 .mm-dots{display:flex;gap:5px}
 .mm-dots i{font-style:normal;width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;background:#131c34;border:1px dashed rgba(110,150,240,.35);color:#5f7298}
 .mm-dots i.h{background:linear-gradient(180deg,#3a6ad8,#24449a);border:1px solid #9ec0ff;color:#fff}
@@ -547,6 +574,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf
     <div class="mm-bottom">
       <button class="mm-bt" onclick="openInfo('backpack')"><svg viewBox="0 0 24 24"><path d="M6 8h12l1 12H5z"/><path d="M9 8V6a3 3 0 0 1 6 0v2M9 13h6"/></svg>BACKPACK</button>
       <button class="mm-bt" onclick="openInfo('emblem')"><svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.4 6.8 19.2l1-5.9L3.5 9.2l5.9-.8z"/></svg>EMBLEM</button>
+      <button class="mm-bt" onclick="openOnline()"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3 19c0-3.3 2.7-6 6-6s6 2.7 6 6M15 14.2c3 0 6 1.3 6 4.8"/></svg>CUSTOM</button>
       <button class="mm-bt" onclick="handleGo('about')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>TENTANG</button>
     </div>
     <button class="mm-play" onclick="handleGo('lobby')">MAIN<small>PILIH HERO</small></button>
@@ -648,6 +676,19 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf
     </div>
   </div>
   <input type="file" id="pfFile" accept="image/*" style="display:none" onchange="pfUpload(this)">
+
+  <div id="screen-custom" class="screen overlay">
+    <div class="cu-panel">
+      <div class="cu-top"><div><small>ROOM CUSTOM &middot; KODE</small><span class="cu-code" id="cuCode">-----</span> <button class="btn small" onclick="cuCopy()" id="cuCopyBtn">SALIN</button></div><div id="cuInfo" style="font-size:11px;color:#8ea2c8;text-align:right"></div></div>
+      <div class="cu-cols">
+        <div><div class="cu-h b"><span>TIM BIRU</span><span id="cuCnt0"></span></div><div id="cuT0"></div></div>
+        <div><div class="cu-h r"><span>TIM MERAH</span><span id="cuCnt1"></span></div><div id="cuT1"></div></div>
+      </div>
+      <div class="cu-foot" id="cuFoot"></div>
+    </div>
+  </div>
+  <div id="surBanner"></div>
+  <div id="surVote"></div>
 
   <div id="screen-online" class="screen">
     <div class="panel" style="max-width:440px;max-height:92vh;overflow:auto">
@@ -8998,6 +9039,201 @@ function pfBackMe(){openProfile();}
 window.addEventListener('load',function(){
   setTimeout(function(){try{pfInit();if(PROFILE.acct||navigator.onLine)fbLoad(function(){});}catch(e){}},1500);
 });
+</script>
+
+<script>
+/* =====================================================================
+   v11: ROOM CUSTOM (ala Mobile Legends) + MENYERAH (voting tim) mode online
+   ===================================================================== */
+var CU={watching:null};
+function cuLayout(ms){
+  var ids=Object.keys(ms).sort(function(a,b){return((ms[a].t||0)-(ms[b].t||0))||(a<b?-1:1);}),T=[[],[]],L=[{},{}],res={};
+  ids.forEach(function(id){T[ms[id].team===1?1:0].push(id);});
+  for(var tm=0;tm<2;tm++){var taken={};T[tm].forEach(function(id){var r=ms[id].role;if(!(r>=0&&r<5)||taken[r])r=[1,2,0,3,4].filter(function(x){return !taken[x];})[0];if(r===undefined)r=0;taken[r]=1;L[tm][r]=id;res[id]={t:tm,r:r};});}
+  return{L:L,res:res,cnt:[T[0].length,T[1].length]};
+}
+function cuMember(ms){
+  var lay=cuLayout(ms),tm=lay.cnt[0]<=lay.cnt[1]?0:1,r=[1,2,0,3,4].filter(function(x){return !lay.L[tm][x];})[0];if(r===undefined){tm=1-tm;r=[1,2,0,3,4].filter(function(x){return !lay.L[tm][x];})[0];}
+  var used={};Object.keys(ms).forEach(function(k){used[ms[k].hero]=1;});
+  var keys=Object.keys(HERO_DEFS),hk=(typeof selectedHeroKey!=='undefined'&&selectedHeroKey&&!used[selectedHeroKey])?selectedHeroKey:keys.filter(function(x){return !used[x];})[0]||keys[0];
+  return{name:userName(),hero:hk,skin:(PROFILE.skin&&PROFILE.skin[hk])||'base',role:r===undefined?0:r,team:tm,t:Date.now()};
+}
+function cuCreate(){
+  if(!FB.user){olMsg('Silakan masuk dulu.');return;}
+  if(FB.busy)return;FB.busy=true;olMsg('Membuat room custom...');
+  var m={};m[FB.user.uid]=cuMember({});
+  ensureDb().then(function(){(function tryMake(n){
+    var code=genCode(),ref=FB.db.ref('rooms/'+code);
+    withTimeout(ref.once('value'),12000).then(function(snap){
+      if(snap.exists()&&n<5)return tryMake(n+1);
+      return withTimeout(ref.set({host:FB.user.uid,state:'lobby',custom:1,created:Date.now(),members:m}),12000).then(function(){FB.busy=false;olMsg('');cuWatch(code);});
+    }).catch(function(e){FB.busy=false;olMsg('Gagal membuat room: '+fbErr(e));});
+  })(0);}).catch(function(e){FB.busy=false;olMsg('Gagal membuat room: '+fbErr(e));});
+}
+function cuJoin(){
+  if(!FB.user){olMsg('Silakan masuk dulu.');return;}
+  var el=document.getElementById('cuJoinCode'),code=((el&&el.value)||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(code.length!==5){olMsg('Kode room harus 5 karakter.');return;}
+  olMsg('Mencari room...');var ref;
+  ensureDb().then(function(){ref=FB.db.ref('rooms/'+code);return withTimeout(ref.once('value'),12000);}).then(function(snap){
+    if(!snap.exists()){olMsg('Kode tidak ditemukan.');return;}
+    var d=snap.val(),ms=d.members||{};
+    if(!d.custom){olMsg('Kode ini bukan room custom.');return;}
+    if(!ms[FB.user.uid]){
+      if(d.state!=='lobby'){olMsg('Room sedang bermain.');return;}
+      if(Object.keys(ms).length>=10){olMsg('Room penuh (maks 10 pemain).');return;}
+      return withTimeout(ref.child('members/'+FB.user.uid).set(cuMember(ms)),12000).then(function(){olMsg('');cuWatch(code);});
+    }
+    olMsg('');cuWatch(code);
+  }).catch(function(e){olMsg('Gagal masuk: '+fbErr(e));});
+}
+function cuWatch(code){
+  if(FB.unsub){FB.unsub();FB.unsub=null;}FB.started=false;
+  var ref=FB.db.ref('rooms/'+code),uid=FB.user.uid;
+  try{ref.child('members/'+uid).onDisconnect().remove();}catch(e){}
+  var cb=ref.on('value',function(snap){
+    if(!snap.exists()){
+      FB.room=null;if(FB.unsub){FB.unsub();FB.unsub=null;}
+      if(FBM.mode&&!G.ended){notify('Host keluar. Pertandingan dibubarkan.','red');setTimeout(function(){handleGo('menu');},2500);}
+      else if(!G.running){olMsg('Room dibubarkan oleh host.');showScreen('screen-online');olRender();}
+      return;
+    }
+    var data=snap.val();data.members=data.members||{};FB.room={code:code,data:data};
+    if(!data.members[uid]&&data.state!=='playing'){FB.room=null;if(FB.unsub){FB.unsub();FB.unsub=null;}olMsg('Kamu dikeluarkan dari room.');showScreen('screen-online');olRender();return;}
+    if(data.state==='playing'&&!FB.started){
+      FB.started=true;var c=null;try{c=JSON.parse(data.comp);}catch(e){}
+      if(!c||!c.roles||c.roles[uid]===undefined){FB.started=false;return;}
+      FBM.lobbyOpen=false;startOnline();return;
+    }
+    if(data.state==='lobby'){FB.started=false;var s=document.getElementById('screen-custom');if(s&&!s.classList.contains('active')&&!G.running)showScreen('screen-custom');cuRender();}
+  },function(e){olMsg('Koneksi room terputus: '+fbErr(e));});
+  FB.unsub=function(){ref.off('value',cb);};
+}
+function cuRender(){
+  if(!FB.room||!FB.user)return;
+  var d=FB.room.data,ms=d.members||{},me=FB.user.uid,host=d.host===me,lay=cuLayout(ms),used={};
+  Object.keys(ms).forEach(function(k){used[ms[k].hero]=k;});
+  var cc=document.getElementById('cuCode');if(cc)cc.textContent=FB.room.code;
+  for(var tm=0;tm<2;tm++){
+    var box=document.getElementById('cuT'+tm),h='';if(!box)continue;
+    for(var r=0;r<5;r++){
+      var id=lay.L[tm][r],rn=ROLES[r].name.replace(' LANE','');
+      if(!id){h+='<div class="cu-s empty" onclick="cuMove('+tm+','+r+')"><span class="rn">'+rn+'</span><span class="nm">Kosong &middot; Bot AI (ketuk untuk pindah)</span></div>';continue;}
+      var m=ms[id],mine=id===me,sel;
+      if(mine)sel='<select onchange="cuHero(this.value)">'+Object.keys(HERO_DEFS).map(function(k){return '<option value="'+k+'"'+(k===m.hero?' selected':'')+((used[k]&&used[k]!==me)?' disabled':'')+'>'+HERO_DEFS[k].name+'</option>';}).join('')+'</select>';
+      else sel='<b style="font-size:11px">'+esc((HERO_DEFS[m.hero]||{}).name||'-')+'</b>'+(host?' <button class="x" onclick="cuKick(\''+id+'\')">&#10005;</button>':'');
+      h+='<div class="cu-s'+(mine?' me':'')+'"><span class="rn">'+rn+'</span><span class="nm">'+(id===d.host?'&#9733; ':'')+'<a style="color:#9ec0ff" onclick="openProfileUid(\''+id+'\')">'+esc(m.name||'-')+'</a></span>'+sel+'</div>';
+    }
+    box.innerHTML=h;var ct=document.getElementById('cuCnt'+tm);if(ct)ct.textContent=lay.cnt[tm]+'/5';
+  }
+  var inf=document.getElementById('cuInfo');if(inf)inf.innerHTML=Object.keys(ms).length+' pemain<br>Slot kosong diisi bot AI';
+  var ft=document.getElementById('cuFoot');
+  if(ft)ft.innerHTML=(host?'<button class="btn primary" style="flex:1" onclick="cuStart()">MULAI PERTANDINGAN</button>':'<div style="flex:1;color:#8ea2c8;font-size:12px">Menunggu host memulai...</div>')+'<button class="btn danger" onclick="cuLeave()">'+(host?'BUBARKAN':'KELUAR')+'</button>';
+}
+function cuMove(tm,r){
+  if(!FB.room)return;var ms=FB.room.data.members||{},lay=cuLayout(ms);if(lay.L[tm][r])return;
+  try{Sfx.ui();}catch(e){}
+  FB.db.ref('rooms/'+FB.room.code+'/members/'+FB.user.uid).update({team:tm,role:r}).catch(liveErr);
+}
+function cuHero(k){
+  if(!FB.room||!HERO_DEFS[k])return;var ms=FB.room.data.members||{};
+  for(var id in ms)if(id!==FB.user.uid&&ms[id].hero===k){notify('Hero sudah dipakai pemain lain','red');cuRender();return;}
+  try{selectedHeroKey=k;}catch(e){}
+  FB.db.ref('rooms/'+FB.room.code+'/members/'+FB.user.uid).update({hero:k,skin:(PROFILE.skin&&PROFILE.skin[k])||'base'}).catch(liveErr);
+}
+function cuKick(uid){if(FB.room&&FB.room.data.host===FB.user.uid)FB.db.ref('rooms/'+FB.room.code+'/members/'+uid).remove().catch(liveErr);}
+function cuCopy(){
+  var c=FB.room&&FB.room.code;if(!c)return;var b=document.getElementById('cuCopyBtn');
+  function done(){if(b){b.textContent='TERSALIN';setTimeout(function(){b.textContent='SALIN';},1500);}}
+  try{navigator.clipboard.writeText(c).then(done,done);}catch(e){done();}
+}
+function cuLeave(){
+  try{Sfx.ui();}catch(e){}
+  leaveRoom(true);olMsg('');showScreen('screen-online');olRender();
+}
+function cuStart(){
+  if(!FB.room||FB.room.data.host!==FB.user.uid||FB.room.data.state!=='lobby')return;
+  var comp;try{comp=mmBuildComp(FB.room.data.members||{});delete comp.mm;}catch(e){notify('Gagal menyusun tim: '+e.message,'red');return;}
+  var code=FB.room.code;try{Sfx.ui();}catch(e){}
+  FB.db.ref('rooms/'+code+'/live').remove().catch(function(){}).then(function(){return FB.db.ref('rooms/'+code).update({comp:JSON.stringify(comp),state:'playing'});}).catch(liveErr);
+}
+var _ol3=olRender;
+olRender=function(){
+  _ol3();
+  var b=document.getElementById('olBody');if(!b||!FB.ready||!FB.user)return;
+  b.insertAdjacentHTML('beforeend','<div style="margin-top:16px;border-top:1px solid rgba(110,150,240,.25);padding-top:12px"><div style="font-size:11px;letter-spacing:.22em;color:#8ea2c8;font-weight:800;margin-bottom:8px">ROOM CUSTOM</div>'
+    +'<div style="font-size:12px;color:#aebddd;margin-bottom:8px">Buat room, bagikan kode ke teman, pilih tim Biru/Merah dan lane. Slot kosong diisi bot.</div>'
+    +'<button class="btn" style="width:100%" onclick="cuCreate()">BUAT ROOM CUSTOM</button>'
+    +'<div style="display:flex;gap:8px;margin-top:8px"><input id="cuJoinCode" maxlength="5" placeholder="KODE ROOM" style="flex:1;background:#131c34;color:#fff;border:1px solid rgba(110,150,240,.35);border-radius:8px;padding:10px;font-size:16px;letter-spacing:.3em;text-align:center;text-transform:uppercase"><button class="btn primary" onclick="cuJoin()">GABUNG</button></div></div>');
+};
+
+/* ---------------- MENYERAH ---------------- */
+var SUR={ref:null,code:null,data:{},shown:{},doneTeam:null,sched:false};
+function surTeamOf(uid){var r=FBM.roles&&FBM.roles[uid];return (r&&typeof r==='object')?r.t:0;}
+function surHumans(t){var n=0;for(var u in (FBM.roles||{}))if(surTeamOf(u)===t)n++;return n;}
+function surNeed(t){return Math.max(1,Math.min(4,surHumans(t)));}
+function surActive(n){return n&&!n.done&&n.t&&(sNow()-n.t)<30000;}
+function surCount(n){var a=0,d=0;if(n&&n.v)for(var u in n.v){if(n.v[u]===1)a++;else d++;}return{a:a,d:d};}
+function surOnline(){return(FBM.mode==='host'||FBM.mode==='client')&&FB.room&&G.running&&!G.ended;}
+function surDetach(){try{if(SUR.ref)SUR.ref.off();}catch(e){}SUR.ref=null;SUR.code=null;SUR.data={};SUR.shown={};SUR.doneTeam=null;SUR.sched=false;
+  var b=document.getElementById('surBanner'),v=document.getElementById('surVote');if(b)b.style.display='none';if(v)v.style.display='none';}
+function surTick(){
+  if(!surOnline()){if(SUR.ref||SUR.doneTeam!==null){if(!G.running||!FBM.mode)surDetach();else{var v=document.getElementById('surVote');if(v)v.style.display='none';}}return;}
+  if(!SUR.ref||SUR.code!==FB.room.code){surDetach();SUR.code=FB.room.code;
+    try{SUR.ref=FB.db.ref('rooms/'+FB.room.code+'/live/sur');SUR.ref.on('value',function(s){SUR.data=s.val()||{};surEval();},function(){});}catch(e){}}
+  surEval();
+}
+function surEval(){
+  if(!surOnline())return;var myT=FBM.myTeam|0,me=FB.user.uid,host=FBM.mode==='host',vc=document.getElementById('surVote'),t;
+  for(t=0;t<2;t++){
+    var n=SUR.data[t];if(!n)continue;
+    if(n.done){
+      SUR.doneTeam=t;
+      if(!SUR.shown[t]){SUR.shown[t]=1;var bn=document.getElementById('surBanner');if(bn){bn.textContent=(t===myT)?'TIM KITA TELAH MENYERAH':'TIM LAWAN TELAH MENYERAH';bn.className=(t===myT)?'us':'them';bn.style.display='block';}try{Sfx.ui();}catch(e){}}
+      if(host&&!SUR.sched){SUR.sched=true;(function(lt){setTimeout(function(){if(!G.ended)endGame(lt===0?TEAM_RED:TEAM_BLUE);},2600);})(t);}
+    }else if(host&&surActive(n)&&surCount(n).a>=surNeed(t)){
+      try{SUR.ref.child(t).update({done:1}).catch(liveErr);}catch(e){}
+    }
+  }
+  var mine=SUR.data[myT],show=false;
+  if(mine&&surActive(mine)&&SUR.doneTeam===null&&vc){
+    var c=surCount(mine),voted=mine.v&&mine.v[me]!==undefined,left=Math.max(0,Math.ceil((30000-(sNow()-mine.t))/1000));
+    vc.innerHTML='<b>Tim ingin menyerah</b><small>Setuju '+c.a+'/'+surNeed(myT)+' &middot; sisa '+left+' dtk</small>'+(voted?'<div style="font-size:12px;color:#8ea2c8">Pilihanmu: '+(mine.v[me]===1?'SETUJU':'TOLAK')+'</div>':'<div class="row"><button class="btn danger" onclick="surVote(1)">SETUJU</button><button class="btn" onclick="surVote(0)">TOLAK</button></div>');
+    show=true;
+  }
+  if(vc)vc.style.display=show?'block':'none';
+  var sq=document.getElementById('btnSetQuit');if(sq&&sq.dataset.sur==='1'){var cn=surCount(mine);sq.textContent=(mine&&surActive(mine))?'MENYERAH ('+cn.a+'/'+surNeed(myT)+')':'MENYERAH';}
+}
+function surRef(){return FB.db.ref('rooms/'+FB.room.code+'/live/sur/'+(FBM.myTeam|0));}
+function surPress(){
+  if(!surOnline())return;var n=SUR.data[FBM.myTeam|0],me=FB.user.uid;
+  if(SUR.doneTeam!==null){return;}
+  try{closeSettings();}catch(e){}
+  if(surActive(n)){if(!n.v||n.v[me]===undefined)surVote(1);else notify('Kamu sudah memberi suara.','blue');return;}
+  var v={};v[me]=1;surRef().set({t:sNow(),v:v}).catch(liveErr);notify('Mengajukan menyerah ke tim...','blue');
+}
+function surVote(a){
+  if(!surOnline())return;var n=SUR.data[FBM.myTeam|0];if(!surActive(n))return;
+  surRef().child('v/'+FB.user.uid).set(a?1:0).catch(liveErr);
+  var vc=document.getElementById('surVote');if(vc)vc.style.display='none';
+}
+var _os11=openSettings;
+openSettings=function(from){
+  _os11(from);
+  var sq=document.getElementById('btnSetQuit');if(!sq)return;
+  if(from==='online'&&(FBM.mode==='host'||FBM.mode==='client')){sq.dataset.sur='1';sq.textContent='MENYERAH';sq.onclick=function(){surPress();};sq.style.display='';}
+  else{sq.dataset.sur='';sq.textContent='KELUAR KE MENU';sq.onclick=function(){handleGo('quit');};}
+};
+var _eg11=endGame;
+endGame=function(w){
+  var was=G.ended;_eg11(w);
+  if(!was&&G.ended&&SUR.doneTeam!==null){
+    var rs=document.getElementById('resultSub'),won=(SUR.doneTeam!==(FBM.myTeam|0));
+    if(rs)rs.textContent=won?'Tim lawan menyerah. Kemenangan untuk tim kita!':'Tim kita menyerah. Pertandingan berakhir.';
+    var b=document.getElementById('surBanner'),v=document.getElementById('surVote');if(b)b.style.display='none';if(v)v.style.display='none';
+  }
+};
+setInterval(surTick,500);
 </script>
 
 </body>
