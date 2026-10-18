@@ -40,10 +40,16 @@ pre{background:#05070c;border-radius:8px;padding:10px;font-size:11px;overflow:au
 <div class="row" style="margin-top:8px"><button class="btn p" id="lbtn" onclick="upLobby()">UPLOAD &amp; TERAPKAN</button><button class="btn d" onclick="rmLobby()">HAPUS (KEMBALI KE TEKS)</button></div></div>
 
 <div id="p-port" class="card hide"><h2>Portrait Hero &amp; Skin</h2>
-<label>HERO</label><select id="psHero" onchange="drawSkins()"></select>
-<div class="grid" id="psGrid" style="margin-top:10px"></div>
-<p class="dim" style="margin-top:8px">Pilih foto (maks 5 MB), otomatis dipotong persegi &amp; dikecilkan. Skin tanpa portrait kustom memakai gambar bawaan game.</p>
-<input type="file" id="pfile" accept="image/*" class="hide"><p id="pmsg" class="dim"></p></div>
+<label>HERO</label><select id="psHero" onchange="S.sel=null;clearPort();drawSkins()"></select>
+<p class="dim" style="margin-top:10px"><b>1)</b> Ketuk skin yang ingin diganti fotonya:</p>
+<div class="grid" id="psGrid" style="margin-top:6px"></div>
+<p class="dim" style="margin-top:12px"><b>2)</b> Pilih foto (maks 5 MB). Otomatis dipotong persegi &amp; dikecilkan.</p>
+<input type="file" id="pfile" accept="image/*" style="margin-top:4px">
+<div class="row" style="margin-top:10px;flex-wrap:nowrap"><canvas id="pprev" width="256" height="256" class="hide" style="flex:none;width:84px;height:84px;min-width:0;border-radius:50%;border:2px solid #4a6aa8;background:#0e172e"></canvas><p id="psel" class="dim"></p></div>
+<div class="bar"><i id="pbar"></i></div>
+<p class="dim" style="margin:10px 0 6px"><b>3)</b> Terapkan ke game:</p>
+<button class="btn p" id="pbtn" onclick="upPort()" style="width:100%">UPLOAD &amp; TERAPKAN</button>
+<p id="pmsg" class="dim" style="margin-top:6px"></p></div>
 
 <div id="p-ban" class="card hide"><h2>Ban Hero</h2><p class="dim">Ketuk hero untuk ban / buka ban. Hero yang di-ban tidak bisa dipilih pemain maupun bot.</p><div class="grid" id="banGrid" style="margin-top:10px"></div></div>
 
@@ -63,7 +69,7 @@ pre{background:#05070c;border-radius:8px;padding:10px;font-size:11px;overflow:au
 
 <div id="p-set" class="card hide"><h2>Setup Firebase (sekali saja)</h2>
 <p class="dim">Gabungkan ke Rules Realtime Database Anda (di dalam <b>"rules": { }</b>):</p>
-<pre id="r1"></pre><p class="dim">SQL Supabase (SQL Editor, jalankan sekali; bucket &quot;game asset&quot; harus Public):</p><pre id="r2"></pre></div>
+<pre id="r1"></pre><p class="dim">SQL Supabase (SQL Editor, jalankan ulang setelah update ini agar folder <b>portrait</b> boleh diupload dan file lama bisa dihapus; bucket &quot;game asset&quot; harus Public):</p><pre id="r2"></pre></div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -106,7 +112,19 @@ function boot(){
   var n=new Date(),p=function(x){return ('0'+x).slice(-2);},ld=function(d){return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());};
   $('eStart').value=ld(n);$('eEnd').value=ld(new Date(n.getTime()+7*864e5));evForm();
   $('r1').textContent='"config":{".read":true,".write":"auth!=null && auth.token.email===\''+ADMIN+'\' && auth.token.email_verified===true"},\n"lobbyData":{".read":true,".write":"auth!=null && auth.token.email===\''+ADMIN+'\' && auth.token.email_verified===true"},\n"userdata":{"$uid":{".read":"auth!=null && auth.uid===$uid",".write":"auth!=null && auth.uid===$uid"}}';
-  $('r2').textContent="create policy \"baca publik\" on storage.objects for select using (bucket_id = 'game asset');\n\ncreate policy \"upload lobby dan music\" on storage.objects for insert with check (bucket_id = 'game asset' and (storage.foldername(name))[1] in ('lobby','music') and lower(storage.extension(name)) in ('jpg','jpeg','png','webp','gif','mp4','webm','mp3','ogg','wav','m4a'));\n\ncreate policy \"timpa file\" on storage.objects for update using (bucket_id = 'game asset') with check (bucket_id = 'game asset' and (storage.foldername(name))[1] in ('lobby','music'));";
+  $('r2').textContent=`drop policy if exists "baca publik" on storage.objects;
+drop policy if exists "upload lobby dan music" on storage.objects;
+drop policy if exists "upload lobby music portrait" on storage.objects;
+drop policy if exists "timpa file" on storage.objects;
+drop policy if exists "hapus file game" on storage.objects;
+
+create policy "baca publik" on storage.objects for select using (bucket_id = 'game asset');
+
+create policy "upload lobby music portrait" on storage.objects for insert with check (bucket_id = 'game asset' and (storage.foldername(name))[1] in ('lobby','music','portrait') and lower(storage.extension(name)) in ('jpg','jpeg','png','webp','gif','mp4','webm','mp3','ogg','wav','m4a'));
+
+create policy "timpa file" on storage.objects for update using (bucket_id = 'game asset') with check (bucket_id = 'game asset' and (storage.foldername(name))[1] in ('lobby','music','portrait'));
+
+create policy "hapus file game" on storage.objects for delete using (bucket_id = 'game asset' and (storage.foldername(name))[1] in ('lobby','music','portrait'));`;
 }
 /* ---- lobby ---- */
 function prev(t,src){var i=$('lpImg'),v=$('lpVid');i.classList.toggle('hide',t!=='image');v.classList.toggle('hide',t!=='video');if(t==='image')i.src=src;else{v.src=src;}}
@@ -151,23 +169,69 @@ async function upMusic(){
   $('mbtn').disabled=false;
 }
 async function rmMusic(){if(!confirm('Kembali ke musik bawaan?'))return;try{var o=S.music&&S.music.path;await db.ref('config/music').remove();await db.ref('lobbyData/music').remove();if(o)sbDel(o);$('mAud').pause();$('mAud').classList.add('hide');}catch(e){$('mmsg').textContent=e.message;}}
-/* ---- portrait ---- */
+/* ---- portrait (Supabase storage, cadangan: database) ---- */
+var PBLOB=null,PBASE=SB_URL+'/storage/v1/object/public/'+encodeURIComponent(SB_BUCKET)+'/';
 function skinsOf(k){var i=HEROES.map(function(h){return h[0];}).indexOf(k),o=[['base','Klasik','']];for(var n=0;n<3;n++){var p=PAL[(i+n*2)%6];o.push([k+'_'+p[0],p[1],p[2]]);}return o;}
+function okImg(u){return typeof u==='string'&&/^(https:\/\/|data:image\/)/.test(u);}
+function sbPathOf(u){if(typeof u!=='string'||u.indexOf(PBASE)!==0)return '';try{return u.slice(PBASE.length).split('/').map(decodeURIComponent).join('/');}catch(e){return '';}}
+function selLabel(){var k=$('psHero').value,l=skinsOf(k).filter(function(s){return (s[0]==='base'?k:s[0])===S.sel;})[0];return l?(k.toUpperCase()+' - '+l[1]):'';}
+function updSel(){$('psel').innerHTML=S.sel?('Skin dipilih: <b>'+esc(selLabel())+'</b>'+(PBLOB?'<br>Foto siap diupload.':'<br>Belum ada foto dipilih.')):'Ketuk salah satu skin di atas.';}
+function clearPort(){PBLOB=null;$('pfile').value='';$('pprev').classList.add('hide');$('pbar').style.width='0';updSel();}
 function drawSkins(){
   var k=$('psHero').value,g=$('psGrid');if(!k)return;g.innerHTML='';
-  skinsOf(k).forEach(function(s){var id=s[0]==='base'?k:s[0],has=S.port[id],d=document.createElement('div');d.className='it';
-    d.innerHTML='<div class="im" style="'+(has?'background-image:url('+has+')':'background:'+(s[2]||'#4a6aa8'))+'"></div><b>'+s[1]+'</b><br><span class="dim">'+(has?'kustom':'bawaan')+'</span>';
-    d.onclick=function(){S.sel=id;$('pfile').value='';$('pfile').click();};
-    if(has){var r=document.createElement('button');r.className='btn d';r.style.cssText='padding:2px 6px;font-size:10px;margin-top:4px';r.textContent='RESET';r.onclick=function(e){e.stopPropagation();db.ref('config/portraits/'+id).remove();};d.appendChild(r);}
+  var list=skinsOf(k),ids=list.map(function(s){return s[0]==='base'?k:s[0];});
+  if(ids.indexOf(S.sel)<0)S.sel=ids[0];
+  list.forEach(function(s){var id=s[0]==='base'?k:s[0],has=okImg(S.port[id])?S.port[id]:'',d=document.createElement('div');d.className='it'+(id===S.sel?' on':'');
+    d.innerHTML='<div class="im" style="'+(has?"background-image:url('"+has+"')":'background:'+(s[2]||'#4a6aa8'))+'"></div><b>'+esc(s[1])+'</b><br><span class="dim">'+(has?'kustom':'bawaan')+'</span>';
+    d.onclick=function(){S.sel=id;drawSkins();$('pmsg').textContent='';};
+    if(has){var r=document.createElement('button');r.className='btn d';r.style.cssText='padding:2px 6px;font-size:10px;margin-top:4px';r.textContent='RESET';r.onclick=function(e){e.stopPropagation();rmPort(id);};d.appendChild(r);}
     g.appendChild(d);});
+  updSel();
 }
+function blobOf(c,type,q){return new Promise(function(ok){try{c.toBlob(function(b){ok(b);},type,q);}catch(e){ok(null);}});}
 $('pfile').onchange=function(){
-  var f=this.files[0];if(!f||!S.sel)return;if(f.size>MAXB){$('pmsg').textContent='File lebih dari 5 MB.';return;}
-  var id=S.sel,im=new Image();im.onload=function(){var z=192,c=document.createElement('canvas');c.width=c.height=z;var m=Math.min(im.width,im.height);c.getContext('2d').drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,z,z);
-    var u=c.toDataURL('image/webp',.82);if(u.indexOf('image/webp')<0)u=c.toDataURL('image/jpeg',.85);
-    db.ref('config/portraits/'+id).set(u).then(function(){$('pmsg').textContent='Portrait "'+id+'" tersimpan.';}).catch(function(e){$('pmsg').textContent='Gagal: '+e.message;});};
-  im.src=URL.createObjectURL(f);
+  var f=this.files[0];if(!f){PBLOB=null;updSel();return;}
+  if(f.size>MAXB){$('pmsg').textContent='File lebih dari 5 MB.';this.value='';PBLOB=null;updSel();return;}
+  if(f.type&&f.type.indexOf('image/')!==0){$('pmsg').textContent='File harus berupa gambar.';this.value='';PBLOB=null;updSel();return;}
+  var im=new Image(),u=URL.createObjectURL(f);$('pmsg').textContent='Memproses foto...';
+  im.onerror=function(){URL.revokeObjectURL(u);PBLOB=null;$('pmsg').textContent='Gambar tidak bisa dibaca. Coba JPG/PNG/WEBP.';updSel();};
+  im.onload=function(){
+    var z=256,c=$('pprev'),x=c.getContext('2d'),m=Math.min(im.width,im.height);
+    x.clearRect(0,0,z,z);x.drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,z,z);URL.revokeObjectURL(u);
+    c.classList.remove('hide');
+    blobOf(c,'image/webp',.85).then(function(b){
+      if(b&&b.type==='image/webp')return b;
+      return blobOf(c,'image/png');
+    }).then(function(b){
+      if(!b){PBLOB=null;$('pmsg').textContent='Browser gagal memproses gambar.';updSel();return;}
+      PBLOB=b;$('pmsg').textContent=f.name+' siap ('+(b.size/1024).toFixed(0)+' KB setelah dikecilkan). Tekan UPLOAD & TERAPKAN.';updSel();
+    });
+  };
+  im.src=u;
 };
+async function upPort(){
+  var id=S.sel;
+  if(!id){$('pmsg').textContent='Pilih skin dulu.';return;}
+  if(!PBLOB){$('pmsg').textContent='Pilih foto dulu.';return;}
+  var blob=PBLOB,oldPath=sbPathOf(S.port[id]),url=null,path='',ext=blob.type==='image/webp'?'webp':(blob.type==='image/jpeg'?'jpg':'png');
+  $('pbtn').disabled=true;$('pbar').style.width='0';$('pmsg').textContent='Mengupload ke Supabase...';
+  var note='';
+  try{path='portrait/'+id+'_'+Date.now()+'.'+ext;url=await sbUp(path,blob,'pbar');}
+  catch(e){url=null;note=' (Supabase gagal: '+e.message+(/403|row-level|policy|Unauthorized/i.test(e.message)?' - jalankan ulang SQL di tab Setup':'')+')';}
+  try{
+    var val=url||await rd(blob);
+    if(!okImg(val))throw new Error('Data gambar tidak valid');
+    await db.ref('config/portraits/'+id).set(val);
+    if(url&&oldPath&&oldPath!==path)sbDel(oldPath);
+    $('pmsg').innerHTML=(url?'<span class="ok">Berhasil diterapkan (Supabase).</span>':'<span class="ok">Diterapkan lewat database.</span>'+esc(note));
+    PBLOB=null;$('pfile').value='';$('pprev').classList.add('hide');updSel();
+  }catch(e){$('pmsg').innerHTML='<span class="err">Gagal: '+esc(e.message)+'</span>'+esc(note)+' (cek Rules di tab Setup)';}
+  $('pbtn').disabled=false;
+}
+function rmPort(id){
+  var old=S.port[id];
+  db.ref('config/portraits/'+id).remove().then(function(){var p=sbPathOf(old);if(p)sbDel(p);$('pmsg').textContent='Portrait "'+id+'" dikembalikan ke bawaan.';}).catch(function(e){$('pmsg').textContent='Gagal reset: '+e.message;});
+}
 /* ---- ban ---- */
 function drawBan(){var g=$('banGrid');g.innerHTML='';HEROES.forEach(function(h){var b=!!S.ban[h[0]],d=document.createElement('div');d.className='it'+(b?' ban':'');d.innerHTML=(b?'<span class="ban-t">BAN</span>':'')+'<div class="im" style="background-color:'+h[3]+'"></div><b>'+h[1]+'</b><br><span class="dim">'+h[2]+'</span>';d.onclick=function(){db.ref('config/banned/'+h[0]).set(b?null:true);};g.appendChild(d);});}
 /* ---- event ---- */
