@@ -9253,7 +9253,7 @@ setInterval(surTick,500);
 /* ===== v7: konfigurasi dashboard (lobby/portrait/ban/event) + sinkron akun & emblem ===== */
 (function(){
 var $=function(i){return document.getElementById(i);},CK='caxa-cfg7';
-window.CFG7={lobby:null,banned:{},events:{}};
+window.CFG7={lobby:null,banned:{},events:{}};var lobbyLive=false;
 try{var c0=JSON.parse(localStorage.getItem(CK)||'{}');if(c0.banned)CFG7.banned=c0.banned;if(c0.events)CFG7.events=c0.events;if(c0.lobby)CFG7.lobby=c0.lobby;}catch(e){}
 function cache(){try{localStorage.setItem(CK,JSON.stringify(CFG7));}catch(e){}}
 function okSrc(s){return typeof s==='string'&&/^(https:\/\/|data:(image|video)\/)/.test(s);}
@@ -9269,12 +9269,22 @@ function showBg(type,src){
   else{el=new Image();el.src=src;el.draggable=false;}
   bg.appendChild(el);bgEl=el;$('screen-menu').classList.add('has-bg');playBg();
 }
+var DBURL=(typeof FB_CFG!=='undefined'&&FB_CFG.databaseURL)||'https://caxa-arena-default-rtdb.firebaseio.com';
+function dbGet(p){
+  if(FB.db)return FB.db.ref(p).once('value').then(function(s){return s.val();});
+  try{return fetch(DBURL+'/'+p+'.json').then(function(r){return r.ok?r.json():null;});}catch(e){return Promise.reject(e);}
+}
+window.CAXA_dbGet=dbGet;
 function applyLobby(){
   var l=CFG7.lobby,bg=$('menuBg'),sc=$('screen-menu');if(!bg||!sc)return;
   if(!l||!(l.url||l.mode==='db')){sc.classList.remove('has-bg');bg.innerHTML='';bgKey='';bgEl=null;return;}
-  var key=(l.type||'')+'|'+(l.ver||0);if(key===bgKey)return;bgKey=key;
-  if(l.url&&okSrc(l.url))showBg(l.type,l.url);
-  else if(FB.db)FB.db.ref('lobbyData/current').once('value').then(function(s){var d=s.val();if(d&&okSrc(d.data)&&bgKey===key)showBg(l.type,d.data);}).catch(function(){});
+  var key=(l.type||'')+'|'+(l.ver||0)+'|'+(l.url||'db');if(key===bgKey)return;
+  if(l.url&&okSrc(l.url)){bgKey=key;showBg(l.type,l.url);return;}
+  bgKey=key;
+  dbGet('lobbyData/current/data').then(function(d){
+    if(bgKey!==key)return;
+    if(okSrc(d))showBg(l.type,d);else bgKey='';
+  }).catch(function(){if(bgKey===key)bgKey='';});
 }
 function playBg(){if(!bgEl||!bgEl.play)return;try{if($('screen-menu').classList.contains('active')){var p=bgEl.play();if(p&&p.catch)p.catch(function(){});}else bgEl.pause();}catch(e){}}
 var _ss=showScreen;showScreen=function(){_ss.apply(this,arguments);playBg();};
@@ -9391,14 +9401,22 @@ var _pa=pfAuth;pfAuth=function(u){_pa.apply(this,arguments);try{udAuth(u);}catch
 /* --- config dashboard (baca publik) --- */
 function listen(){
   function on(p,f){try{FB.db.ref(p).on('value',function(s){f(s.val());},function(){});}catch(e){}}
-  on('config/lobby',function(v){CFG7.lobby=v;cache();applyLobby();});
+  on('config/lobby',function(v){lobbyLive=true;CFG7.lobby=v;cache();applyLobby();});
   on('config/banned',function(v){CFG7.banned=v||{};cache();try{if($('screen-lobby').classList.contains('active'))refreshLobby();}catch(e){}});
   on('config/events',function(v){CFG7.events=v||{};cache();evRender($('evBox')?undefined:undefined);});
   on('config/portraits',function(v){PortOv.set(v||{});});
   if(FB.user)udAuth(FB.user);
 }
 applyLobby();
-fbLoad(function(e){if(!e)listen();});
+/* cadangan: ambil config/lobby lewat REST jika SDK Firebase lambat/gagal dimuat */
+function lobbyRest(){
+  if(lobbyLive)return;
+  try{fetch(DBURL+'/config/lobby.json').then(function(r){return r.ok?r.json():undefined;}).then(function(v){
+    if(v===undefined||lobbyLive)return;CFG7.lobby=v;cache();applyLobby();
+  }).catch(function(){});}catch(e){}
+}
+lobbyRest();setTimeout(lobbyRest,4000);
+fbLoad(function(e){if(e){setTimeout(lobbyRest,1500);return;}listen();});
 setInterval(function(){evDot();if($('evBox')&&$('screen-info').classList.contains('active'))evRender();},60000);
 })();
 </script>
@@ -9457,13 +9475,20 @@ var MUS=window.MUS={el:null,src:'',ctx:null,gain:null,tm:null,nextT:0,bar:0,on:f
 document.addEventListener('visibilitychange',function(){MUS.state();});
 var _mk='';
 function okA(s){return typeof s==='string'&&/^(https:\/\/|data:audio\/)/.test(s);}
+var musLive=false;
 function musicCfg(m){
   if(!m||!(m.url||m.mode==='db')){_mk='';MUS.set('');return;}
-  var key=(m.ver||0)+'|'+(m.url||'db');if(key===_mk)return;_mk=key;
-  if(m.url&&okA(m.url))MUS.set(m.url);
-  else FB.db.ref('lobbyData/music/data').once('value').then(function(s){var d=s.val();if(okA(d)&&_mk===key)MUS.set(d);}).catch(function(){});
+  var key=(m.ver||0)+'|'+(m.url||'db');if(key===_mk)return;
+  if(m.url&&okA(m.url)){_mk=key;MUS.set(m.url);return;}
+  _mk=key;
+  window.CAXA_dbGet('lobbyData/music/data').then(function(d){if(_mk!==key)return;if(okA(d))MUS.set(d);else _mk='';}).catch(function(){if(_mk===key)_mk='';});
 }
-fbLoad(function(e){if(e)return;try{FB.db.ref('config/music').on('value',function(s){musicCfg(s.val());},function(){});}catch(x){}});
+function musicRest(){
+  if(musLive)return;
+  try{fetch(FB_CFG.databaseURL+'/config/music.json').then(function(r){return r.ok?r.json():undefined;}).then(function(v){if(v===undefined||musLive)return;musicCfg(v);}).catch(function(){});}catch(e){}
+}
+musicRest();setTimeout(musicRest,4000);
+fbLoad(function(e){if(e)return;try{FB.db.ref('config/music').on('value',function(s){musLive=true;musicCfg(s.val());},function(){});}catch(x){}});
 
 /* --- papan KDA seluruh pemain di layar hasil --- */
 function resBoard(w){
