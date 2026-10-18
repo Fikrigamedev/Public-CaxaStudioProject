@@ -55,17 +55,30 @@ pre{background:#05070c;border-radius:8px;padding:10px;font-size:11px;overflow:au
 <button class="btn p" style="margin-top:12px;width:100%" onclick="saveEv()">SIMPAN EVENT</button><p id="emsg" class="dim"></p>
 <h2>Daftar Event</h2><div id="evList"></div></div>
 
+<div id="p-music" class="card hide"><h2>Musik Latar Game</h2>
+<p class="dim">Upload lagu (MP3/OGG/WAV/M4A, maks 5 MB). Diputar berulang di menu dan pertandingan; volumenya bisa diatur pemain. Tanpa file kustom, game memakai musik bawaan.</p>
+<audio id="mAud" controls class="hide" style="width:100%;margin-top:8px"></audio>
+<label>PILIH FILE</label><input type="file" id="mfile" accept="audio/*"><div class="bar"><i id="mbar"></i></div><p id="mmsg" class="dim" style="margin-top:6px"></p>
+<div class="row" style="margin-top:8px"><button class="btn p" id="mbtn" onclick="upMusic()">UPLOAD &amp; TERAPKAN</button><button class="btn d" onclick="rmMusic()">KEMBALI KE MUSIK BAWAAN</button></div></div>
+
 <div id="p-set" class="card hide"><h2>Setup Firebase (sekali saja)</h2>
 <p class="dim">Gabungkan ke Rules Realtime Database Anda (di dalam <b>"rules": { }</b>):</p>
-<pre id="r1"></pre><p class="dim">Rules Storage (untuk video/foto besar; jika tidak diaktifkan, file disimpan di database sebagai cadangan):</p><pre id="r2"></pre></div>
+<pre id="r1"></pre><p class="dim">SQL Supabase (SQL Editor, jalankan sekali; bucket &quot;game asset&quot; harus Public):</p><pre id="r2"></pre></div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script>
 var ADMIN='kriiaja48@gmail.com',MAXB=5*1024*1024;
+var SB_URL='https://swoabptljqaguyeoazno.supabase.co',SB_KEY='sb_publishable_Ul0CmktZlFzGpj-oM3tUPg_viyrhDMp',SB_BUCKET='game asset';
+function sbUp(path,f,bar){return new Promise(function(ok,no){
+  var x=new XMLHttpRequest(),b=encodeURIComponent(SB_BUCKET),p=path.split('/').map(encodeURIComponent).join('/');
+  x.open('POST',SB_URL+'/storage/v1/object/'+b+'/'+p);x.setRequestHeader('apikey',SB_KEY);x.setRequestHeader('Authorization','Bearer '+SB_KEY);x.setRequestHeader('x-upsert','true');x.setRequestHeader('Content-Type',f.type||'application/octet-stream');x.timeout=120000;
+  x.upload.onprogress=function(e){if(e.lengthComputable)document.getElementById(bar).style.width=(e.loaded/e.total*100)+'%';};
+  x.onload=function(){if(x.status>=200&&x.status<300)ok(SB_URL+'/storage/v1/object/public/'+b+'/'+p);else no(new Error('Supabase '+x.status+': '+x.responseText));};
+  x.onerror=function(){no(new Error('Koneksi ke Supabase gagal'));};x.ontimeout=x.onerror;x.send(f);});}
+function sbDel(path){return fetch(SB_URL+'/storage/v1/object/'+encodeURIComponent(SB_BUCKET)+'/'+path.split('/').map(encodeURIComponent).join('/'),{method:'DELETE',headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}}).catch(function(){});}
 var HEROES=[["aegis", "AEGIS", "Tank", "#5c9edc"], ["raven", "RAVEN", "Assassin", "#8a5cc8"], ["pyra", "PYRA", "Mage", "#e0603a"], ["vex", "VEX", "Marksman", "#3fb87a"], ["terra", "TERRA", "Fighter", "#b08040"], ["lumi", "LUMI", "Support", "#f0d060"], ["kael", "KAEL", "Fighter", "#d04a6a"], ["brom", "BROM", "Tank", "#6a7a90"], ["zora", "ZORA", "Marksman", "#2fa8c8"], ["nox", "NOX", "Assassin", "#3a3a52"], ["chrona", "CHRONA", "Support", "#2fb8b0"], ["vora", "VORA", "Mage", "#6a3fc8"], ["sigit", "SIGIT", "Assassin", "#a3202c"], ["reyun", "REYUN", "Fighter", "#1f8fd6"], ["kia", "KIA", "Tank", "#ff7ac8"], ["rin", "RIN", "Assassin", "#1d1530"], ["xinyuan", "XIN YUAN", "Fighter", "#d8262f"], ["louise", "LOUISE", "Fighter", "#ff6fa8"], ["rex", "REX", "Fighter", "#4fa84a"], ["orion", "ORION", "Marksman", "#2f8a4a"], ["mira", "MIRA", "Support", "#d98ad8"], ["toro", "TORO", "Tank", "#8a5a3a"], ["glacia", "GLACIA", "Mage", "#5ad0ff"]];
 var PAL=[['emas','Emas Kerajaan','#d9a21e'],['es','Kristal Es','#4ac8ff'],['darah','Bayangan Darah','#c02040'],['hutan','Zamrud Hutan','#2fa060'],['neon','Neon Ungu','#a040ff'],['malam','Malam Kelam','#2a2f48']];
 var CFG={apiKey:"AIzaSyCcYMdcnO5B5vNkw-m7thb07p27iVzNLIM",authDomain:"caxa-arena.firebaseapp.com",projectId:"caxa-arena",databaseURL:"https://caxa-arena-default-rtdb.firebaseio.com",storageBucket:"caxa-arena.firebasestorage.app",messagingSenderId:"547730128"};
@@ -80,18 +93,20 @@ auth.onAuthStateChanged(function(u){
 var booted=false;
 function boot(){
   if(booted)return;booted=true;
-  var T=[['lobby','Lobby'],['port','Portrait'],['ban','Ban Hero'],['ev','Event'],['set','Setup']];
+  var T=[['lobby','Lobby'],['port','Portrait'],['ban','Ban Hero'],['ev','Event'],['music','Musik'],['set','Setup']];
   $('tabs').innerHTML='';T.forEach(function(t){var b=document.createElement('button');b.className='btn'+(t[0]==='lobby'?' on':'');b.textContent=t[1];b.onclick=function(){T.forEach(function(x){$('p-'+x[0]).classList.toggle('hide',x[0]!==t[0]);});[].forEach.call($('tabs').children,function(c){c.classList.remove('on');});b.classList.add('on');};$('tabs').appendChild(b);});
   $('psHero').innerHTML=HEROES.map(function(h){return '<option value="'+h[0]+'">'+h[1]+' ('+h[2]+')</option>';}).join('');
   db.ref('config/lobby').on('value',function(s){S.lobby=s.val();showLobby();});
   db.ref('config/portraits').on('value',function(s){S.port=s.val()||{};drawSkins();});
   db.ref('config/banned').on('value',function(s){S.ban=s.val()||{};drawBan();});
+  db.ref('config/music').on('value',function(s){S.music=s.val();showMusic();});
+  $('mfile').onchange=function(){var f=this.files[0];if(!f)return;if(f.size>MAXB){$('mmsg').textContent='File lebih dari 5 MB.';this.value='';return;}$('mAud').classList.remove('hide');$('mAud').src=URL.createObjectURL(f);$('mmsg').textContent=f.name+' ('+(f.size/1048576).toFixed(2)+' MB)';};
   db.ref('config/events').on('value',function(s){S.ev=s.val()||{};drawEv();});
   $('lfile').onchange=function(){var f=this.files[0];if(!f)return;if(f.size>MAXB){$('lmsg').textContent='File lebih dari 5 MB.';this.value='';return;}prev(f.type.indexOf('video')===0?'video':'image',URL.createObjectURL(f));$('lmsg').textContent=f.name+' ('+(f.size/1048576).toFixed(2)+' MB)';};
   var n=new Date(),p=function(x){return ('0'+x).slice(-2);},ld=function(d){return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());};
   $('eStart').value=ld(n);$('eEnd').value=ld(new Date(n.getTime()+7*864e5));evForm();
   $('r1').textContent='"config":{".read":true,".write":"auth!=null && auth.token.email===\''+ADMIN+'\' && auth.token.email_verified===true"},\n"lobbyData":{".read":true,".write":"auth!=null && auth.token.email===\''+ADMIN+'\' && auth.token.email_verified===true"},\n"userdata":{"$uid":{".read":"auth!=null && auth.uid===$uid",".write":"auth!=null && auth.uid===$uid"}}';
-  $('r2').textContent="rules_version = '2';\nservice firebase.storage {\n  match /b/{b}/o {\n    match /lobby/{f} {\n      allow read: if true;\n      allow write: if request.auth != null && request.auth.token.email == '"+ADMIN+"' && request.auth.token.email_verified == true && request.resource.size < 5 * 1024 * 1024;\n    }\n  }\n}";
+  $('r2').textContent="create policy \"baca publik\" on storage.objects for select using (bucket_id = 'game asset');\n\ncreate policy \"upload lobby dan music\" on storage.objects for insert with check (bucket_id = 'game asset' and (storage.foldername(name))[1] in ('lobby','music') and lower(storage.extension(name)) in ('jpg','jpeg','png','webp','gif','mp4','webm','mp3','ogg','wav','m4a'));\n\ncreate policy \"timpa file\" on storage.objects for update using (bucket_id = 'game asset') with check (bucket_id = 'game asset' and (storage.foldername(name))[1] in ('lobby','music'));";
 }
 /* ---- lobby ---- */
 function prev(t,src){var i=$('lpImg'),v=$('lpVid');i.classList.toggle('hide',t!=='image');v.classList.toggle('hide',t!=='video');if(t==='image')i.src=src;else{v.src=src;}}
@@ -105,22 +120,37 @@ async function upLobby(){
   if(f.size>MAXB){$('lmsg').textContent='Maks 5 MB.';return;}
   var type=f.type.indexOf('video')===0?'video':'image',url=null,path='',old=S.lobby&&S.lobby.path;$('lbtn').disabled=true;$('lbar').style.width='0';
   try{
-    firebase.storage().setMaxUploadRetryTime(12000);
-    path='lobby/'+Date.now()+'_'+f.name.replace(/[^\w.\-]/g,'_');var ref=firebase.storage().ref(path),task=ref.put(f,{contentType:f.type});
-    task.on('state_changed',function(s){$('lbar').style.width=(s.bytesTransferred/s.totalBytes*100)+'%';});
-    await task;url=await ref.getDownloadURL();
-  }catch(e){url=null;$('lmsg').textContent='Storage tidak tersedia, memakai database...';}
+    path='lobby/'+Date.now()+'_'+f.name.replace(/[^\w.\-]/g,'_');url=await sbUp(path,f,'lbar');
+  }catch(e){url=null;$('lmsg').textContent='Supabase gagal ('+e.message+'), memakai database...';}
   try{
     var meta={type:type,name:f.name,ver:Date.now()};
     if(url){meta.url=url;meta.path=path;meta.mode='url';await db.ref('lobbyData/current').remove();}
     else{var d=type==='image'?await shrink(f):await rd(f);await db.ref('lobbyData/current').set({data:d});meta.mode='db';}
     await db.ref('config/lobby').set(meta);
-    if(old){try{await firebase.storage().ref(old).delete();}catch(e){}}
+    if(old){sbDel(old);}
     $('lmsg').textContent='Berhasil diterapkan.';$('lfile').value='';
   }catch(e){$('lmsg').textContent='Gagal: '+e.message+' (cek Rules di tab Setup)';}
   $('lbtn').disabled=false;
 }
-async function rmLobby(){if(!confirm('Hapus tampilan lobby kustom?'))return;try{var o=S.lobby&&S.lobby.path;await db.ref('config/lobby').remove();await db.ref('lobbyData/current').remove();if(o)try{await firebase.storage().ref(o).delete();}catch(e){}}catch(e){$('lmsg').textContent=e.message;}}
+async function rmLobby(){if(!confirm('Hapus tampilan lobby kustom?'))return;try{var o=S.lobby&&S.lobby.path;await db.ref('config/lobby').remove();await db.ref('lobbyData/current').remove();if(o)sbDel(o);}catch(e){$('lmsg').textContent=e.message;}}
+/* ---- musik ---- */
+function showMusic(){var m=S.music;if(!m){$('mmsg').textContent='Memakai musik bawaan game.';return;}$('mmsg').textContent='Aktif: '+(m.name||'musik kustom')+' ('+(m.mode==='db'?'database':'storage')+')';
+  if(m.url){$('mAud').classList.remove('hide');$('mAud').src=m.url;}}
+async function upMusic(){
+  var f=$('mfile').files[0];if(!f){$('mmsg').textContent='Pilih file dulu.';return;}if(f.size>MAXB){$('mmsg').textContent='Maks 5 MB.';return;}
+  var url=null,path='',old=S.music&&S.music.path;$('mbtn').disabled=true;$('mbar').style.width='0';
+  try{path='music/'+Date.now()+'_'+f.name.replace(/[^\w.\-]/g,'_');url=await sbUp(path,f,'mbar');}
+  catch(e){url=null;$('mmsg').textContent='Supabase gagal ('+e.message+'), memakai database...';}
+  try{var meta={name:f.name,ver:Date.now()};
+    if(url){meta.url=url;meta.path=path;meta.mode='url';await db.ref('lobbyData/music').remove();}
+    else{var d=await rd(f);await db.ref('lobbyData/music').set({data:d});meta.mode='db';}
+    await db.ref('config/music').set(meta);
+    if(old){sbDel(old);}
+    $('mmsg').textContent='Musik berhasil diterapkan.';$('mfile').value='';
+  }catch(e){$('mmsg').textContent='Gagal: '+e.message+' (cek Rules di tab Setup)';}
+  $('mbtn').disabled=false;
+}
+async function rmMusic(){if(!confirm('Kembali ke musik bawaan?'))return;try{var o=S.music&&S.music.path;await db.ref('config/music').remove();await db.ref('lobbyData/music').remove();if(o)sbDel(o);$('mAud').pause();$('mAud').classList.add('hide');}catch(e){$('mmsg').textContent=e.message;}}
 /* ---- portrait ---- */
 function skinsOf(k){var i=HEROES.map(function(h){return h[0];}).indexOf(k),o=[['base','Klasik','']];for(var n=0;n<3;n++){var p=PAL[(i+n*2)%6];o.push([k+'_'+p[0],p[1],p[2]]);}return o;}
 function drawSkins(){
