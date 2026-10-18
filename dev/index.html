@@ -1,645 +1,173 @@
 <!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark">
-<meta name="robots" content="noindex,nofollow">
-<title>Dashboard Developer - Caxa GameHub</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<html lang="id"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CAXA ARENA - Dashboard Admin</title>
 <style>
-:root{
-  --bg:#000;--line:#2b2b2b;--line2:#555;--tx:#fff;--mu:#a3a3a3;
-  --ok:#5ee08a;--warn:#f5c04a;--bad:#ff6b6b;
-  --font:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
-}
 *{box-sizing:border-box;margin:0;padding:0}
-[hidden]{display:none!important}
-html{color-scheme:dark}
-body{background:var(--bg);color:var(--tx);font:400 15px/1.55 var(--font);min-height:100vh;-webkit-font-smoothing:antialiased}
-a{color:inherit;text-decoration:none}
-button,input,select,textarea{font:inherit;color:inherit}
-img{display:block;max-width:100%}
-:focus-visible{outline:2px solid #fff;outline-offset:2px}
-h1,h2,h3{line-height:1.15;letter-spacing:-.02em;font-weight:800}
-.muted{color:var(--mu)}
-.grow{flex:1}
+body{background:#0b1224;color:#e7ecf5;font-family:'Segoe UI',Roboto,Arial,sans-serif;font-size:14px;padding:12px;min-height:100vh}
+h1{font-size:17px;letter-spacing:.14em;color:#bcd2ff}h2{font-size:14px;color:#ffd76e;margin:14px 0 8px}
+.card{background:#141d36;border:1px solid #2c3d6e;border-radius:12px;padding:14px;margin-bottom:12px}
+.btn{background:#283658;border:1px solid #4a6aa8;color:#dfe8ff;padding:8px 14px;border-radius:9px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit}
+.btn.p{background:#3d6fe0;border-color:#7fa6ff}.btn.d{border-color:#e06a6a;color:#ffc7c7}.btn:disabled{opacity:.5}
+input,select,textarea{background:#0e172e;color:#e7ecf5;border:1px solid #2c3d6e;border-radius:8px;padding:8px;font-size:13px;font-family:inherit;width:100%}
+label{display:block;font-size:11px;color:#8ea2c8;margin:8px 0 3px;letter-spacing:.06em}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row>*{flex:1;min-width:110px}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin:10px 0}.tabs button{flex:none}.tabs .on{background:#3d6fe0}
+.hide{display:none!important}.dim{color:#8ea2c8;font-size:12px}.err{color:#ff9a9a}.ok{color:#8affb0}
+#gate{max-width:380px;margin:12vh auto;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.it{background:#0e172e;border:2px solid #2c3d6e;border-radius:10px;padding:6px;text-align:center;cursor:pointer;font-size:11px;position:relative}
+.it.on{border-color:#ffd76e}.it.ban{border-color:#e03a5a;background:#3a1220}
+.it .im{width:64px;height:64px;border-radius:50%;margin:0 auto 4px;background-size:cover;background-position:center;border:2px solid #4a6aa8}
+.ban-t{position:absolute;top:4px;right:4px;background:#e03a5a;font-size:9px;font-weight:900;padding:1px 4px;border-radius:4px}
+.prev{width:100%;max-height:220px;border-radius:10px;background:#05070c;object-fit:cover;margin-top:8px}
+.bar{height:6px;background:#0e172e;border-radius:4px;overflow:hidden;margin-top:8px}.bar i{display:block;height:100%;width:0;background:#3d6fe0}
+pre{background:#05070c;border-radius:8px;padding:10px;font-size:11px;overflow:auto;white-space:pre-wrap;margin:6px 0}
+.ev{display:flex;gap:8px;justify-content:space-between;align-items:center;border-top:1px solid #2c3d6e;padding:8px 0}.ev b{color:#ffd76e}
+</style></head><body>
+<div id="gate" class="card"><h1>CAXA ARENA &middot; DASHBOARD</h1><p class="dim" style="margin:10px 0">Khusus admin. Masuk dengan akun Google yang diizinkan.</p>
+<button class="btn p" onclick="login()">MASUK DENGAN GOOGLE</button><p id="gmsg" class="err" style="margin-top:10px"></p></div>
 
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:8px;border:1px solid var(--line2);background:transparent;cursor:pointer;font-weight:600;font-size:14px;white-space:nowrap;transition:background .15s,border-color .15s}
-.btn:hover{border-color:#fff}
-.btn.primary{background:#fff;color:#000;border-color:#fff}
-.btn.primary:hover{background:#d4d4d4}
-.btn.danger{color:var(--bad);border-color:#5c2b2b}
-.btn.danger:hover{border-color:var(--bad)}
-.btn.danger.fill{background:var(--bad);color:#000;border-color:var(--bad)}
-.btn.sm{padding:6px 12px;font-size:13px}
-.btn:disabled{opacity:.45;cursor:not-allowed}
-input[type=text],input[type=search],textarea,select{width:100%;background:#000;border:1px solid var(--line2);border-radius:8px;padding:10px 12px}
-input:focus,textarea:focus,select:focus{border-color:#fff;outline:0}
-select option{background:#000}
-textarea{resize:vertical;min-height:90px}
-.spin{width:28px;height:28px;border:3px solid var(--line);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite}
-@keyframes sp{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){.spin{animation-duration:2s}}
+<div id="app" class="hide">
+<div class="row" style="justify-content:space-between"><h1>DASHBOARD ADMIN</h1><div class="dim" style="flex:none"><span id="who"></span> <button class="btn" onclick="auth.signOut()">KELUAR</button></div></div>
+<div class="tabs" id="tabs"></div>
 
-/* layar penuh (login / ditolak / memuat) */
-.screen{min-height:100vh;display:grid;place-items:center;padding:24px}
-.screen .box{max-width:460px;width:100%;display:flex;flex-direction:column;gap:16px}
-.screen h1{font-size:34px}
-.screen p{color:var(--mu)}
-.screen .center{align-items:center;text-align:center}
+<div id="p-lobby" class="card"><h2>Tampilan Lobby</h2>
+<p class="dim">Foto atau video (maks 5 MB) menggantikan teks "CAXA ARENA" di lobby. Video diputar otomatis tanpa suara.</p>
+<img id="lpImg" class="prev hide"><video id="lpVid" class="prev hide" muted loop playsinline controls></video>
+<label>PILIH FILE (JPG/PNG/WEBP/GIF/MP4/WEBM)</label><input type="file" id="lfile" accept="image/*,video/mp4,video/webm">
+<div class="bar"><i id="lbar"></i></div><p id="lmsg" class="dim" style="margin-top:6px"></p>
+<div class="row" style="margin-top:8px"><button class="btn p" id="lbtn" onclick="upLobby()">UPLOAD &amp; TERAPKAN</button><button class="btn d" onclick="rmLobby()">HAPUS (KEMBALI KE TEKS)</button></div></div>
 
-/* aplikasi */
-.layout{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh}
-.side{border-right:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
-.brand{font-size:19px;font-weight:800;letter-spacing:-.03em;padding:0 10px 2px}
-.brand-sub{color:var(--mu);font-size:13px;padding:0 10px 16px}
-.side button.tab{display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;background:none;border:0;border-radius:8px;padding:10px 12px;cursor:pointer;color:var(--mu);font-weight:600}
-.side button.tab:hover{color:#fff}
-.side button.tab.on{background:#fff;color:#000}
-.count{font-size:12px;font-weight:800;background:var(--warn);color:#000;border-radius:999px;padding:0 8px;min-width:22px;text-align:center}
-.side .who{margin-top:auto;font-size:13px;color:var(--mu);overflow-wrap:anywhere;padding:0 10px}
-.main{padding:28px 28px 72px;min-width:0;max-width:1100px}
-.main h1{font-size:30px;margin-bottom:6px}
-.lead{color:var(--mu);margin-bottom:22px;max-width:62ch}
-.banner{border:1px solid #5c2b2b;color:var(--bad);border-radius:8px;padding:12px 14px;margin-bottom:18px;font-size:14px}
+<div id="p-port" class="card hide"><h2>Portrait Hero &amp; Skin</h2>
+<label>HERO</label><select id="psHero" onchange="drawSkins()"></select>
+<div class="grid" id="psGrid" style="margin-top:10px"></div>
+<p class="dim" style="margin-top:8px">Pilih foto (maks 5 MB), otomatis dipotong persegi &amp; dikecilkan. Skin tanpa portrait kustom memakai gambar bawaan game.</p>
+<input type="file" id="pfile" accept="image/*" class="hide"><p id="pmsg" class="dim"></p></div>
 
-/* statistik */
-.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:30px}
-.stat{border:1px solid var(--line);border-radius:10px;padding:16px}
-.stat b{display:block;font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
-.stat span{color:var(--mu);font-size:14px}
-.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
-.panel{border:1px solid var(--line);border-radius:10px;padding:18px}
-.panel h2{font-size:18px;margin-bottom:14px}
-.li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:10px 0;border-top:1px solid var(--line)}
-.li:first-of-type{border-top:0}
-.li .t{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bar{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
-.bar i{display:block;height:100%;background:#fff}
+<div id="p-ban" class="card hide"><h2>Ban Hero</h2><p class="dim">Ketuk hero untuk ban / buka ban. Hero yang di-ban tidak bisa dipilih pemain maupun bot.</p><div class="grid" id="banGrid" style="margin-top:10px"></div></div>
 
-/* daftar */
-.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-.toolbar input{flex:1 1 240px}
-.toolbar select{flex:0 0 190px;width:190px}
-.rowc{display:grid;grid-template-columns:128px minmax(0,1fr) auto;gap:16px;border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px;align-items:start}
-.rthumb{aspect-ratio:16/9;border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.rthumb img{width:100%;height:100%;object-fit:cover}
-.ph{width:100%;height:100%;display:grid;place-items:center;font-size:34px;font-weight:800;color:transparent;-webkit-text-stroke:1px #fff}
-.rtitle{font-weight:800;font-size:17px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.rmeta{color:var(--mu);font-size:13px;display:flex;flex-direction:column;margin-top:2px}
-.rdesc{margin-top:6px;font-size:14px;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.rnote{margin-top:6px;font-size:13px;color:var(--bad)}
-.racts{display:flex;flex-direction:column;gap:6px;min-width:112px}
-.badge{font-size:12px;font-weight:600;border:1px solid var(--line2);border-radius:999px;padding:1px 10px}
-.badge.approved{color:var(--ok);border-color:#1f5a35}
-.badge.pending{color:var(--warn);border-color:#6a5420}
-.badge.rejected{color:var(--bad);border-color:#5c2b2b}
-.badge.feat{background:#fff;color:#000;border-color:#fff}
-.empty{border:1px dashed var(--line2);border-radius:10px;padding:32px 16px;text-align:center;color:var(--mu)}
-.state{display:flex;flex-direction:column;align-items:center;gap:12px;padding:48px 0;color:var(--mu)}
-.addcat{display:flex;gap:10px;margin-bottom:18px;max-width:520px}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{text-align:left;padding:10px 12px;border-top:1px solid var(--line);vertical-align:middle}
-th{color:var(--mu);font-weight:600;border-top:0}
-.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
-.uav{width:30px;height:30px;border-radius:50%;object-fit:cover;border:1px solid var(--line2)}
-.ucell{display:flex;align-items:center;gap:10px}
+<div id="p-ev" class="card hide"><h2>Buat Event</h2>
+<div class="row"><div><label>JENIS</label><select id="eType" onchange="evForm()"><option value="spin">Spin (roda hadiah)</option><option value="chest">Peti Gratis</option><option value="skin">Hero / Skin Gratis</option><option value="coins">Koin Gratis</option><option value="info">Pengumuman</option></select></div><div><label>BATAS KLAIM</label><select id="eLimit"><option value="once">Sekali per akun</option><option value="daily">Sekali per hari</option></select></div></div>
+<label>JUDUL</label><input id="eTitle" maxlength="40"><label>DESKRIPSI</label><textarea id="eDesc" rows="2" maxlength="160"></textarea>
+<div class="row"><div><label>MULAI</label><input type="datetime-local" id="eStart"></div><div><label>BERAKHIR</label><input type="datetime-local" id="eEnd"></div></div>
+<div id="eExtra"></div>
+<button class="btn p" style="margin-top:12px;width:100%" onclick="saveEv()">SIMPAN EVENT</button><p id="emsg" class="dim"></p>
+<h2>Daftar Event</h2><div id="evList"></div></div>
 
-.vchk{display:inline-block;vertical-align:-3px;margin-left:4px}
-.devtag{display:inline-block;font-size:12px;font-weight:800;background:#fff;color:#000;border-radius:4px;padding:0 8px;margin-top:6px}
-.badge.mp{color:#fff;border-color:#fff}
-
-/* overlay */
-.backdrop{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.85);display:grid;place-items:center;padding:16px}
-.dlg{background:#000;border:1px solid var(--line2);border-radius:12px;padding:22px;max-width:440px;width:100%}
-.dlg h3{font-size:20px;margin-bottom:8px}
-.dlg p{color:var(--mu);margin-bottom:14px;overflow-wrap:anywhere}
-.dlg label{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
-.dlg-act{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
-.loader{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.7);display:grid;place-items:center}
-.player{position:fixed;inset:0;z-index:70;background:#000;display:flex;flex-direction:column}
-.pbar{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);min-height:52px}
-.pbar strong{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pbar small{color:var(--warn)}
-.player iframe{flex:1;width:100%;border:0;background:#000}
-#toasts{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:100;display:flex;flex-direction:column;gap:8px;width:min(92vw,420px)}
-.toast{background:#fff;color:#000;padding:12px 16px;border-radius:8px;font-weight:600;font-size:14px}
-.toast.error{background:var(--bad)}
-.toast.ok{background:var(--ok)}
-
-@media (max-width:900px){
-  .layout{grid-template-columns:1fr}
-  .side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;border-right:0;border-bottom:1px solid var(--line);padding:12px}
-  .brand,.brand-sub{padding:0 8px 0 0}
-  .brand-sub{display:none}
-  .side .who{display:none}
-  .side .tabs{display:flex;gap:4px;overflow-x:auto;flex:1 1 100%}
-  .main{padding:20px 14px 64px}
-  .cols{grid-template-columns:1fr}
-}
-@media (max-width:640px){
-  .rowc{grid-template-columns:96px minmax(0,1fr)}
-  .racts{grid-column:1/-1;flex-direction:row;flex-wrap:wrap}
-  .toolbar select{flex:1 1 100%;width:100%}
-}
-</style>
-</head>
-<body>
-
-<div id="s-loading" class="screen"><div class="box center"><div class="spin"></div><p id="loading-text">Memeriksa sesi...</p></div></div>
-
-<div id="s-login" class="screen" hidden>
-  <div class="box">
-    <h1>Dashboard Developer</h1>
-    <p>Khusus admin Caxa GameHub. Masuk dengan akun Google admin untuk meninjau dan mengelola game.</p>
-    <button class="btn primary" data-act="login">Masuk dengan Google</button>
-  </div>
+<div id="p-set" class="card hide"><h2>Setup Firebase (sekali saja)</h2>
+<p class="dim">Gabungkan ke Rules Realtime Database Anda (di dalam <b>"rules": { }</b>):</p>
+<pre id="r1"></pre><p class="dim">Rules Storage (untuk video/foto besar; jika tidak diaktifkan, file disimpan di database sebagai cadangan):</p><pre id="r2"></pre></div>
 </div>
-
-<div id="s-denied" class="screen" hidden>
-  <div class="box">
-    <h1>Akses ditolak</h1>
-    <p id="denied-note">Akun ini bukan admin.</p>
-    <p>Akun saat ini: <b id="denied-email"></b></p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btn primary" data-act="logout">Keluar dan ganti akun</button>
-      <a class="btn" href="utama.html">Ke website utama</a>
-    </div>
-  </div>
-</div>
-
-<div id="app" class="layout" hidden>
-  <aside class="side">
-    <div class="brand">Caxa GameHub</div>
-    <div class="brand-sub">Dashboard developer</div>
-    <nav class="tabs" aria-label="Menu dashboard" id="tabs">
-      <button class="tab" data-tab="stats">Statistik</button>
-      <button class="tab" data-tab="review">Tinjauan <span class="count" id="badge-review" hidden>0</span></button>
-      <button class="tab" data-tab="games">Semua game</button>
-      <button class="tab" data-tab="cats">Kategori</button>
-      <button class="tab" data-tab="users">Pengguna</button>
-    </nav>
-    <div class="who"><div id="who"></div><button class="btn sm" style="margin-top:10px" data-act="logout">Keluar</button></div>
-  </aside>
-  <main class="main">
-    <div id="banner" class="banner" hidden></div>
-    <div id="content"></div>
-  </main>
-</div>
-
-<div id="toasts" aria-live="polite"></div>
-<div id="loader" class="loader" hidden><div class="spin"></div></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script>
-(function () {
-"use strict";
-
-/* ====================== Konfigurasi ====================== */
-const firebaseConfig = {
-  apiKey: "AIzaSyBmOQhqoVSowBHT2xLbb2-cgnLNkmAdzcQ",
-  authDomain: "caxagamehub.firebaseapp.com",
-  databaseURL: "https://caxagamehub-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "caxagamehub",
-  storageBucket: "caxagamehub.firebasestorage.app",
-  messagingSenderId: "44522670946",
-  appId: "1:44522670946:web:28352e68beb8a39f3f7a3b"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.database();
-const TS = firebase.database.ServerValue.TIMESTAMP;
-
-// Pengecekan ini HANYA untuk tampilan. Penegak sebenarnya adalah Security Rules
-// di server yang memeriksa email dari token Google yang ditandatangani.
-const ADMIN_EMAIL = "kriiaja48@gmail.com";
-const ID_RE = /^[A-Za-z0-9_-]{6,40}$/;
-const STATUS = { pending: "Menunggu", approved: "Disetujui", rejected: "Ditolak" };
-
-/* ====================== State ====================== */
-const state = {
-  user: null, tab: "stats",
-  games: {}, users: {}, plays: {}, cats: {}, ratings: {}, versions: {},
-  loaded: { games: false, users: false, plays: false, cats: false, ratings: false, versions: false },
-  filter: { q: "", status: "all" }
-};
-let listeners = [];
-
-/* ====================== Util ====================== */
-const $ = (s, r) => (r || document).querySelector(s);
-const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const fmtDate = ts => ts ? new Date(ts).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-";
-const fmtNum = n => new Intl.NumberFormat("id-ID").format(n || 0);
-function toast(msg, type) {
-  const t = document.createElement("div");
-  t.className = "toast " + (type || "");
-  t.textContent = msg;
-  $("#toasts").appendChild(t);
-  setTimeout(() => t.remove(), type === "error" ? 6500 : 3500);
-}
-let loaderCount = 0;
-function showLoader(on) {
-  loaderCount = Math.max(0, loaderCount + (on ? 1 : -1));
-  $("#loader").hidden = loaderCount === 0;
-}
-function errMsg(e) {
-  const code = (e && e.code ? e.code : "") + "";
-  const m = (e && e.message) || String(e);
-  if (/permission_denied/i.test(code + m)) return "Ditolak oleh Security Rules. Pastikan Rules terbaru sudah dipublikasikan dan Anda masuk sebagai admin.";
-  if (code === "auth/unauthorized-domain") return "Domain ini belum diizinkan. Tambahkan di Firebase Console, Authentication, Settings, Authorized domains.";
-  if (code === "auth/network-request-failed") return "Koneksi bermasalah. Periksa internet Anda.";
-  return m || "Terjadi kesalahan.";
-}
-function showScreen(name) {
-  ["loading", "login", "denied"].forEach(n => { $("#s-" + n).hidden = n !== name; });
-  $("#app").hidden = name !== "app";
-}
-function showBanner(msg) { const b = $("#banner"); b.textContent = msg; b.hidden = !msg; }
-
-function confirmBox(o) {
-  return new Promise(res => {
-    const w = document.createElement("div");
-    w.className = "backdrop";
-    w.innerHTML = `<div class="dlg" role="dialog" aria-modal="true"><h3>${esc(o.title)}</h3><p>${esc(o.text)}</p><div class="dlg-act"><button class="btn" data-r="0">Batal</button><button class="btn ${o.danger ? "danger fill" : "primary"}" data-r="1">${esc(o.ok || "Ya")}</button></div></div>`;
-    const done = v => { w.remove(); document.removeEventListener("keydown", onKey); res(v); };
-    const onKey = e => { if (e.key === "Escape") done(false); };
-    w.addEventListener("click", e => {
-      const b = e.target.closest("[data-r]");
-      if (b) done(b.dataset.r === "1"); else if (e.target === w) done(false);
-    });
-    document.addEventListener("keydown", onKey);
-    document.body.appendChild(w);
-    $('[data-r="0"]', w).focus();
-  });
-}
-// Mengembalikan teks (boleh kosong jika o.required false) atau null jika dibatalkan.
-function promptBox(o) {
-  return new Promise(res => {
-    const w = document.createElement("div");
-    w.className = "backdrop";
-    w.innerHTML = `<form class="dlg" role="dialog" aria-modal="true"><h3>${esc(o.title)}</h3><label for="pb-in">${esc(o.label)}</label>${o.multiline ? `<textarea id="pb-in" maxlength="${o.max}"></textarea>` : `<input id="pb-in" type="text" maxlength="${o.max}">`}<div class="dlg-act"><button type="button" class="btn" data-r="0">Batal</button><button type="submit" class="btn primary">${esc(o.ok || "Simpan")}</button></div></form>`;
-    const input = $("#pb-in", w);
-    input.value = o.value || "";
-    const done = v => { w.remove(); document.removeEventListener("keydown", onKey); res(v); };
-    const onKey = e => { if (e.key === "Escape") done(null); };
-    w.addEventListener("click", e => { if (e.target === w || e.target.closest('[data-r="0"]')) done(null); });
-    w.querySelector("form").addEventListener("submit", e => {
-      e.preventDefault();
-      const v = input.value.trim();
-      if (o.required && !v) { input.focus(); return; }
-      done(v);
-    });
-    document.addEventListener("keydown", onKey);
-    document.body.appendChild(w);
-    input.focus();
-  });
-}
-
-/* ====================== Auth ====================== */
-async function login() {
-  const p = new firebase.auth.GoogleAuthProvider();
-  p.setCustomParameters({ prompt: "select_account" });
-  showLoader(true);
-  try { await auth.signInWithPopup(p); }
-  catch (e) {
-    if (e.code === "auth/popup-blocked" || e.code === "auth/operation-not-supported-in-this-environment") {
-      try { await auth.signInWithRedirect(p); } catch (e2) { toast(errMsg(e2), "error"); }
-    } else if (e.code !== "auth/popup-closed-by-user" && e.code !== "auth/cancelled-popup-request") toast(errMsg(e), "error");
-  } finally { showLoader(false); }
-}
-function logout() { auth.signOut().catch(e => toast(errMsg(e), "error")); }
-
-function stopListeners() {
-  listeners.forEach(l => l.ref.off("value", l.cb));
-  listeners = [];
-  state.games = {}; state.users = {}; state.plays = {}; state.cats = {}; state.ratings = {}; state.versions = {};
-  Object.keys(state.loaded).forEach(k => { state.loaded[k] = false; });
-}
-function listen(path, key) {
-  const ref = db.ref(path);
-  const cb = s => { state[key] = s.val() || {}; state.loaded[key] = true; renderBody(); updateBadge(); };
-  ref.on("value", cb, e => { state.loaded[key] = true; showBanner("Gagal membaca '" + path + "': " + errMsg(e)); renderBody(); });
-  listeners.push({ ref: ref, cb: cb });
-}
-
-let authRun = 0;
-auth.getRedirectResult().catch(e => toast(errMsg(e), "error"));
-auth.onAuthStateChanged(async u => {
-  const run = ++authRun;
-  stopListeners();
-  state.user = u;
-  showBanner("");
-  if (!u) { showScreen("login"); return; }
-  $("#denied-email").textContent = u.email || "(tanpa email)";
-  const uiOk = (u.email || "").toLowerCase() === ADMIN_EMAIL && u.emailVerified === true;
-  if (!uiOk) { $("#denied-note").textContent = "Akun ini bukan admin Caxa GameHub."; showScreen("denied"); return; }
-  $("#loading-text").textContent = "Memverifikasi akses admin ke database...";
-  showScreen("loading");
-  try {
-    // Uji nyata di sisi server: hanya admin yang boleh membaca node 'users'.
-    await db.ref("users").limitToFirst(1).once("value");
-  } catch (e) {
-    if (run !== authRun) return;
-    $("#denied-note").textContent = "Security Rules menolak akun ini. Pastikan Rules terbaru sudah dipublikasikan dan email admin di Rules sama dengan akun Anda.";
-    showScreen("denied");
-    return;
-  }
-  if (run !== authRun) return;
-  $("#who").innerHTML = esc(u.email) + VERIFIED + '<div><span class="devtag">Developer</span></div>';
-  ensureAdminProfile(u);
-  showScreen("app");
-  renderShell();
-  listen("games", "games");
-  listen("users", "users");
-  listen("plays", "plays");
-  listen("categories", "cats");
-  listen("ratingStats", "ratings");
-  listen("gameVersions", "versions");
+var ADMIN='kriiaja48@gmail.com',MAXB=5*1024*1024;
+var HEROES=[["aegis", "AEGIS", "Tank", "#5c9edc"], ["raven", "RAVEN", "Assassin", "#8a5cc8"], ["pyra", "PYRA", "Mage", "#e0603a"], ["vex", "VEX", "Marksman", "#3fb87a"], ["terra", "TERRA", "Fighter", "#b08040"], ["lumi", "LUMI", "Support", "#f0d060"], ["kael", "KAEL", "Fighter", "#d04a6a"], ["brom", "BROM", "Tank", "#6a7a90"], ["zora", "ZORA", "Marksman", "#2fa8c8"], ["nox", "NOX", "Assassin", "#3a3a52"], ["chrona", "CHRONA", "Support", "#2fb8b0"], ["vora", "VORA", "Mage", "#6a3fc8"], ["sigit", "SIGIT", "Assassin", "#a3202c"], ["reyun", "REYUN", "Fighter", "#1f8fd6"], ["kia", "KIA", "Tank", "#ff7ac8"], ["rin", "RIN", "Assassin", "#1d1530"], ["xinyuan", "XIN YUAN", "Fighter", "#d8262f"], ["louise", "LOUISE", "Fighter", "#ff6fa8"], ["rex", "REX", "Fighter", "#4fa84a"], ["orion", "ORION", "Marksman", "#2f8a4a"], ["mira", "MIRA", "Support", "#d98ad8"], ["toro", "TORO", "Tank", "#8a5a3a"], ["glacia", "GLACIA", "Mage", "#5ad0ff"]];
+var PAL=[['emas','Emas Kerajaan','#d9a21e'],['es','Kristal Es','#4ac8ff'],['darah','Bayangan Darah','#c02040'],['hutan','Zamrud Hutan','#2fa060'],['neon','Neon Ungu','#a040ff'],['malam','Malam Kelam','#2a2f48']];
+var CFG={apiKey:"AIzaSyCcYMdcnO5B5vNkw-m7thb07p27iVzNLIM",authDomain:"caxa-arena.firebaseapp.com",projectId:"caxa-arena",databaseURL:"https://caxa-arena-default-rtdb.firebaseio.com",storageBucket:"caxa-arena.firebasestorage.app",messagingSenderId:"547730128"};
+firebase.initializeApp(CFG);var auth=firebase.auth(),db=firebase.database(),$=function(i){return document.getElementById(i);};
+var S={port:{},ban:{},ev:{},lobby:null,sel:null};
+function login(){$('gmsg').textContent='';auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(function(e){if(/popup/.test(e.code))auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider());else $('gmsg').textContent=e.message;});}
+auth.onAuthStateChanged(function(u){
+  if(!u){$('gate').classList.remove('hide');$('app').classList.add('hide');return;}
+  if((u.email||'').toLowerCase()===ADMIN&&u.emailVerified){$('gate').classList.add('hide');$('app').classList.remove('hide');$('who').textContent=u.email;boot();}
+  else{$('gmsg').textContent='Akses ditolak: '+(u.email||'akun ini')+' bukan admin.';auth.signOut();}
 });
-
-/* ====================== Badge developer ====================== */
-const VERIFIED = '<svg class="vchk" viewBox="0 0 24 24" width="16" height="16" role="img" aria-label="Developer terverifikasi"><title>Developer terverifikasi</title><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-// Menandai profil publik admin sebagai developer. Rules hanya mengizinkan ini untuk akun admin.
-async function ensureAdminProfile(u) {
-  try {
-    const ref = db.ref("profiles/" + u.uid);
-    const snap = await ref.once("value");
-    if (!snap.exists()) await ref.set({ name: ((u.displayName || "Developer").trim().slice(0, 30)) || "Developer", dev: true, updatedAt: TS });
-    else if (!snap.val().dev) await ref.update({ dev: true });
-  } catch (e) { console.warn("Profil admin:", e); }
+var booted=false;
+function boot(){
+  if(booted)return;booted=true;
+  var T=[['lobby','Lobby'],['port','Portrait'],['ban','Ban Hero'],['ev','Event'],['set','Setup']];
+  $('tabs').innerHTML='';T.forEach(function(t){var b=document.createElement('button');b.className='btn'+(t[0]==='lobby'?' on':'');b.textContent=t[1];b.onclick=function(){T.forEach(function(x){$('p-'+x[0]).classList.toggle('hide',x[0]!==t[0]);});[].forEach.call($('tabs').children,function(c){c.classList.remove('on');});b.classList.add('on');};$('tabs').appendChild(b);});
+  $('psHero').innerHTML=HEROES.map(function(h){return '<option value="'+h[0]+'">'+h[1]+' ('+h[2]+')</option>';}).join('');
+  db.ref('config/lobby').on('value',function(s){S.lobby=s.val();showLobby();});
+  db.ref('config/portraits').on('value',function(s){S.port=s.val()||{};drawSkins();});
+  db.ref('config/banned').on('value',function(s){S.ban=s.val()||{};drawBan();});
+  db.ref('config/events').on('value',function(s){S.ev=s.val()||{};drawEv();});
+  $('lfile').onchange=function(){var f=this.files[0];if(!f)return;if(f.size>MAXB){$('lmsg').textContent='File lebih dari 5 MB.';this.value='';return;}prev(f.type.indexOf('video')===0?'video':'image',URL.createObjectURL(f));$('lmsg').textContent=f.name+' ('+(f.size/1048576).toFixed(2)+' MB)';};
+  var n=new Date(),p=function(x){return ('0'+x).slice(-2);},ld=function(d){return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());};
+  $('eStart').value=ld(n);$('eEnd').value=ld(new Date(n.getTime()+7*864e5));evForm();
+  $('r1').textContent='"config":{".read":true,".write":"auth!=null && auth.token.email===\''+ADMIN+'\' && auth.token.email_verified===true"},\n"lobbyData":{".read":true,".write":"auth!=null && auth.token.email===\''+ADMIN+'\' && auth.token.email_verified===true"},\n"userdata":{"$uid":{".read":"auth!=null && auth.uid===$uid",".write":"auth!=null && auth.uid===$uid"}}';
+  $('r2').textContent="rules_version = '2';\nservice firebase.storage {\n  match /b/{b}/o {\n    match /lobby/{f} {\n      allow read: if true;\n      allow write: if request.auth != null && request.auth.token.email == '"+ADMIN+"' && request.auth.token.email_verified == true && request.resource.size < 5 * 1024 * 1024;\n    }\n  }\n}";
 }
-
-/* ====================== Data helper ====================== */
-const gamesList = () => Object.keys(state.games).map(id => Object.assign({ id }, state.games[id]));
-const playsOf = id => state.plays[id] || 0;
-const VER_RE = /^(v([1-9]|10)|legacy)$/;
-const codePath = (gid, vid) => vid === "legacy" ? "gameCode/" + gid : "gameCodeV/" + gid + "/" + vid;
-// Versi baru dari game yang sudah dipublikasikan, menunggu keputusan admin.
-function pendingVers() {
-  const out = [];
-  Object.keys(state.versions).forEach(gid => {
-    const g = state.games[gid];
-    if (!g || g.status !== "approved") return;
-    const vs = state.versions[gid] || {};
-    Object.keys(vs).forEach(vid => { if (vs[vid] && vs[vid].status === "pending") out.push(Object.assign({ gid: gid, vid: vid, game: g }, vs[vid])); });
-  });
-  return out.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+/* ---- lobby ---- */
+function prev(t,src){var i=$('lpImg'),v=$('lpVid');i.classList.toggle('hide',t!=='image');v.classList.toggle('hide',t!=='video');if(t==='image')i.src=src;else{v.src=src;}}
+function showLobby(){var l=S.lobby;if(!l){$('lpImg').classList.add('hide');$('lpVid').classList.add('hide');$('lmsg').textContent='Belum ada: lobby memakai teks CAXA ARENA.';return;}
+  if(l.url)prev(l.type,l.url);else db.ref('lobbyData/current/data').once('value').then(function(s){if(s.val())prev(l.type,s.val());});
+  $('lmsg').textContent='Aktif: '+(l.name||l.type)+' ('+(l.mode==='db'?'database':'storage')+')';}
+function rd(f){return new Promise(function(ok,no){var r=new FileReader();r.onload=function(){ok(r.result);};r.onerror=no;r.readAsDataURL(f);});}
+function shrink(f){return new Promise(function(ok){var im=new Image();im.onload=function(){var s=Math.min(1,1920/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.85));};im.src=URL.createObjectURL(f);});}
+async function upLobby(){
+  var f=$('lfile').files[0];if(!f){$('lmsg').textContent='Pilih file dulu.';return;}
+  if(f.size>MAXB){$('lmsg').textContent='Maks 5 MB.';return;}
+  var type=f.type.indexOf('video')===0?'video':'image',url=null,path='',old=S.lobby&&S.lobby.path;$('lbtn').disabled=true;$('lbar').style.width='0';
+  try{
+    firebase.storage().setMaxUploadRetryTime(12000);
+    path='lobby/'+Date.now()+'_'+f.name.replace(/[^\w.\-]/g,'_');var ref=firebase.storage().ref(path),task=ref.put(f,{contentType:f.type});
+    task.on('state_changed',function(s){$('lbar').style.width=(s.bytesTransferred/s.totalBytes*100)+'%';});
+    await task;url=await ref.getDownloadURL();
+  }catch(e){url=null;$('lmsg').textContent='Storage tidak tersedia, memakai database...';}
+  try{
+    var meta={type:type,name:f.name,ver:Date.now()};
+    if(url){meta.url=url;meta.path=path;meta.mode='url';await db.ref('lobbyData/current').remove();}
+    else{var d=type==='image'?await shrink(f):await rd(f);await db.ref('lobbyData/current').set({data:d});meta.mode='db';}
+    await db.ref('config/lobby').set(meta);
+    if(old){try{await firebase.storage().ref(old).delete();}catch(e){}}
+    $('lmsg').textContent='Berhasil diterapkan.';$('lfile').value='';
+  }catch(e){$('lmsg').textContent='Gagal: '+e.message+' (cek Rules di tab Setup)';}
+  $('lbtn').disabled=false;
 }
-function verLabel(g) {
-  const vs = state.versions[g.id] || {};
-  const n = Object.keys(vs).length + (g.versioned ? 0 : 1);
-  const cur = g.currentVer && vs[g.currentVer] ? vs[g.currentVer].name : "1.0";
-  return esc(cur) + " (" + n + " versi)";
+async function rmLobby(){if(!confirm('Hapus tampilan lobby kustom?'))return;try{var o=S.lobby&&S.lobby.path;await db.ref('config/lobby').remove();await db.ref('lobbyData/current').remove();if(o)try{await firebase.storage().ref(o).delete();}catch(e){}}catch(e){$('lmsg').textContent=e.message;}}
+/* ---- portrait ---- */
+function skinsOf(k){var i=HEROES.map(function(h){return h[0];}).indexOf(k),o=[['base','Klasik','']];for(var n=0;n<3;n++){var p=PAL[(i+n*2)%6];o.push([k+'_'+p[0],p[1],p[2]]);}return o;}
+function drawSkins(){
+  var k=$('psHero').value,g=$('psGrid');if(!k)return;g.innerHTML='';
+  skinsOf(k).forEach(function(s){var id=s[0]==='base'?k:s[0],has=S.port[id],d=document.createElement('div');d.className='it';
+    d.innerHTML='<div class="im" style="'+(has?'background-image:url('+has+')':'background:'+(s[2]||'#4a6aa8'))+'"></div><b>'+s[1]+'</b><br><span class="dim">'+(has?'kustom':'bawaan')+'</span>';
+    d.onclick=function(){S.sel=id;$('pfile').value='';$('pfile').click();};
+    if(has){var r=document.createElement('button');r.className='btn d';r.style.cssText='padding:2px 6px;font-size:10px;margin-top:4px';r.textContent='RESET';r.onclick=function(e){e.stopPropagation();db.ref('config/portraits/'+id).remove();};d.appendChild(r);}
+    g.appendChild(d);});
 }
-function ratingText(id) {
-  const r = state.ratings[id];
-  return r && r.count > 0 ? (r.sum / r.count).toFixed(1) + " dari 5 (" + fmtNum(r.count) + " penilaian)" : "belum ada";
-}
-const catName = id => (state.cats[id] && state.cats[id].name) || "Tanpa kategori";
-const newest = (a, b) => (b.createdAt || 0) - (a.createdAt || 0);
-
-function updateBadge() {
-  const n = gamesList().filter(g => g.status === "pending").length + pendingVers().length;
-  const b = $("#badge-review");
-  b.textContent = n; b.hidden = n === 0;
-}
-
-/* ====================== Tab ====================== */
-const TITLES = {
-  stats: ["Statistik", "Ringkasan pengguna, game, dan jumlah permainan. Data diperbarui secara realtime."],
-  review: ["Tinjauan game", "Game baru atau yang baru diedit menunggu keputusan Anda sebelum tampil untuk publik."],
-  games: ["Semua game", "Cari, tinjau, unggulkan, atau hapus game mana pun."],
-  cats: ["Kategori", "Kategori dipakai pengguna saat mengunggah game."],
-  users: ["Pengguna", "Pengguna yang pernah masuk ke Caxa GameHub."]
+$('pfile').onchange=function(){
+  var f=this.files[0];if(!f||!S.sel)return;if(f.size>MAXB){$('pmsg').textContent='File lebih dari 5 MB.';return;}
+  var id=S.sel,im=new Image();im.onload=function(){var z=192,c=document.createElement('canvas');c.width=c.height=z;var m=Math.min(im.width,im.height);c.getContext('2d').drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,z,z);
+    var u=c.toDataURL('image/webp',.82);if(u.indexOf('image/webp')<0)u=c.toDataURL('image/jpeg',.85);
+    db.ref('config/portraits/'+id).set(u).then(function(){$('pmsg').textContent='Portrait "'+id+'" tersimpan.';}).catch(function(e){$('pmsg').textContent='Gagal: '+e.message;});};
+  im.src=URL.createObjectURL(f);
 };
-function renderShell() {
-  document.querySelectorAll("[data-tab]").forEach(b => b.classList.toggle("on", b.dataset.tab === state.tab));
-  const t = TITLES[state.tab];
-  let extra = "";
-  if (state.tab === "games") {
-    const s = state.filter.status;
-    extra = `<div class="toolbar"><input id="f-q" type="search" placeholder="Cari judul, pembuat, atau email" value="${esc(state.filter.q)}" aria-label="Cari game"><select id="f-status" aria-label="Filter status">${[["all", "Semua status"], ["pending", "Menunggu"], ["approved", "Disetujui"], ["rejected", "Ditolak"], ["featured", "Unggulan"]].map(o => `<option value="${o[0]}" ${s === o[0] ? "selected" : ""}>${o[1]}</option>`).join("")}</select></div>`;
-  }
-  if (state.tab === "cats") {
-    extra = `<form class="addcat" id="cat-form"><input type="text" id="cat-name" maxlength="30" placeholder="Nama kategori baru" aria-label="Nama kategori baru" required><button class="btn primary" type="submit">Tambah</button></form>`;
-  }
-  $("#content").innerHTML = `<h1>${t[0]}</h1><p class="lead">${t[1]}</p>${extra}<div id="body"></div>`;
-  renderBody();
+/* ---- ban ---- */
+function drawBan(){var g=$('banGrid');g.innerHTML='';HEROES.forEach(function(h){var b=!!S.ban[h[0]],d=document.createElement('div');d.className='it'+(b?' ban':'');d.innerHTML=(b?'<span class="ban-t">BAN</span>':'')+'<div class="im" style="background-color:'+h[3]+'"></div><b>'+h[1]+'</b><br><span class="dim">'+h[2]+'</span>';d.onclick=function(){db.ref('config/banned/'+h[0]).set(b?null:true);};g.appendChild(d);});}
+/* ---- event ---- */
+var PR=[['100 Koin',100,30],['50 Koin',50,30],['200 Koin',200,15],['Zonk',0,15],['500 Koin',500,5],['75 Koin',75,5]];
+function evForm(){
+  var t=$('eType').value,h='';
+  if(t==='spin'){h='<label>HADIAH RODA (label, koin, bobot peluang)</label><div id="prz">'+PR.map(prow).join('')+'</div><button class="btn" onclick="addPr()">+ HADIAH</button>';}
+  else if(t==='chest')h='<div class="row"><div><label>KOIN MINIMAL</label><input type="number" id="cMin" value="50"></div><div><label>KOIN MAKSIMAL</label><input type="number" id="cMax" value="300"></div></div>';
+  else if(t==='coins')h='<label>JUMLAH KOIN</label><input type="number" id="cAmt" value="200">';
+  else if(t==='skin')h='<div class="row"><div><label>HERO</label><select id="sHero" onchange="skSel()">'+HEROES.map(function(x){return '<option value="'+x[0]+'">'+x[1]+'</option>';}).join('')+'</select></div><div><label>SKIN</label><select id="sSkin"></select></div></div>';
+  $('eExtra').innerHTML=h;if(t==='skin')skSel();
 }
-function renderBody() {
-  const body = $("#body");
-  if (!body || $("#app").hidden) return;
-  const need = { stats: ["games", "users", "plays"], review: ["games", "versions"], games: ["games"], cats: ["cats", "games"], users: ["users", "games"] }[state.tab];
-  if (!need.every(k => state.loaded[k])) { body.innerHTML = '<div class="state"><div class="spin"></div><p>Memuat data...</p></div>'; return; }
-  body.innerHTML = ({ stats: bodyStats, review: bodyReview, games: bodyGames, cats: bodyCats, users: bodyUsers })[state.tab]();
+function prow(p){return '<div class="row" style="margin-bottom:4px"><input class="pl" value="'+p[0]+'" maxlength="12"><input class="pc" type="number" value="'+p[1]+'"><input class="pw" type="number" value="'+p[2]+'"></div>';}
+function addPr(){$('prz').insertAdjacentHTML('beforeend',prow(['Hadiah',50,10]));}
+function skSel(){var k=$('sHero').value;$('sSkin').innerHTML='<option value="any">Acak (yang belum dimiliki)</option>'+skinsOf(k).slice(1).map(function(s){return '<option value="'+s[0]+'">'+s[1]+'</option>';}).join('');}
+function saveEv(){
+  var t=$('eType').value,e={type:t,title:$('eTitle').value.trim(),desc:$('eDesc').value.trim(),limit:$('eLimit').value,on:true,start:new Date($('eStart').value).getTime(),end:new Date($('eEnd').value).getTime(),created:Date.now()};
+  if(!e.title)return $('emsg').textContent='Isi judul.';if(!(e.end>e.start))return $('emsg').textContent='Waktu berakhir harus setelah mulai.';
+  if(t==='spin'){var L=document.querySelectorAll('.pl'),C=document.querySelectorAll('.pc'),W=document.querySelectorAll('.pw');e.prizes=[];for(var i=0;i<L.length&&i<12;i++)if(L[i].value.trim())e.prizes.push({l:L[i].value.trim(),c:Math.max(0,+C[i].value|0),w:Math.max(1,+W[i].value|0)});if(e.prizes.length<2)return $('emsg').textContent='Minimal 2 hadiah.';}
+  if(t==='chest'){e.min=Math.max(0,$('cMin').value|0);e.max=Math.max(e.min,$('cMax').value|0);}
+  if(t==='coins')e.amount=Math.max(0,$('cAmt').value|0);
+  if(t==='skin'){e.hero=$('sHero').value;e.skin=$('sSkin').value;}
+  db.ref('config/events').push(e).then(function(){$('emsg').textContent='Event tersimpan dan langsung muncul di game.';$('eTitle').value='';$('eDesc').value='';}).catch(function(x){$('emsg').textContent='Gagal: '+x.message;});
 }
-
-function bodyStats() {
-  const gl = gamesList();
-  const by = s => gl.filter(g => g.status === s).length;
-  const total = Object.keys(state.plays).reduce((a, k) => a + (state.plays[k] || 0), 0);
-  const cards = [
-    ["Pengguna", Object.keys(state.users).length], ["Total game", gl.length], ["Versi menunggu", pendingVers().length],
-    ["Menunggu tinjauan", by("pending")], ["Dipublikasikan", by("approved")],
-    ["Ditolak", by("rejected")], ["Game unggulan", gl.filter(g => g.featured).length],
-    ["Total permainan", total], ["Game multiplayer", gl.filter(g => g.multiplayer).length]
-  ];
-  const top = gl.filter(g => g.status === "approved").sort((a, b) => playsOf(b.id) - playsOf(a.id)).slice(0, 5);
-  const max = top.length ? Math.max(1, playsOf(top[0].id)) : 1;
-  const recent = gl.slice().sort(newest).slice(0, 5);
-  return `<div class="stats">${cards.map(c => `<div class="stat"><b>${fmtNum(c[1])}</b><span>${c[0]}</span></div>`).join("")}</div>
-  <div class="cols">
-    <div class="panel"><h2>Game terpopuler</h2>${top.length ? top.map(g => `<div class="li"><span class="t">${esc(g.title)}</span><span>${fmtNum(playsOf(g.id))}</span><div class="bar"><i style="width:${Math.round(playsOf(g.id) / max * 100)}%"></i></div></div>`).join("") : '<p class="muted">Belum ada game yang dimainkan.</p>'}</div>
-    <div class="panel"><h2>Pengajuan terbaru</h2>${recent.length ? recent.map(g => `<div class="li"><span class="t">${esc(g.title)}</span><span class="badge ${esc(g.status)}">${esc(STATUS[g.status] || g.status)}</span><span class="muted" style="grid-column:1/-1;font-size:13px">${esc(g.ownerName)}, ${fmtDate(g.createdAt)}</span></div>`).join("") : '<p class="muted">Belum ada game.</p>'}</div>
-  </div>`;
+function drawEv(){
+  var b=$('evList'),n=Date.now(),ids=Object.keys(S.ev).sort(function(a,c){return S.ev[c].created-S.ev[a].created;});b.innerHTML=ids.length?'':'<p class="dim">Belum ada event.</p>';
+  ids.forEach(function(id){var e=S.ev[id],st=e.on===false?'Nonaktif':(n<e.start?'Terjadwal':(n>e.end?'Berakhir':'Aktif')),d=document.createElement('div');d.className='ev';
+    d.innerHTML='<div><b>'+esc(e.title)+'</b> <span class="dim">['+e.type+'] '+st+'<br>'+new Date(e.start).toLocaleString()+' - '+new Date(e.end).toLocaleString()+'</span></div><div class="row" style="flex:none;flex-wrap:nowrap"></div>';
+    var r=d.lastChild,a=document.createElement('button');a.className='btn';a.style.minWidth='0';a.textContent=e.on===false?'AKTIFKAN':'MATIKAN';a.onclick=function(){db.ref('config/events/'+id+'/on').set(e.on===false);};
+    var x=document.createElement('button');x.className='btn d';x.style.minWidth='0';x.textContent='HAPUS';x.onclick=function(){if(confirm('Hapus event ini?'))db.ref('config/events/'+id).remove();};r.appendChild(a);r.appendChild(x);b.appendChild(d);});
 }
-
-function rowHTML(g) {
-  const id = esc(g.id);
-  const owner = state.users[g.ownerId];
-  const cover = g.cover && String(g.cover).indexOf("data:image/") === 0 ? `<img src="${esc(g.cover)}" alt="" loading="lazy">` : `<div class="ph">${esc((g.title || "?").trim().charAt(0).toUpperCase())}</div>`;
-  const acts = [`<button class="btn sm" data-act="preview" data-id="${id}">Pratinjau</button>`];
-  if (g.status !== "approved") acts.push(`<button class="btn primary sm" data-act="approve" data-id="${id}">Setujui</button>`);
-  if (g.status !== "rejected") acts.push(`<button class="btn sm" data-act="reject" data-id="${id}">Tolak</button>`);
-  if (g.status === "approved") acts.push(`<button class="btn sm" data-act="feature" data-id="${id}">${g.featured ? "Batalkan unggulan" : "Jadikan unggulan"}</button>`);
-  acts.push(`<button class="btn danger sm" data-act="delete" data-id="${id}">Hapus</button>`);
-  return `<article class="rowc"><div class="rthumb">${cover}</div><div><div class="rtitle">${esc(g.title)} <span class="badge ${esc(g.status)}">${esc(STATUS[g.status] || g.status)}</span>${g.featured ? '<span class="badge feat">Unggulan</span>' : ""}${g.multiplayer ? '<span class="badge mp">Multiplayer</span>' : ""}</div>
-    <div class="rmeta"><span>Pembuat: ${esc((owner && owner.name) || g.ownerName)}${owner && owner.email ? " (" + esc(owner.email) + ")" : ""}</span><span>Kategori: ${esc(catName(g.category))}</span><span>Versi: ${verLabel(g)}</span><span>Diunggah ${fmtDate(g.createdAt)}, ${fmtNum(playsOf(g.id))} kali dimainkan</span><span>Rating: ${ratingText(g.id)}</span></div>
-    ${g.description ? `<p class="rdesc">${esc(g.description)}</p>` : ""}${g.reviewNote ? `<p class="rnote">Catatan penolakan: ${esc(g.reviewNote)}</p>` : ""}</div>
-    <div class="racts">${acts.join("")}</div></article>`;
-}
-function verRowHTML(v) {
-  const id = esc(v.gid), vid = esc(v.vid);
-  return `<article class="rowc"><div class="rthumb"><div class="ph">${esc((v.name || "?").trim().charAt(0).toUpperCase())}</div></div><div><div class="rtitle">${esc(v.game.title)} <span class="badge pending">Versi ${esc(v.name)}</span></div>
-    <div class="rmeta"><span>Pembuat: ${esc((state.users[v.game.ownerId] && state.users[v.game.ownerId].name) || v.game.ownerName)}</span><span>Dikirim ${fmtDate(v.createdAt)}${v.size ? ", " + (v.size / 1048576).toFixed(2) + " MB" : ""}</span></div>
-    ${v.notes ? `<p class="rdesc">${esc(v.notes)}</p>` : ""}</div>
-    <div class="racts"><button class="btn sm" data-act="preview-ver" data-id="${id}" data-vid="${vid}">Pratinjau</button><button class="btn primary sm" data-act="approve-ver" data-id="${id}" data-vid="${vid}">Setujui</button><button class="btn sm" data-act="reject-ver" data-id="${id}" data-vid="${vid}">Tolak</button></div></article>`;
-}
-function bodyReview() {
-  const list = gamesList().filter(g => g.status === "pending").sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-  const vers = pendingVers();
-  let html = '<h2 style="font-size:18px;margin:0 0 12px">Game baru atau diedit (' + list.length + ")</h2>" + (list.length ? list.map(rowHTML).join("") : '<div class="empty">Tidak ada game yang menunggu tinjauan.</div>');
-  html += '<h2 style="font-size:18px;margin:26px 0 12px">Versi baru (' + vers.length + ")</h2>" + (vers.length ? vers.map(verRowHTML).join("") : '<div class="empty">Tidak ada versi baru yang menunggu tinjauan.</div>');
-  return html;
-}
-function bodyGames() {
-  const q = state.filter.q.trim().toLowerCase(), s = state.filter.status;
-  const list = gamesList().filter(g => {
-    if (s === "featured" ? !g.featured : (s !== "all" && g.status !== s)) return false;
-    if (!q) return true;
-    const o = state.users[g.ownerId];
-    return ((g.title || "") + " " + (g.ownerName || "") + " " + (o && o.email ? o.email : "") + " " + (g.description || "")).toLowerCase().indexOf(q) !== -1;
-  }).sort(newest);
-  return list.length ? `<p class="muted" style="margin-bottom:12px">${fmtNum(list.length)} game</p>` + list.map(rowHTML).join("") : '<div class="empty">Tidak ada game yang cocok.</div>';
-}
-function bodyCats() {
-  const gl = gamesList();
-  const cats = Object.keys(state.cats).map(id => ({ id, name: state.cats[id].name || "" })).sort((a, b) => a.name.localeCompare(b.name));
-  if (!cats.length) return '<div class="empty">Belum ada kategori. Tambahkan satu agar pengguna dapat mengunggah game.</div>';
-  return `<div class="tscroll"><table><thead><tr><th>Nama</th><th>Jumlah game</th><th></th></tr></thead><tbody>${cats.map(c => `<tr><td>${esc(c.name)}</td><td>${fmtNum(gl.filter(g => g.category === c.id).length)}</td><td style="text-align:right;white-space:nowrap"><button class="btn sm" data-act="cat-rename" data-id="${esc(c.id)}">Ubah nama</button> <button class="btn danger sm" data-act="cat-delete" data-id="${esc(c.id)}">Hapus</button></td></tr>`).join("")}</tbody></table></div>`;
-}
-function bodyUsers() {
-  const gl = gamesList();
-  const us = Object.keys(state.users).map(id => Object.assign({ id }, state.users[id])).sort((a, b) => (b.lastLogin || 0) - (a.lastLogin || 0));
-  if (!us.length) return '<div class="empty">Belum ada pengguna.</div>';
-  return `<div class="tscroll"><table><thead><tr><th>Pengguna</th><th>Email</th><th>Game</th><th>Bergabung</th><th>Terakhir masuk</th></tr></thead><tbody>${us.map(u => `<tr><td><div class="ucell">${u.photo ? `<img class="uav" src="${esc(u.photo)}" alt="" referrerpolicy="no-referrer">` : ""}${esc(u.name)}</div></td><td>${esc(u.email || "-")}</td><td>${fmtNum(gl.filter(g => g.ownerId === u.id).length)}</td><td>${fmtDate(u.createdAt)}</td><td>${fmtDate(u.lastLogin)}</td></tr>`).join("")}</tbody></table></div>`;
-}
-
-/* ====================== Aksi admin ====================== */
-async function run(fn, okMsg) {
-  showLoader(true);
-  try { await fn(); if (okMsg) toast(okMsg, "ok"); }
-  catch (e) { toast(errMsg(e), "error"); }
-  finally { showLoader(false); }
-}
-async function approve(id) {
-  const g = state.games[id];
-  const up = { ["games/" + id + "/status"]: "approved", ["games/" + id + "/reviewNote"]: null };
-  // Versi yang dikirim bersama game ikut disetujui.
-  const cv = g && g.currentVer && (state.versions[id] || {})[g.currentVer];
-  if (cv && cv.status !== "approved") { up["gameVersions/" + id + "/" + g.currentVer + "/status"] = "approved"; up["gameVersions/" + id + "/" + g.currentVer + "/reviewNote"] = null; }
-  await run(() => db.ref().update(up), "Game disetujui dan dipublikasikan.");
-}
-async function approveVer(gid, vid) {
-  const g = state.games[gid], vs = state.versions[gid] || {}, v = vs[vid];
-  if (!g || !v || !/^v([1-9]|10)$/.test(vid)) return;
-  const up = {};
-  up["gameVersions/" + gid + "/" + vid + "/status"] = "approved";
-  up["gameVersions/" + gid + "/" + vid + "/reviewNote"] = null;
-  // Versi terbaru yang disetujui menjadi versi bawaan; versi lama tetap bisa dimainkan.
-  const curAt = g.currentVer && vs[g.currentVer] ? (vs[g.currentVer].createdAt || 0) : (g.createdAt || 0);
-  if ((v.createdAt || 0) >= curAt) up["games/" + gid + "/currentVer"] = vid;
-  await run(() => db.ref().update(up), 'Versi "' + v.name + '" disetujui.');
-}
-async function rejectVer(gid, vid) {
-  const g = state.games[gid], v = (state.versions[gid] || {})[vid];
-  if (!g || !v) return;
-  const note = await promptBox({ title: 'Tolak versi "' + v.name + '"', label: "Alasan penolakan (ditampilkan kepada pembuat)", multiline: true, max: 300, ok: "Tolak versi" });
-  if (note === null) return;
-  await run(() => db.ref().update({ ["gameVersions/" + gid + "/" + vid + "/status"]: "rejected", ["gameVersions/" + gid + "/" + vid + "/reviewNote"]: note || null }), "Versi ditolak.");
-}
-async function reject(id) {
-  const g = state.games[id];
-  const note = await promptBox({ title: 'Tolak "' + (g ? g.title : "game") + '"', label: "Alasan penolakan (ditampilkan kepada pembuat)", multiline: true, max: 300, ok: "Tolak game" });
-  if (note === null) return;
-  await run(() => db.ref().update({ ["games/" + id + "/status"]: "rejected", ["games/" + id + "/reviewNote"]: note || null, ["games/" + id + "/featured"]: false }), "Game ditolak.");
-}
-async function toggleFeature(id) {
-  const g = state.games[id];
-  if (!g || g.status !== "approved") return;
-  await run(() => db.ref("games/" + id + "/featured").set(!g.featured), g.featured ? "Status unggulan dicabut." : "Game dijadikan unggulan.");
-}
-async function removeGame(id) {
-  const g = state.games[id];
-  const ok = await confirmBox({ title: "Hapus game ini?", text: 'Game "' + (g ? g.title : "") + '" beserta kode dan statistik permainannya akan dihapus permanen.', ok: "Hapus permanen", danger: true });
-  if (!ok) return;
-  await run(() => db.ref().update({ ["games/" + id]: null, ["gameCode/" + id]: null, ["plays/" + id]: null, ["ratings/" + id]: null, ["ratingStats/" + id]: null, ["gameVersions/" + id]: null, ["gameCodeV/" + id]: null }), "Game dihapus.");
-}
-async function preview(id, vid) {
-  if (!ID_RE.test(id)) return;
-  const g = state.games[id];
-  const v = vid || (g && g.currentVer) || "legacy";
-  if (!VER_RE.test(v)) return;
-  showLoader(true);
-  try {
-    const snap = await db.ref(codePath(id, v)).once("value");
-    const code = snap.val();
-    if (typeof code !== "string" || !code) throw new Error("Kode game tidak ditemukan.");
-    openPlayer(((g && g.title) || "Game") + (vid ? ", versi " + (((state.versions[id] || {})[vid] || {}).name || vid) : ""), code);
-  } catch (e) { toast(errMsg(e), "error"); }
-  finally { showLoader(false); }
-}
-function openPlayer(title, code) {
-  const w = document.createElement("div");
-  w.className = "player";
-  w.innerHTML = `<div class="pbar"><strong>${esc(title)}</strong><small>Pratinjau admin, berjalan di sandbox</small><button class="btn primary sm" data-p="close">Tutup</button></div><iframe title="${esc(title)}" sandbox="allow-scripts allow-pointer-lock allow-modals" referrerpolicy="no-referrer"></iframe>`;
-  const close = () => { document.removeEventListener("keydown", onKey); w.remove(); document.body.style.overflow = ""; };
-  const onKey = e => { if (e.key === "Escape") close(); };
-  w.addEventListener("click", e => { if (e.target.closest('[data-p="close"]')) close(); });
-  document.addEventListener("keydown", onKey);
-  document.body.style.overflow = "hidden";
-  document.body.appendChild(w);
-  $("iframe", w).srcdoc = code;
-}
-
-async function addCategory(name) {
-  name = name.trim();
-  if (name.length < 2 || name.length > 30) return toast("Nama kategori harus 2 sampai 30 karakter.", "error");
-  const dup = Object.keys(state.cats).some(k => (state.cats[k].name || "").toLowerCase() === name.toLowerCase());
-  if (dup) return toast("Kategori dengan nama itu sudah ada.", "error");
-  await run(async () => { await db.ref("categories").push({ name: name, createdAt: TS }); $("#cat-name").value = ""; }, "Kategori ditambahkan.");
-}
-async function renameCategory(id) {
-  const c = state.cats[id];
-  if (!c) return;
-  const name = await promptBox({ title: "Ubah nama kategori", label: "Nama baru", value: c.name, max: 30, required: true });
-  if (name === null) return;
-  if (name.length < 2) return toast("Nama kategori minimal 2 karakter.", "error");
-  const dup = Object.keys(state.cats).some(k => k !== id && (state.cats[k].name || "").toLowerCase() === name.toLowerCase());
-  if (dup) return toast("Kategori dengan nama itu sudah ada.", "error");
-  await run(() => db.ref("categories/" + id + "/name").set(name), "Nama kategori diubah.");
-}
-async function deleteCategory(id) {
-  const c = state.cats[id];
-  if (!c) return;
-  const used = gamesList().filter(g => g.category === id).length;
-  if (used) return toast("Tidak bisa dihapus: " + used + " game masih memakai kategori ini.", "error");
-  const ok = await confirmBox({ title: "Hapus kategori?", text: 'Kategori "' + c.name + '" akan dihapus.', ok: "Hapus", danger: true });
-  if (!ok) return;
-  await run(() => db.ref("categories/" + id).remove(), "Kategori dihapus.");
-}
-
-/* ====================== Event ====================== */
-document.addEventListener("click", e => {
-  const tab = e.target.closest("[data-tab]");
-  if (tab) { state.tab = tab.dataset.tab; renderShell(); return; }
-  const el = e.target.closest("[data-act]");
-  if (!el) return;
-  const a = el.dataset.act, id = el.dataset.id;
-  if (a === "login") login();
-  else if (a === "logout") logout();
-  else if (a === "preview") preview(id);
-  else if (a === "preview-ver") preview(id, el.dataset.vid);
-  else if (a === "approve-ver") approveVer(id, el.dataset.vid);
-  else if (a === "reject-ver") rejectVer(id, el.dataset.vid);
-  else if (a === "approve") approve(id);
-  else if (a === "reject") reject(id);
-  else if (a === "feature") toggleFeature(id);
-  else if (a === "delete") removeGame(id);
-  else if (a === "cat-rename") renameCategory(id);
-  else if (a === "cat-delete") deleteCategory(id);
-});
-document.addEventListener("input", e => { if (e.target.id === "f-q") { state.filter.q = e.target.value; renderBody(); } });
-document.addEventListener("change", e => { if (e.target.id === "f-status") { state.filter.status = e.target.value; renderBody(); } });
-document.addEventListener("submit", e => {
-  if (e.target.id === "cat-form") { e.preventDefault(); addCategory($("#cat-name").value); }
-});
-})();
-</script>
-</body>
-</html>
+function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+</script></body></html>
