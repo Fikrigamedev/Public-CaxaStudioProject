@@ -470,11 +470,54 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf
 .mm-teams{display:flex;align-items:center;justify-content:center;gap:12px;margin:12px 0 6px}
 .mm-teams small{display:block;font-size:10px;letter-spacing:.2em;color:#8ea2c8;margin-bottom:4px;font-weight:800}
 .mm-teams>b{font-size:16px;color:#8ea2c8}
+/* ===== v10: profil ala Mobile Legends ===== */
+#screen-profile{z-index:45}
+.pf-panel{position:relative;width:min(780px,100%);height:min(430px,calc(100% - 6px));display:grid;grid-template-columns:210px 1fr;background:linear-gradient(180deg,#141d36,#0d1426);border:1px solid rgba(232,195,106,.45);border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.7)}
+.pf-x{position:absolute;top:6px;right:8px;z-index:5;width:32px;height:32px;border-radius:50%;border:1px solid rgba(232,195,106,.6);background:rgba(10,16,32,.85);color:#ffd76e;font-size:16px;font-weight:900;cursor:pointer}
+.pf-left{background:linear-gradient(180deg,#22346b 0,#18244a 38%,#10192f 100%);padding:14px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;overflow-y:auto;border-right:1px solid rgba(110,150,240,.25)}
+.pf-avwrap{position:relative;width:78px;height:78px;flex-shrink:0}
+.pf-av{width:100%;height:100%;border-radius:50%;border:3px solid #ffd76e;background:#3d6fe0 center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;color:#fff;box-shadow:0 0 14px rgba(255,215,110,.45);overflow:hidden}
+.pf-lv{position:absolute;right:-4px;bottom:-2px;background:#ffd76e;color:#2a1c00;font-size:10px;font-weight:900;border-radius:9px;padding:2px 6px;border:2px solid #141d36}
+.pf-pen{position:absolute;left:-4px;bottom:-2px;width:22px;height:22px;border-radius:50%;background:#3d6fe0;border:2px solid #141d36;color:#fff;font-size:11px;cursor:pointer;padding:0}
+.pf-name{font-size:16px;font-weight:900;color:#fff;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-id{font-size:11px;color:#8ea2c8}
+.pf-id button{background:none;border:0;color:#7fa6ff;font-size:11px;cursor:pointer;padding:0 0 0 4px}
+.pf-rank{display:inline-block;padding:4px 12px;border-radius:14px;font-size:12px;font-weight:900;background:rgba(0,0,0,.35);border:1px solid currentColor}
+.pf-sync{font-size:10.5px;color:#8ea2c8;line-height:1.35}
+.pf-sync b{color:#6fe0a0}.pf-sync b.off{color:#ffb46a}
+.pf-left .btn{padding:7px 12px;font-size:11px;width:100%}
+.pf-right{display:flex;flex-direction:column;min-width:0;min-height:0}
+.pf-tabs{display:flex;gap:6px;padding:10px 46px 0 12px;flex-shrink:0}
+.pf-tab{flex:1;background:none;border:0;border-bottom:3px solid transparent;color:#8ea2c8;font-weight:900;font-size:12px;letter-spacing:.14em;padding:8px 0;cursor:pointer}
+.pf-tab.on{color:#ffd76e;border-bottom-color:#ffd76e}
+.pf-body{flex:1;overflow-y:auto;padding:12px;min-height:0}
+.pf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pf-st{background:#131c34;border:1px solid rgba(110,150,240,.25);border-radius:10px;padding:9px 4px;text-align:center}
+.pf-st b{display:block;font-size:18px;color:#fff}.pf-st small{font-size:9.5px;letter-spacing:.12em;color:#8ea2c8}
+.pf-sec{font-size:11px;letter-spacing:.2em;color:#8ea2c8;font-weight:800;margin:12px 0 6px}
+.pf-row{display:flex;gap:6px}
+.pf-in{flex:1;min-width:0;background:#131c34;color:#fff;border:1px solid rgba(110,150,240,.35);border-radius:8px;padding:8px;font-size:13px;margin-bottom:6px;font-family:inherit}
+.pf-h{display:flex;align-items:center;gap:8px;background:#131c34;border:1px solid rgba(110,150,240,.2);border-left:4px solid #888;border-radius:8px;padding:7px 10px;margin-bottom:6px}
+.pf-h.win{border-left-color:#4acf7a}.pf-h.lose{border-left-color:#e0524a}
+.pf-h .r{font-weight:900;font-size:12px;width:52px}.pf-h.win .r{color:#6fe0a0}.pf-h.lose .r{color:#ff8a82}
+.pf-h .m{flex:1;min-width:0;font-size:12px;color:#dfe8ff}.pf-h .m small{display:block;color:#8ea2c8;font-size:10.5px}
+.pf-h .k{font-weight:900;font-size:13px;color:#ffd76e;white-space:nowrap}
+.pf-av-pick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:6px 0 10px}
+.pf-av-pick div{aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;border:2px solid transparent}
+.pf-av-pick div.on{border-color:#ffd76e}
+.pf-msg{font-size:12px;color:#ffb46a;min-height:16px;margin-top:4px}
+@media (max-width:620px){.pf-panel{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:calc(100% - 6px)}.pf-left{flex-direction:row;flex-wrap:wrap;justify-content:center;border-right:0;border-bottom:1px solid rgba(110,150,240,.25);max-height:44%}.pf-left .btn{width:auto}}
+
 .mm-dots{display:flex;gap:5px}
 .mm-dots i{font-style:normal;width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;background:#131c34;border:1px dashed rgba(110,150,240,.35);color:#5f7298}
 .mm-dots i.h{background:linear-gradient(180deg,#3a6ad8,#24449a);border:1px solid #9ec0ff;color:#fff}
 .mm-dots.red i.h{background:linear-gradient(180deg,#d84a4a,#8a2424);border-color:#ffb0b0}
 #mmHint{font-size:12px;color:#8ea2c8;margin-top:8px;line-height:1.45}
+/* tombol BATAL: tidak sticky/overlay lagi agar tidak menutupi avatar */
+.mm-panel{display:flex;flex-direction:column;overflow-y:auto}
+.mm-panel .back-row.mm-back{position:static;justify-content:center;margin:16px 0 0;padding:0;background:none;flex-shrink:0}
+.mm-panel .back-row.mm-back .btn{min-width:150px}
+.mm-teams{flex-shrink:0}
 @media (max-height:420px){.mm-ring{width:84px;height:84px;margin:6px auto}#mmTimer{font-size:22px}.mm-dots i{width:28px;height:28px}}
 </style>
 </head>
@@ -484,7 +527,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf
   <canvas id="gameCanvas"></canvas>
 
   <div id="screen-menu" class="screen active">
-    <div class="mm-profile" onclick="editName()">
+    <div class="mm-profile" onclick="openProfile()">
       <div class="mm-avatar" id="mmAvatar">P</div>
       <div><div class="mm-name" id="mmName">Pemain</div><div class="mm-sub">Lv. <b id="mmLv">1</b> &middot; Koin <b id="mmCoins">0</b></div></div>
     </div>
@@ -596,6 +639,15 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf
       <div class="back-row"><button class="btn" onclick="handleGo('menu')">KEMBALI</button></div>
     </div>
   </div>
+
+  <div id="screen-profile" class="screen overlay">
+    <div class="pf-panel">
+      <button class="pf-x" onclick="pfClose()" aria-label="Tutup">&#10005;</button>
+      <div class="pf-left" id="pfLeft"></div>
+      <div class="pf-right"><div class="pf-tabs" id="pfTabs"></div><div class="pf-body" id="pfBody"></div></div>
+    </div>
+  </div>
+  <input type="file" id="pfFile" accept="image/*" style="display:none" onchange="pfUpload(this)">
 
   <div id="screen-online" class="screen">
     <div class="panel" style="max-width:440px;max-height:92vh;overflow:auto">
@@ -745,7 +797,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf
         <div><small>LAWAN</small><div id="mmRed" class="mm-dots red"></div></div>
       </div>
       <div id="mmHint">Jika dalam 1 menit tidak ada pemain, slot kosong otomatis diisi Bot AI (tim dan lawan).</div>
-      <div class="back-row"><button class="btn danger" onclick="mmCancel()">BATAL</button></div>
+      <div class="back-row mm-back"><button class="btn danger" onclick="mmCancel()">BATAL</button></div>
     </div>
   </div>
 
@@ -3383,7 +3435,7 @@ function fbLoad(cb){
     if(i>=names.length){
       try{
         firebase.initializeApp(FB_CFG);FB.auth=firebase.auth();FB.db=firebase.database();FB.ready=true;FB.loading=false;
-        FB.auth.onAuthStateChanged(function(u){FB.user=u;olRender();});
+        FB.auth.onAuthStateChanged(function(u){FB.user=u;olRender();try{pfAuth(u);}catch(e){}});
         FB.auth.getRedirectResult().catch(function(e){olMsg('Login gagal: '+e.message);});
         cb(null);
       }catch(e){FB.loading=false;cb(e);}
@@ -3432,7 +3484,7 @@ function emailReset(){
   if(!v.email){olMsg('Isi email dulu, lalu tekan LUPA KATA SANDI.');return;}
   FB.auth.sendPasswordResetEmail(v.email).then(function(){olMsg('Tautan reset dikirim ke '+v.email+'.');}).catch(function(e){olMsg(emailErr(e));});
 }
-function userName(){var u=FB.user;return (u&&(u.displayName||(u.email||'').split('@')[0]))||'Pemain';}
+function userName(){var u=FB.user;if(u&&PROFILE&&PROFILE.name&&PROFILE.name!=='Pemain')return PROFILE.name;return (u&&(u.displayName||(u.email||'').split('@')[0]))||'Pemain';}
 function googleLogout(){leaveRoom(true);if(FB.auth)FB.auth.signOut();var b=document.getElementById('olBody');if(b)b.innerHTML='';}
 function fbErr(e){
   var c=String((e&&e.code)||'').toUpperCase(),m={'PERMISSION_DENIED':'Ditolak server (permission denied). Atur Rules Realtime Database: izinkan baca/tulis di "rooms" untuk pengguna login.','PERMISSION-DENIED':'Ditolak server (permission denied). Atur Rules Realtime Database.','TIMEOUT':'Tidak bisa terhubung ke Realtime Database. Pastikan Realtime Database sudah dibuat (Build > Realtime Database > Create Database), lalu salin URL-nya ke databaseURL di FB_CFG.','NETWORK-ERROR':'Koneksi internet bermasalah.','UNAVAILABLE':'Server tidak terjangkau.'};
@@ -3551,7 +3603,7 @@ function olRender(){
       var m=ms[id],me=id===FB.user.uid,sel='';
       if(me){sel='<select onchange="olSetHero(this.value)" style="background:#131c34;color:#dfe8ff;border:1px solid rgba(110,150,240,.35);border-radius:8px;padding:4px 8px">'+Object.keys(HERO_DEFS).map(function(k){return '<option value="'+k+'"'+(k===m.hero?' selected':'')+'>'+HERO_DEFS[k].name+'</option>';}).join('')+'</select>';}
       else sel='<b>'+esc((HERO_DEFS[m.hero]||{}).name||'-')+'</b>'+(host?' <button class="btn small danger" onclick="olKick(\''+id+'\')">&#10005;</button>':'');
-      h+='<div class="srow"><span>'+(id===d.host?'&#9733; ':'')+esc(m.name)+(me?' (kamu)':'')+'</span><span>'+sel+'</span></div>';
+      h+='<div class="srow"><span>'+(id===d.host?'&#9733; ':'')+'<a style="color:#9ec0ff;text-decoration:underline" onclick="openProfileUid(\''+id+'\')">'+esc(m.name)+'</a>'+(me?' (kamu)':'')+'</span><span>'+sel+'</span></div>';
     });
     h+='<div style="display:flex;gap:8px;margin-top:12px">'+(host?'<button class="btn primary" style="flex:1" onclick="startRoom()">MULAI PERTANDINGAN</button>':'<div style="flex:1;color:#8ea2c8;font-size:12px;align-self:center">Menunggu host memulai...</div>')+'<button class="btn danger" onclick="leaveRoom()">'+(host?'BUBARKAN':'KELUAR TIM')+'</button></div>';
   }
@@ -8732,5 +8784,221 @@ function startOnline(){
   }catch(e){showErr('startOnline: '+e.message);}
 }
 </script>
+<script>
+/* =====================================================================
+   v10: PROFIL (ala Mobile Legends) - login, ganti nama/foto, profil publik,
+   riwayat pertandingan, simpan lokal + sinkron otomatis saat online
+   ===================================================================== */
+var PF={view:'info',tab:'info',mode:'me',data:null,hist:[],prev:'screen-menu',msg:'',syncing:false,ref1:null,ref2:null,uid:null};
+var AV_PRESETS=[['\u2694\uFE0F','#3d6fe0'],['\uD83D\uDEE1\uFE0F','#2c9a7a'],['\uD83C\uDFF9','#c0802a'],['\uD83D\uDD2E','#8a4ad8'],['\uD83D\uDC09','#c02a3a'],['\uD83E\uDD85','#2a8ac0'],['\uD83D\uDD25','#d86a2a'],['\u2B50','#b89a1a']];
+function pfInit(){
+  if(!PROFILE.stats)PROFILE.stats={m:0,w:0,k:0,d:0,a:0};
+  if(!PROFILE.hist)PROFILE.hist=[];
+  if(!PROFILE.heroCnt)PROFILE.heroCnt={};
+  if(!PROFILE.pfUpdated)PROFILE.pfUpdated=0;
+}
+function pfLogged(){return !!(FB.user||PROFILE.acct);}
+function pfSave(){try{saveProfile();}catch(e){}}
+function pfAvHTML(photo,name,cls){
+  var st='',tx='';
+  if(photo&&/^p:\d+$/.test(photo)){var p=AV_PRESETS[+photo.slice(2)]||AV_PRESETS[0];st='background:'+p[1];tx=p[0];}
+  else if(photo&&(photo.indexOf('data:image/')===0||/^https:\/\//.test(photo))){st='background-image:url("'+String(photo).replace(/["\\()]/g,'')+'")';}
+  else tx=esc((name||'P').charAt(0).toUpperCase());
+  return '<div class="pf-av '+(cls||'')+'" style="'+st+'">'+tx+'</div>';
+}
+function pfTopAvatar(){
+  var a=document.getElementById('mmAvatar');if(!a)return;var ph=PROFILE.photo;
+  if(ph&&/^p:\d+$/.test(ph)){var p=AV_PRESETS[+ph.slice(2)]||AV_PRESETS[0];a.style.backgroundImage='none';a.style.background=p[1];a.textContent=p[0];}
+  else if(ph&&(ph.indexOf('data:image/')===0||/^https:\/\//.test(ph))){a.textContent='';a.style.background='center/cover no-repeat #3d6fe0';a.style.backgroundImage='url("'+ph.replace(/["\\()]/g,'')+'")';}
+  else{a.style.background='';a.style.backgroundImage='';}
+}
+var _rp10=renderProfile;renderProfile=function(){_rp10();pfTopAvatar();};
+function pfFav(){var b=null,n=0,c=PROFILE.heroCnt||{};for(var k in c)if(c[k]>n){n=c[k];b=k;}return b||PROFILE.fav||'';}
+function pfPublic(){
+  var s=PROFILE.stats;
+  return{name:String(PROFILE.name||'Pemain').slice(0,16),photo:(PROFILE.photo||'').slice(0,14000),id:String(PROFILE.id||''),lv:PROFILE.lv|0,rs:PROFILE.rankStars|0,m:s.m|0,w:s.w|0,k:s.k|0,d:s.d|0,a:s.a|0,fav:pfFav(),updated:PROFILE.pfUpdated||1};
+}
+function pfRecOut(r){return{t:r.t,w:!!r.w,h:String(r.h||'').slice(0,40),mo:String(r.mo||'').slice(0,20),k:r.k|0,d:r.d|0,a:r.a|0,du:r.du|0};}
+function pfRecord(w){
+  try{
+    if(G.mode==='training')return;var P=G.playerHero;if(!P)return;pfInit();
+    var won=(w===P.team),mo=G.rankMode?'Rank':((FBM&&FBM.mode)?'Online':'Klasik'),s=PROFILE.stats;
+    var rec={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:Date.now(),w:won?1:0,h:P.defKey||'',mo:mo,k:P.kills|0,d:P.deaths|0,a:P.assists|0,du:Math.floor(G.time||0),s:0};
+    s.m++;if(won)s.w++;s.k+=rec.k;s.d+=rec.d;s.a+=rec.a;
+    if(rec.h)PROFILE.heroCnt[rec.h]=(PROFILE.heroCnt[rec.h]||0)+1;
+    PROFILE.hist.unshift(rec);PROFILE.hist=PROFILE.hist.slice(0,30);PROFILE.pfDirty=1;pfSave();pfSync();
+  }catch(e){}
+}
+var _eg10=endGame;endGame=function(w){var was=G.ended;_eg10(w);if(!was&&G.ended)pfRecord(w);};
+
+/* ---- sinkron ---- */
+function pfSync(){
+  if(!navigator.onLine||PF.syncing)return;
+  if(!FB.user){if(PROFILE.acct&&!FB.ready&&!FB.loading)fbLoad(function(){});return;}
+  var uid=FB.user.uid,db=FB.db,jobs=[];PF.syncing=true;pfInit();
+  if(PROFILE.pfDirty)jobs.push(db.ref('profiles/'+uid).set(pfPublic()).then(function(){PROFILE.pfDirty=0;}));
+  PROFILE.hist.forEach(function(r){if(!r.s)jobs.push(db.ref('history/'+uid+'/'+r.id).set(pfRecOut(r)).then(function(){r.s=1;}));});
+  var fin=function(ok){PF.syncing=false;if(ok)PROFILE.pfSyncAt=Date.now();pfSave();pfRefresh();};
+  withTimeout(Promise.all(jobs),15000).then(function(){fin(true);},function(){fin(false);});
+}
+function pfApplyRemote(r){
+  if(!r||typeof r!=='object')return;pfInit();
+  if((r.updated||0)>(PROFILE.pfUpdated||0)){if(r.name)PROFILE.name=r.name;PROFILE.photo=r.photo||'';PROFILE.pfUpdated=r.updated;}
+  if((r.m||0)>PROFILE.stats.m){PROFILE.stats={m:r.m|0,w:r.w|0,k:r.k|0,d:r.d|0,a:r.a|0};if(r.fav)PROFILE.fav=r.fav;}
+  PROFILE.pfSyncAt=Date.now();pfSave();renderProfile();pfRefresh();
+}
+function pfMergeHist(o){
+  if(!o)return;pfInit();var have={};PROFILE.hist.forEach(function(r){have[r.id]=1;});var add=0;
+  Object.keys(o).forEach(function(id){var v=o[id];if(!have[id]&&v&&v.t){PROFILE.hist.push({id:id,t:v.t,w:v.w?1:0,h:v.h,mo:v.mo,k:v.k|0,d:v.d|0,a:v.a|0,du:v.du|0,s:1});add++;}});
+  if(add){PROFILE.hist.sort(function(a,b){return b.t-a.t;});PROFILE.hist=PROFILE.hist.slice(0,30);pfSave();pfRefresh();}
+}
+function pfListen(uid){
+  if(PF.uid===uid)return;pfUnlisten();PF.uid=uid;
+  try{
+    PF.ref1=FB.db.ref('profiles/'+uid);PF.ref1.on('value',function(s){var v=s.val();if(v)pfApplyRemote(v);else{PROFILE.pfDirty=1;pfSync();}},function(){});
+    PF.ref2=FB.db.ref('history/'+uid).limitToLast(30);PF.ref2.on('value',function(s){pfMergeHist(s.val());},function(){});
+  }catch(e){}
+}
+function pfUnlisten(){try{if(PF.ref1)PF.ref1.off();if(PF.ref2)PF.ref2.off();}catch(e){}PF.ref1=PF.ref2=null;PF.uid=null;}
+function pfAuth(u){
+  pfInit();
+  if(u){
+    if(PROFILE.acct&&PROFILE.acct.uid&&PROFILE.acct.uid!==u.uid){PROFILE.stats={m:0,w:0,k:0,d:0,a:0};PROFILE.hist=[];PROFILE.heroCnt={};PROFILE.photo='';PROFILE.pfUpdated=0;PROFILE.fav='';pfUnlisten();}
+    var first=!PROFILE.acct;
+    PROFILE.acct={uid:u.uid,email:u.email||''};
+    if(first||!PROFILE.pfUpdated){if(u.displayName)PROFILE.name=u.displayName.slice(0,16);if(!PROFILE.photo&&u.photoURL&&/^https:\/\//.test(u.photoURL)&&u.photoURL.length<500)PROFILE.photo=u.photoURL;}
+    pfSave();renderProfile();pfListen(u.uid);pfSync();
+  }
+  if(PF.view==='login'&&u)PF.view='info';
+  pfRefresh();
+}
+window.addEventListener('online',function(){pfSync();if(FB.ready&&FB.user)pfListen(FB.user.uid);else if(PROFILE.acct)fbLoad(function(){});pfRefresh();});
+window.addEventListener('offline',function(){pfRefresh();});
+document.addEventListener('visibilitychange',function(){if(!document.hidden)pfSync();});
+setInterval(function(){pfSync();},60000);
+
+/* ---- aksi ---- */
+function pfOpenScreen(){var a=document.querySelector('.screen.active');if(a&&a.id!=='screen-profile')PF.prev=a.id;showScreen('screen-profile');}
+function openProfile(){
+  try{Sfx.ui();}catch(e){}
+  pfInit();PF.mode='me';PF.view='info';PF.tab='info';PF.msg='';PF.data=null;pfOpenScreen();pfRender();
+  if(PROFILE.acct&&!FB.ready)fbLoad(function(){pfRefresh();});else pfSync();
+}
+function pfClose(){try{Sfx.ui();}catch(e){}showScreen(PF.prev&&PF.prev!=='screen-profile'?PF.prev:'screen-menu');if(PF.prev==='screen-online'){try{olRender();}catch(e){}}else renderProfile();}
+function openProfileUid(uid){
+  if(FB.user&&uid===FB.user.uid)return openProfile();
+  try{Sfx.ui();}catch(e){}
+  PF.mode='other';PF.view='info';PF.tab='info';PF.msg='';PF.data={loading:1};PF.hist=[];pfOpenScreen();pfRender();
+  if(!FB.ready||!FB.user){PF.data={err:'Login dan sambungkan internet untuk melihat profil pemain lain.'};pfRender();return;}
+  withTimeout(Promise.all([FB.db.ref('profiles/'+uid).once('value'),FB.db.ref('history/'+uid).limitToLast(20).once('value')]),12000).then(function(r){
+    var v=r[0].val();if(!v){PF.data={err:'Profil pemain belum tersedia.'};}else{PF.data=v;var h=r[1].val()||{};PF.hist=Object.keys(h).map(function(k){var o=h[k];o.id=k;return o;}).sort(function(a,b){return b.t-a.t;});}
+    pfRender();
+  }).catch(function(e){PF.data={err:'Gagal memuat profil: '+fbErr(e)};pfRender();});
+}
+function pfSearch(){
+  var el=document.getElementById('pfSearch'),v=(el&&el.value||'').replace(/\D/g,'');
+  if(!v){PF.msg='Masukkan ID pemain.';return pfRefresh();}
+  if(!FB.ready||!FB.user){PF.msg='Perlu login & internet untuk mencari pemain.';return pfRefresh();}
+  PF.msg='Mencari...';pfRefresh();
+  withTimeout(FB.db.ref('profiles').orderByChild('id').equalTo(v).limitToFirst(1).once('value'),12000).then(function(s){
+    var o=s.val();if(!o){PF.msg='ID tidak ditemukan.';pfRefresh();return;}PF.msg='';openProfileUid(Object.keys(o)[0]);
+  }).catch(function(e){PF.msg='Gagal mencari: '+fbErr(e);pfRefresh();});
+}
+function pfNeedLogin(){if(pfLogged())return false;PF.view='login';PF.msg='Masuk dulu untuk mengubah profil.';pfRender();return true;}
+function pfEditName(){
+  if(pfNeedLogin())return;
+  var v=null;try{v=window.prompt('Ubah username (maks 14 karakter):',PROFILE.name);}catch(e){}
+  if(v===null)return;v=v.replace(/[<>&"]/g,'').trim().slice(0,14);if(!v)return;
+  PROFILE.name=v;PROFILE.pfUpdated=Date.now();PROFILE.pfDirty=1;pfSave();renderProfile();pfRender();
+  try{if(FB.user)FB.user.updateProfile({displayName:v}).catch(function(){});}catch(e){}
+  pfSync();
+}
+function pfAvatarMenu(){if(pfNeedLogin())return;PF.view='avatar';pfRender();}
+function pfSetPreset(i){PROFILE.photo='p:'+i;PROFILE.pfUpdated=Date.now();PROFILE.pfDirty=1;pfSave();renderProfile();PF.view='info';pfRender();pfSync();}
+function pfUpload(inp){
+  var f=inp.files&&inp.files[0];inp.value='';if(!f)return;
+  var fr=new FileReader();fr.onload=function(){
+    var im=new Image();im.onload=function(){
+      try{
+        var c=document.createElement('canvas');c.width=c.height=96;var x=c.getContext('2d'),s=Math.min(im.width,im.height);
+        x.drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,96,96);
+        PROFILE.photo=c.toDataURL('image/jpeg',0.72);PROFILE.pfUpdated=Date.now();PROFILE.pfDirty=1;pfSave();renderProfile();PF.view='info';PF.msg='';pfRender();pfSync();
+      }catch(e){PF.msg='Gagal memproses foto.';pfRender();}
+    };im.onerror=function(){PF.msg='File bukan gambar.';pfRender();};im.src=fr.result;
+  };fr.readAsDataURL(f);
+}
+function pfRemovePhoto(){PROFILE.photo='';PROFILE.pfUpdated=Date.now();PROFILE.pfDirty=1;pfSave();renderProfile();PF.view='info';pfRender();pfSync();}
+function pfCopyId(){try{navigator.clipboard.writeText(String(PROFILE.id));PF.msg='ID disalin.';}catch(e){PF.msg='ID: '+PROFILE.id;}pfRefresh();}
+function pfShowLogin(){PF.view='login';PF.msg='';pfRender();fbLoad(function(e){if(e){PF.msg=e.message;pfRefresh();}});}
+function pfV(id){var e=document.getElementById(id);return e?(e.value||'').trim():'';}
+function pfGoogle(){PF.msg='';if(!FB.ready){PF.msg='Firebase belum siap. Cek internet.';pfRefresh();return;}googleLogin();}
+function pfEmailIn(){
+  if(!FB.ready){PF.msg='Firebase belum siap. Cek internet.';return pfRefresh();}
+  var e=pfV('pfEmail'),p=document.getElementById('pfPass');p=p?p.value:'';if(!e||!p){PF.msg='Isi email dan kata sandi.';return pfRefresh();}
+  PF.msg='Masuk...';pfRefresh();FB.auth.signInWithEmailAndPassword(e,p).then(function(){PF.msg='';}).catch(function(er){PF.msg=emailErr(er);pfRefresh();});
+}
+function pfEmailReg(){
+  if(!FB.ready){PF.msg='Firebase belum siap. Cek internet.';return pfRefresh();}
+  var e=pfV('pfEmail'),p=document.getElementById('pfPass');p=p?p.value:'';var n=pfV('pfNick').replace(/[<>&"]/g,'').slice(0,14);
+  if(!e||!p){PF.msg='Isi email dan kata sandi.';return pfRefresh();}
+  PF.msg='Mendaftar...';pfRefresh();
+  FB.auth.createUserWithEmailAndPassword(e,p).then(function(c){if(n){PROFILE.name=n;PROFILE.pfUpdated=Date.now();PROFILE.pfDirty=1;}return c.user.updateProfile({displayName:n||e.split('@')[0]}).then(function(){FB.user=FB.auth.currentUser;pfAuth(FB.user);});}).catch(function(er){PF.msg=emailErr(er);pfRefresh();});
+}
+function pfLogout(){
+  if(!confirm('Keluar dari akun? Data tetap tersimpan di perangkat ini.'))return;
+  try{pfUnlisten();if(FB.auth)FB.auth.signOut();}catch(e){}
+  PROFILE.acct=null;FB.user=null;pfSave();PF.view='info';pfRender();
+}
+
+/* ---- tampilan ---- */
+function pfAgo(t){var s=(Date.now()-t)/1000;if(s<60)return'baru saja';if(s<3600)return Math.floor(s/60)+' menit lalu';if(s<86400)return Math.floor(s/3600)+' jam lalu';return Math.floor(s/86400)+' hari lalu';}
+function pfRefresh(){var s=document.getElementById('screen-profile');if(s&&s.classList.contains('active'))pfRender();}
+function pfRender(){
+  var L=document.getElementById('pfLeft'),T=document.getElementById('pfTabs'),B=document.getElementById('pfBody');if(!L)return;
+  pfInit();var me=PF.mode==='me',d=PF.data,s,h='',pub;
+  if(!me&&(!d||d.loading||d.err)){L.innerHTML='';T.innerHTML='';B.innerHTML='<div class="about-text" style="padding:30px 10px;text-align:center">'+(d&&d.err?esc(d.err):'Memuat profil...')+'</div>';return;}
+  pub=me?pfPublic():d;var hist=me?PROFILE.hist:PF.hist,rk=rankInfo(pub.rs|0);
+  var m=pub.m|0,wr=m?Math.round((pub.w|0)*100/m):0,kda=(((pub.k|0)+(pub.a|0))/Math.max(1,pub.d|0)).toFixed(2);
+  var fav=pub.fav&&HERO_DEFS[pub.fav]?HERO_DEFS[pub.fav].name:'-';
+  var on=navigator.onLine,st='';
+  if(me){
+    if(!pfLogged())st='Belum login<br><span style="color:#ffb46a">Data hanya di perangkat ini</span>';
+    else if(!on)st='<b class="off">Offline</b> \u00b7 disimpan lokal<br>Disinkronkan saat online';
+    else if(PROFILE.pfDirty||PROFILE.hist.some(function(r){return !r.s;}))st='<b class="off">Menyinkronkan...</b>';
+    else st='<b>Tersinkron \u2713</b>'+(PROFILE.pfSyncAt?'<br>'+pfAgo(PROFILE.pfSyncAt):'');
+  }
+  L.innerHTML='<div class="pf-avwrap">'+pfAvHTML(pub.photo,pub.name)+'<span class="pf-lv">Lv.'+(pub.lv|0)+'</span>'+(me?'<button class="pf-pen" onclick="pfAvatarMenu()" aria-label="Ganti foto">&#9998;</button>':'')+'</div>'
+    +'<div class="pf-name">'+esc(pub.name)+(me?' <button class="pf-pen" style="position:static;display:inline-block;width:20px;height:20px" onclick="pfEditName()" aria-label="Ganti nama">&#9998;</button>':'')+'</div>'
+    +'<div class="pf-id">ID: '+esc(pub.id)+(me?'<button onclick="pfCopyId()">SALIN</button>':'')+'</div>'
+    +'<div class="pf-rank" style="color:'+rk.color+'">'+esc(rankLabel(rk,true))+'</div>'
+    +(me?'<div class="pf-sync">'+st+'</div>'+(pfLogged()?'<div class="pf-sync">'+esc((PROFILE.acct&&PROFILE.acct.email)||'Akun Google')+'</div><button class="btn danger" onclick="pfLogout()">KELUAR AKUN</button>':'<button class="btn primary" onclick="pfShowLogin()">MASUK / DAFTAR</button>'):'<button class="btn" onclick="pfBackMe()">PROFIL SAYA</button>');
+  T.innerHTML='<button class="pf-tab'+(PF.tab==='info'?' on':'')+'" onclick="PF.tab=\'info\';PF.view=\'info\';pfRender()">PROFIL</button><button class="pf-tab'+(PF.tab==='hist'?' on':'')+'" onclick="PF.tab=\'hist\';PF.view=\'info\';pfRender()">RIWAYAT</button>';
+  if(PF.view==='login'&&me){
+    var ist='';h='<div class="pf-sec" style="margin-top:0">MASUK UNTUK MENYIMPAN & MENGUBAH PROFIL</div><button class="btn primary" style="width:100%" onclick="pfGoogle()">MASUK DENGAN GOOGLE</button><div class="pf-sec" style="text-align:center">ATAU EMAIL</div>'
+      +'<input id="pfNick" class="pf-in" placeholder="Nama (khusus daftar)" maxlength="14"><input id="pfEmail" class="pf-in" type="email" placeholder="Email" autocomplete="email"><input id="pfPass" class="pf-in" type="password" placeholder="Kata sandi (min. 6)" autocomplete="current-password">'
+      +'<div class="pf-row"><button class="btn primary" style="flex:1" onclick="pfEmailIn()">MASUK</button><button class="btn" style="flex:1" onclick="pfEmailReg()">DAFTAR</button></div>'
+      +'<div class="pf-msg">'+esc(PF.msg)+'</div><button class="btn" style="margin-top:6px;width:100%" onclick="PF.view=\'info\';PF.msg=\'\';pfRender()">BATAL</button>';
+  }else if(PF.view==='avatar'&&me){
+    h='<div class="pf-sec" style="margin-top:0">PILIH AVATAR</div><div class="pf-av-pick">'+AV_PRESETS.map(function(p,i){return '<div class="'+(PROFILE.photo==='p:'+i?'on':'')+'" style="background:'+p[1]+'" onclick="pfSetPreset('+i+')">'+p[0]+'</div>';}).join('')+'</div>'
+      +'<div class="pf-row"><button class="btn primary" style="flex:1" onclick="document.getElementById(\'pfFile\').click()">UNGGAH FOTO</button><button class="btn" style="flex:1" onclick="pfRemovePhoto()">HAPUS</button></div><div class="pf-msg">'+esc(PF.msg)+'</div><button class="btn" style="margin-top:6px;width:100%" onclick="PF.view=\'info\';pfRender()">KEMBALI</button>';
+  }else if(PF.tab==='hist'){
+    if(!hist.length)h='<div class="about-text dim" style="text-align:center;padding:24px 0">Belum ada riwayat pertandingan.</div>';
+    else hist.forEach(function(r){
+      var hn=(HERO_DEFS[r.h]||{}).name||'-',du=r.du|0;
+      h+='<div class="pf-h '+(r.w?'win':'lose')+'"><div class="r">'+(r.w?'MENANG':'KALAH')+'</div><div class="m">'+esc(hn)+'<small>'+esc(r.mo||'')+' \u00b7 '+Math.floor(du/60)+':'+('0'+du%60).slice(-2)+' \u00b7 '+pfAgo(r.t)+'</small></div><div class="k">'+(r.k|0)+'/'+(r.d|0)+'/'+(r.a|0)+'</div></div>';
+    });
+  }else{
+    h='<div class="pf-grid"><div class="pf-st"><b>'+m+'</b><small>PERTANDINGAN</small></div><div class="pf-st"><b>'+wr+'%</b><small>WIN RATE</small></div><div class="pf-st"><b>'+kda+'</b><small>KDA</small></div>'
+     +'<div class="pf-st"><b>'+(pub.w|0)+'</b><small>MENANG</small></div><div class="pf-st"><b>'+(pub.k|0)+'</b><small>TOTAL KILL</small></div><div class="pf-st"><b style="font-size:13px;line-height:22px">'+esc(fav)+'</b><small>HERO FAVORIT</small></div></div>';
+    if(me)h+='<div class="pf-sec">CARI PEMAIN (ID)</div><div class="pf-row"><input id="pfSearch" class="pf-in" inputmode="numeric" placeholder="ID pemain" maxlength="12" style="margin:0"><button class="btn" onclick="pfSearch()">CARI</button></div><div class="pf-msg">'+esc(PF.msg)+'</div>';
+  }
+  B.innerHTML=h;
+}
+function pfBackMe(){openProfile();}
+window.addEventListener('load',function(){
+  setTimeout(function(){try{pfInit();if(PROFILE.acct||navigator.onLine)fbLoad(function(){});}catch(e){}},1500);
+});
+</script>
+
 </body>
 </html>
