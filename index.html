@@ -582,7 +582,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf
     <button class="mm-train" onclick="handleGo('training')">LATIHAN<small>MODE TRAINING</small></button>
   </div>
 
-  <div id="screen-lobby" class="screen">
+  <div id="screen-party" class="screen"><div class="pt-wrap">
+  <div class="pt-top"><button onclick="PARTY.leave()" aria-label="Kembali">&#8249;</button><div><b>ONLINE</b><small id="ptSub">MATCHMAKING &middot; 5 VS 5</small></div></div>
+  <div id="ptSlots"></div>
+  <div id="ptBot"><div class="hint" id="ptHint"></div><button id="ptGo" onclick="PARTY.find()">CARI MATCH</button></div>
+</div></div>
+<div id="mmDraft"><div class="dh"><b>PILIH HERO</b><span class="dtm" id="drTeam"></span><span class="dt" id="drT">--</span></div><div id="drRoles"></div><div id="drGrid"></div><button id="drLock" onclick="PARTY.lock()">KUNCI HERO</button></div>
+<div id="screen-lobby" class="screen">
     <div class="lb-top">
       <button class="lb-back" onclick="handleGo('menu')" aria-label="Kembali">&#10094;</button>
       <div class="lb-title"><b id="lbTitleB">CLASSIC</b><span id="lbTitleS">DRAFT PICK &middot; 5 VS 5</span></div>
@@ -9657,10 +9663,10 @@ HV.loop=function(){
 #frFab{position:relative;width:28px;height:28px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid rgba(110,150,240,.35);background:rgba(20,29,54,.85);color:#cfe0ff;cursor:pointer}
 #frFab:active{transform:scale(.94)}
 #frFab i{position:absolute;top:-5px;right:-5px;min-width:15px;height:15px;border-radius:8px;background:#ff3b3b;color:#fff;font:800 9px/15px inherit;font-style:normal;text-align:center;padding:0 3px;align-items:center;justify-content:center}
-#pty{position:absolute;z-index:6;left:calc(12px + env(safe-area-inset-left,0px));top:calc(66px + env(safe-area-inset-top,0px));display:none;flex-direction:column;gap:6px}
-#pty button{width:34px;height:34px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;font:900 14px/1 inherit;color:#fff;border:2px solid #7fa6ff;cursor:pointer}
-#pty button.add{background:rgba(20,29,54,.7);border:1.5px dashed rgba(143,170,230,.55);color:#8ea2c8;font-size:18px;font-weight:600}
-#pty button.me{outline:2px solid #ffd76e;outline-offset:1px}
+#pty{position:absolute;z-index:6;left:calc(12px + env(safe-area-inset-left,0px));top:calc(72px + env(safe-area-inset-top,0px));display:none;flex-direction:row;gap:4px}
+#pty button{width:24px;height:24px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;font:900 10px/1 inherit;color:#fff;border:1.5px solid #7fa6ff;cursor:pointer}
+#pty button.add{background:rgba(20,29,54,.7);border:1px dashed rgba(143,170,230,.55);color:#8ea2c8;font-size:14px;font-weight:600}
+#pty button.me{outline:1.5px solid #ffd76e;outline-offset:1px}
 #frModal{position:fixed;inset:0;z-index:210;display:none;align-items:center;justify-content:center;background:rgba(3,6,14,.72);padding:calc(6px + env(safe-area-inset-top,0px)) 6px 6px}
 #frModal.on{display:flex}
 .fr-panel{width:min(560px,100%);max-height:100%;display:flex;flex-direction:column;background:linear-gradient(180deg,#141d36,#0d1426);border:1px solid rgba(232,195,106,.45);border-radius:14px;overflow:hidden;color:#dfe8ff}
@@ -9710,6 +9716,40 @@ HV.loop=function(){
 #cuTools span{font-size:10px;letter-spacing:.2em;color:#8ea2c8;font-weight:800}
 #cuTools .btn{padding:6px 10px;font-size:11px}
 .cu-foot .btn{white-space:nowrap}
+
+#screen-party{background:radial-gradient(130% 110% at 50% 0%,#1d2f5e 0%,#0b1226 52%,#04060d 100%);overflow:hidden;padding:0}
+.pt-wrap{position:absolute;inset:0;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top,0px)) calc(14px + env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) calc(14px + env(safe-area-inset-left,0px))}
+.pt-top{display:flex;align-items:center;gap:10px;color:#dfe8ff}
+.pt-top button{width:34px;height:34px;border-radius:10px;border:1px solid #2c3d6e;background:#141d36;color:#c4d6ff;font-size:18px;cursor:pointer}
+.pt-top b{display:block;font-size:15px;letter-spacing:.2em;color:#ffd76e}.pt-top small{font-size:10px;letter-spacing:.16em;color:#8ea2c8}
+#ptSlots{flex:1;display:flex;align-items:center;justify-content:center;gap:12px}
+.pt-s{width:78px;display:flex;flex-direction:column;align-items:center;gap:6px;color:#dfe8ff;font-size:11px;font-weight:800;text-align:center}
+.pt-s .av{position:relative;width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#fff;border:2px solid #7fa6ff}
+.pt-s .av i{position:absolute;top:-4px;right:-4px;font-style:normal;font-size:13px;color:#ffd76e}
+.pt-s.me .av{border-color:#ffd76e}
+.pt-s.add .av{background:rgba(20,29,54,.6);border:2px dashed rgba(143,170,230,.5);color:#8ea2c8;font-size:28px;font-weight:500;cursor:pointer}
+.pt-s.add{color:#8ea2c8;font-weight:700}
+.pt-s span{max-width:78px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#ptBot{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+#ptBot .hint{flex:1;font-size:11px;line-height:1.5;color:#8ea2c8}
+#ptBot .hint a{color:#9ec0ff;text-decoration:underline;cursor:pointer}
+#ptGo{min-width:200px;padding:16px 26px;border-radius:14px;background:#d9a21e;border:3px solid #ffe08a;color:#2a1a00;font:900 18px/1 inherit;letter-spacing:.08em;cursor:pointer}
+#ptGo[disabled]{opacity:.5;background:#3a4668;border-color:#566596;color:#c4d6ff;cursor:default;font-size:13px}
+#mmDraft{position:fixed;inset:0;z-index:215;display:none;flex-direction:column;gap:6px;padding:calc(8px + env(safe-area-inset-top,0px)) calc(12px + env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) calc(12px + env(safe-area-inset-left,0px));background:radial-gradient(130% 110% at 50% 0%,#1d2f5e 0%,#0b1226 55%,#04060d 100%);color:#dfe8ff}
+#mmDraft.on{display:flex}
+#mmDraft .dh{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#mmDraft .dh b{letter-spacing:.2em;color:#ffd76e;font-size:14px}
+#mmDraft .dt{font:900 20px/1 inherit;color:#fff;min-width:36px;text-align:right}
+#mmDraft .dtm{font-size:10px;color:#8ea2c8;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#drRoles{display:flex;gap:4px}
+#drRoles button{flex:1;padding:7px 2px;border-radius:8px;border:1px solid rgba(110,150,240,.3);background:#131c34;color:#9fb2d8;font:800 10px/1 inherit;cursor:pointer}
+#drRoles button.on{background:#2a4fae;color:#fff;border-color:#6fa8ff}#drRoles button[disabled]{opacity:.35}
+#drGrid{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:6px;align-content:start;-webkit-overflow-scrolling:touch}
+#drGrid button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;border-radius:8px;border:1.5px solid rgba(110,150,240,.25);background:#131c34;color:#cfe0ff;font:700 9px/1.1 inherit;cursor:pointer}
+#drGrid button.sel{border-color:#ffd76e;background:#2a2a14}#drGrid button[disabled]{opacity:.28;cursor:default}
+#drGrid canvas{width:44px;height:44px}
+#drLock{padding:13px;border-radius:12px;background:#d9a21e;border:2px solid #ffe08a;color:#2a1a00;font:900 15px/1 inherit;letter-spacing:.1em;cursor:pointer}
+#drLock[disabled]{opacity:.5;background:#3a4668;border-color:#566596;color:#c4d6ff}
 </style>
 <script>
 /* =====================================================================
@@ -10062,7 +10102,7 @@ function frFab(){
   try{inGame=!!G.running;}catch(e){}
   try{
     show=!!FB.user&&!inGame;
-    btn=show&&(id==='screen-menu'||id==='screen-online'||(id==='screen-lobby'&&lobbyMode==='online'));
+    btn=show&&(id==='screen-menu'||id==='screen-online'||(id==='screen-lobby'&&lobbyMode==='online')||id==='screen-party');
   }catch(e){}
   bar.style.display=show?'flex':'none';
   bar.className=(id==='screen-menu')?'menu':'';
@@ -10109,7 +10149,7 @@ function ptyRender(show){
   ids.sort(function(a,b){return a===me?-1:(b===me?1:0);});
   var h='';
   for(var i=0;i<5;i++){
-    if(ids[i]){var nm=ms[ids[i]].name||'?';h+='<button class="'+(ids[i]===me?'me':'')+'" title="'+esc(nm)+'" style="background:'+frAvatar(nm).match(/background:([^"]+)/)[1]+'" onclick="FRX.open()">'+esc(nm.charAt(0).toUpperCase())+'</button>';}
+    if(ids[i]){var nm=ms[ids[i]].name||'?';h+='<button class="'+(ids[i]===me?'me':'')+'" title="'+esc(nm)+'" style="background:'+frAvatar(nm).match(/background:([^"]+)/)[1]+'" onclick="PARTY.open(true)">'+esc(nm.charAt(0).toUpperCase())+'</button>';}
     else h+='<button class="add" aria-label="Undang teman" onclick="FRX.open()">+</button>';
   }
   p.innerHTML=h;
@@ -10259,6 +10299,164 @@ window.cuRender=function(){
 /* beri tahu sistem kalau layar online tampil: segarkan tombol teman */
 })();
 
+</script>
+<script>
+/* ===== v13: PARTY LOBBY ala Mobile Legends. Hero dipilih SETELAH match ditemukan ===== */
+(function(){
+var $=function(i){return document.getElementById(i);},noop=function(){},DRAFT_MS=25000;
+var PT={shown:null,code:null,lead:false,pub:null,seen:null},DR={k:null,r:1,locked:false,sig:''};
+function inParty(){var r=FB.room;return !!(r&&r.data&&!r.data.mm&&!r.data.custom&&r.data.members);}
+function hue(n){var h=0,i;for(i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))|0;return ['#3d6fe0','#2c9a7a','#c0802a','#8a4ad8','#c02a3a','#2a8ac0','#d86a2a','#b89a1a'][Math.abs(h)%8];}
+function note(t){var el=$('frNote');if(!el){el=document.createElement('div');el.id='frNote';document.body.appendChild(el);}el.textContent=t;el.classList.add('on');clearTimeout(note.t);note.t=setTimeout(function(){el.classList.remove('on');},2800);}
+
+/* --- layar party --- */
+var _ooOrig=openOnlineLobby;
+function partyOpen(force){
+  if(!FB.user||!FB.ready){try{showScreen('screen-online');olRender();}catch(e){}return;}
+  FBM.lobbyOpen=false;if(!MM.active)lobbyMode='classic';
+  var code=inParty()?FB.room.code:'solo';
+  if(force||PT.shown!==code){PT.shown=code;try{Sfx.ui();}catch(e){}showScreen('screen-party');}
+  partyRender();
+}
+openOnlineLobby=function(){partyOpen(false);};
+mmOpenLobby=function(){partyOpen(true);};
+function partyRender(){
+  var box=$('ptSlots');if(!box)return;
+  var me=FB.user&&FB.user.uid,ms=inParty()?FB.room.data.members:{},lead=inParty()?FB.room.data.host:me,ids=Object.keys(ms);
+  if(!ids.length&&me){ms={};ms[me]={name:userName()};ids=[me];}
+  ids.sort(function(a,b){return a===lead?-1:(b===lead?1:(((ms[a].t||0)-(ms[b].t||0))||(a<b?-1:1)));});
+  var h='',i;
+  for(i=0;i<5;i++){
+    if(ids[i]){var nm=ms[ids[i]].name||'Pemain';h+='<div class="pt-s'+(ids[i]===me?' me':'')+'"><div class="av" style="background:'+hue(nm)+'">'+esc(nm.charAt(0).toUpperCase())+(ids[i]===lead?'<i>&#9733;</i>':'')+'</div><span>'+esc(nm)+'</span></div>';}
+    else h+='<div class="pt-s add" onclick="FRX.open()"><div class="av">+</div><span>Undang</span></div>';
+  }
+  box.innerHTML=h;
+  var isLead=(lead===me),go=$('ptGo'),hint=$('ptHint'),n=ids.length;
+  if(go){go.disabled=!isLead;go.textContent=isLead?'CARI MATCH':'MENUNGGU PEMIMPIN...';}
+  if(hint)hint.innerHTML=(n>1?'Party '+n+'/5 &middot; ':'')+'Hero dipilih setelah pertandingan ditemukan. Slot kosong diisi pemain lain atau Bot AI.'+(isLead&&n>1?' <a onclick="PARTY.bot()">Main lawan Bot</a>':'');
+}
+function partyFind(){
+  if(MM.active)return;
+  var r=inParty()?FB.room:null;
+  if(r&&r.data.host!==FB.user.uid){note('Hanya pemimpin party yang bisa mencari match.');return;}
+  var ks=Object.keys(HERO_DEFS).filter(function(k){return !heroBanned(k);});
+  if(!selectedHeroKey||!HERO_DEFS[selectedHeroKey]||heroBanned(selectedHeroKey))selectedHeroKey=ks[0];
+  teamComp=[null,null,null,null,null];playerRole=1;teamComp[1]=selectedHeroKey;
+  PT.code=r?r.code:null;PT.lead=true;PT.pub=null;MM.follow=null;MM.leader=null;
+  FBM.lobbyOpen=true;lobbyMode='online';startMatchmaking();
+}
+function partyFollow(code,leader,pc){
+  if(MM.active)return;
+  var ks=Object.keys(HERO_DEFS).filter(function(k){return !heroBanned(k);});
+  if(!selectedHeroKey||!HERO_DEFS[selectedHeroKey]||heroBanned(selectedHeroKey))selectedHeroKey=ks[0];
+  teamComp=[null,null,null,null,null];playerRole=1;teamComp[1]=selectedHeroKey;
+  PT.code=pc;PT.lead=false;MM.follow=code;MM.leader=leader;
+  FBM.lobbyOpen=true;lobbyMode='online';startMatchmaking();
+}
+/* anggota party menyusul ke room matchmaking milik pemimpin */
+var _mS=mmSearch;
+mmSearch=function(g,pass){
+  if(MM.follow&&pass===0){var c=MM.follow;MM.follow=null;return mmJoin(c,g).then(function(ok){return ok?null:_mS(g,0);});}
+  return _mS(g,pass);
+};
+var _mc=mmCancel;
+mmCancel=function(){
+  var c=PT.code,lead=PT.lead;PT.code=null;PT.pub=null;PT.lead=false;MM.leader=null;
+  _mc();lobbyMode='classic';FBM.lobbyOpen=false;PT.shown=null;
+  if(c&&FB.db&&FB.user){
+    if(lead)FB.db.ref('rooms/'+c).update({mmCode:null,mmAt:null}).catch(noop);
+    FB.db.ref('rooms/'+c).once('value').then(function(s){
+      if(s.exists()&&((s.val().members||{})[FB.user.uid])){try{watchRoom(c);}catch(e){partyOpen(true);}}else partyOpen(true);
+    },function(){partyOpen(true);});
+  }else partyOpen(true);
+};
+var _hg2=handleGo;
+handleGo=function(a){if(a==='menu')PT.shown=null;return _hg2.apply(this,arguments);};
+
+setInterval(function(){
+  try{
+    if(!FB.user)return;
+    var me=FB.user.uid,r=FB.room;
+    /* pemimpin: umumkan kode room matchmaking ke party */
+    if(MM.active&&PT.lead&&PT.code&&MM.code&&PT.pub!==MM.code){
+      PT.pub=MM.code;FB.db.ref('rooms/'+PT.code).update({mmCode:MM.code,mmAt:sNow()}).catch(noop);
+    }
+    /* anggota: ikut pemimpin */
+    if(!MM.active&&inParty()&&r.data.state==='lobby'&&r.data.mmCode&&r.data.host!==me&&r.data.mmAt&&sNow()-r.data.mmAt<45000){
+      var key=r.data.mmCode+'/'+r.data.mmAt;
+      if(PT.seen!==key){PT.seen=key;partyFollow(r.data.mmCode,r.data.host,r.code);}
+    }
+    /* anggota party satu tim dengan pemimpin */
+    if(MM.active&&MM.leader&&r&&r.code===MM.code&&r.data.state==='lobby'&&!MM.teamSet){
+      var ms=r.data.members||{},L=ms[MM.leader],M=ms[me];
+      if(L&&M){
+        MM.teamSet=1;var t=L.team===1?1:0,cnt=0;Object.keys(ms).forEach(function(k){if((ms[k].team===1?1:0)===t)cnt++;});
+        if(M.team!==t&&cnt<5)FB.db.ref('rooms/'+MM.code+'/members/'+me+'/team').set(t).catch(noop);
+      }
+    }
+    if(!MM.active)MM.teamSet=0;
+  }catch(e){}
+},500);
+
+/* --- fase pilih hero SETELAH match ditemukan --- */
+var _mhs=mmHostStart;
+mmHostStart=function(){
+  var r=FB.room;if(!r||r.code!==MM.code)return;
+  if(r.data.state==='lobby'){
+    if(MM.dsent===MM.code)return;MM.dsent=MM.code;
+    FB.db.ref(MMQ+'/open/'+MM.code).remove().catch(noop);
+    FB.db.ref('rooms/'+MM.code).update({state:'draft',draftEnd:sNow()+DRAFT_MS}).catch(function(e){MM.dsent=null;liveErr(e);});
+    return;
+  }
+  _mhs();
+};
+function drRole(ms,me){var t=(ms[me]||{}).team===1?1:0,used={};Object.keys(ms).forEach(function(k){if(k!==me&&ms[k].lock&&(ms[k].team===1?1:0)===t)used[ms[k].role]=1;});return used;}
+function drHeroTaken(ms,me){var u={};Object.keys(ms).forEach(function(k){if(k!==me&&ms[k].lock)u[ms[k].hero]=1;});return u;}
+function draftTick(){
+  var ov=$('mmDraft'),r=FB.room,on=!!(MM.active&&r&&r.code===MM.code&&r.data.state==='draft'&&FB.user);
+  if(!on){if(ov&&ov.classList.contains('on')){ov.classList.remove('on');DR.sig='';DR.locked=false;DR.k=null;}return;}
+  var d=r.data,ms=d.members||{},me=FB.user.uid,ids=Object.keys(ms),left=Math.max(0,Math.ceil(((d.draftEnd||0)-sNow())/1000));
+  if(!ov.classList.contains('on')){ov.classList.add('on');DR.locked=false;DR.k=ms[me]&&HERO_DEFS[ms[me].hero]?ms[me].hero:null;DR.r=1;DR.sig='';try{Sfx.ui();}catch(e){}}
+  $('drT').textContent=left;
+  var tk=drHeroTaken(ms,me),ur=drRole(ms,me),myT=(ms[me]||{}).team===1?1:0;
+  if(DR.k&&tk[DR.k])DR.k=null;
+  if(ur[DR.r]){var f=[1,2,0,3,4].filter(function(x){return !ur[x];});DR.r=f.length?f[0]:DR.r;}
+  var tm=ids.filter(function(k){return (ms[k].team===1?1:0)===myT;}).map(function(k){return esc(ms[k].name||'?')+(ms[k].lock?' \u2713':'');}).join(' \u00b7 ');
+  $('drTeam').innerHTML=tm;
+  var sig=[DR.k,DR.r,DR.locked,Object.keys(tk).join(),Object.keys(ur).join()].join('|');
+  if(sig!==DR.sig){
+    DR.sig=sig;
+    $('drRoles').innerHTML=ROLES.map(function(ro,i){return '<button class="'+(DR.r===i?'on':'')+'"'+((ur[i]||DR.locked)?' disabled':'')+' onclick="PARTY.role('+i+')">'+esc(ro.name.replace(' LANE',''))+'</button>';}).join('');
+    var g=$('drGrid'),keep=g.scrollTop;g.innerHTML='';
+    Object.keys(HERO_DEFS).forEach(function(k){
+      var b=document.createElement('button'),cv=document.createElement('canvas');cv.width=88;cv.height=88;
+      b.className=(DR.k===k)?'sel':'';b.disabled=!!(tk[k]||heroBanned(k)||DR.locked);
+      b.appendChild(cv);b.insertAdjacentHTML('beforeend',esc(HERO_DEFS[k].name));
+      b.onclick=function(){DR.k=k;DR.sig='';try{Sfx.ui();}catch(e){}};
+      g.appendChild(b);try{drawPortrait2(cv,skinDef(k),TEAM_BLUE);}catch(e){}
+    });
+    g.scrollTop=keep;
+    var lk=$('drLock');lk.disabled=DR.locked||!DR.k;lk.textContent=DR.locked?'TERKUNCI \u2713 menunggu pemain lain...':'KUNCI HERO';
+  }
+  if(MM.isHost){
+    var all=ids.every(function(k){return ms[k].lock;});
+    if((all||sNow()>=(d.draftEnd||0)+1500)&&!(MM.finalAt&&Date.now()-MM.finalAt<4000)){MM.finalAt=Date.now();MM.starting=false;_mhs();}
+  }
+}
+setInterval(draftTick,400);
+
+window.PARTY={
+  open:partyOpen,find:partyFind,
+  role:function(i){if(DR.locked)return;DR.r=i;DR.sig='';try{Sfx.ui();}catch(e){}},
+  lock:function(){
+    if(DR.locked||!DR.k||!FB.room)return;
+    var k=DR.k;DR.locked=true;DR.sig='';selectedHeroKey=k;try{Sfx.ui();}catch(e){}
+    FB.db.ref('rooms/'+FB.room.code+'/members/'+FB.user.uid).update({hero:k,role:DR.r,skin:(PROFILE.skin&&PROFILE.skin[k])||'base',lock:1}).catch(function(e){DR.locked=false;liveErr(e);});
+  },
+  bot:function(){PT.shown=null;_ooOrig();},
+  leave:function(){try{if(inParty())leaveRoom(true);}catch(e){}PT.shown=null;handleGo('menu');}
+};
+})();
 </script>
 </body>
 </html>
