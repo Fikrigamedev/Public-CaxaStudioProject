@@ -9645,9 +9645,22 @@ HV.loop=function(){
 #netInd .nt small{font-size:8px;font-weight:800;letter-spacing:.1em;color:#8ea2c8;margin-top:2px}
 #netInd.q0 .nt small,#netInd.q1 .nt small{color:var(--nc)}
 
-#frFab{position:fixed;z-index:120;display:none;align-items:center;gap:6px;top:calc(10px + env(safe-area-inset-top,0px));right:calc(10px + env(safe-area-inset-right,0px));height:36px;padding:0 12px;border-radius:18px;border:1px solid #6fa8ff;background:linear-gradient(180deg,#2a4fae,#1b3374);color:#fff;font:800 11px/1 inherit;letter-spacing:.1em;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.45)}
-#frFab:active{transform:scale(.96)}
-#frFab i{position:absolute;top:-6px;right:-4px;min-width:17px;height:17px;border-radius:9px;background:#ff3b3b;color:#fff;font:800 10px/17px inherit;font-style:normal;text-align:center;align-items:center;justify-content:center;padding:0 4px}
+#nxBar{position:fixed;z-index:120;display:none;align-items:center;gap:6px;top:calc(10px + env(safe-area-inset-top,0px));right:calc(10px + env(safe-area-inset-right,0px))}
+#nxBar.menu{right:calc(66px + env(safe-area-inset-right,0px))}
+#nxNet{display:flex;align-items:center;gap:5px;height:28px;padding:0 9px;border-radius:14px;background:rgba(8,14,28,.72);border:1px solid rgba(110,150,240,.25);color:#8ea2c8;--nc:#8ea2c8;font:800 10px/1 inherit;pointer-events:none}
+#nxNet .nb{display:flex;align-items:flex-end;gap:2px;height:12px}
+#nxNet .nb i{display:block;width:3px;border-radius:1px;background:rgba(255,255,255,.2)}
+#nxNet .nb i:nth-child(1){height:4px}#nxNet .nb i:nth-child(2){height:6px}#nxNet .nb i:nth-child(3){height:9px}#nxNet .nb i:nth-child(4){height:12px}
+#nxNet .nb i.on{background:var(--nc)}
+#nxNet b{color:var(--nc);font-weight:900;min-width:14px;text-align:right}
+#nxNet.q4{--nc:#3ddc84}#nxNet.q3{--nc:#b6e03d}#nxNet.q2{--nc:#ffb02e}#nxNet.q1{--nc:#ff6a3d}#nxNet.q0{--nc:#ff3b3b}
+#frFab{position:relative;width:28px;height:28px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid rgba(110,150,240,.35);background:rgba(20,29,54,.85);color:#cfe0ff;cursor:pointer}
+#frFab:active{transform:scale(.94)}
+#frFab i{position:absolute;top:-5px;right:-5px;min-width:15px;height:15px;border-radius:8px;background:#ff3b3b;color:#fff;font:800 9px/15px inherit;font-style:normal;text-align:center;padding:0 3px;align-items:center;justify-content:center}
+#pty{position:absolute;z-index:6;left:calc(12px + env(safe-area-inset-left,0px));top:calc(66px + env(safe-area-inset-top,0px));display:none;flex-direction:column;gap:6px}
+#pty button{width:34px;height:34px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;font:900 14px/1 inherit;color:#fff;border:2px solid #7fa6ff;cursor:pointer}
+#pty button.add{background:rgba(20,29,54,.7);border:1.5px dashed rgba(143,170,230,.55);color:#8ea2c8;font-size:18px;font-weight:600}
+#pty button.me{outline:2px solid #ffd76e;outline-offset:1px}
 #frModal{position:fixed;inset:0;z-index:210;display:none;align-items:center;justify-content:center;background:rgba(3,6,14,.72);padding:calc(6px + env(safe-area-inset-top,0px)) 6px 6px}
 #frModal.on{display:flex}
 .fr-panel{width:min(560px,100%);max-height:100%;display:flex;flex-direction:column;background:linear-gradient(180deg,#141d36,#0d1426);border:1px solid rgba(232,195,106,.45);border-radius:14px;overflow:hidden;color:#dfe8ff}
@@ -9749,7 +9762,7 @@ function nxBeat(force){
   NX.state=st;NX.lastPres=now;
   var t0=performance.now(),d={on:1,st:st,t:TS()};
   if(NX.fbRtt!=null)d.lat=Math.round(NX.fbRtt);
-  NX.presRef.update(d).then(function(){var r=performance.now()-t0;NX.fbRtt=NX.fbRtt==null?r:NX.fbRtt*0.6+r*0.4;NX.err=null;},function(e){NX.err=e;});
+  NX.presRef.update(d).then(function(){var r=performance.now()-t0;NX.err=null;if(NX.fbRtt==null)NX.fbRtt=r;},function(e){NX.err=e;});
 }
 /* host memantau latensi anggota room supaya bisa memilih host dengan koneksi terbaik saat mulai */
 function nxWatchLat(){
@@ -9907,7 +9920,13 @@ function frRemove(id){
 }
 function frInvite(id){
   if(!dbOK())return;
-  if(!frInvitable()){FR.msg='Buat atau masuk room dulu untuk mengundang.';return frRender();}
+  if(!frInvitable()){
+    if(FB.room||FB.busy){FR.msg='Lobby ini tidak bisa menerima undangan.';return frRender();}
+    FR.msg='Membuat lobby...';frRender();FR.invCd[id]=0;
+    try{createRoom();}catch(e){}
+    var n=0,iv=setInterval(function(){n++;if(frInvitable()){clearInterval(iv);frInvite(id);}else if(n>40){clearInterval(iv);FR.msg='Gagal membuat lobby.';frRender();}},200);
+    return;
+  }
   var now=Date.now();
   if(FR.invCd[id]&&now-FR.invCd[id]<8000){FR.msg='Tunggu sebentar sebelum mengundang lagi.';return frRender();}
   FR.invCd[id]=now;
@@ -9929,7 +9948,7 @@ function frShowInvite(v){
   if(!FR.friends[v.f]){frDelInv(v.key);return;}                                                  /* hanya dari teman */
   var box=$('frInv');if(!box){box=document.createElement('div');box.id='frInv';document.body.appendChild(box);}
   var el=document.createElement('div');el.className='fr-inv';
-  el.innerHTML='<div class="t"><b>'+esc(frName(v.f,FR.friends[v.f]))+'</b> mengundangmu ke '+(v.k==='cu'?'Room Custom':'Tim Online')+'</div>'
+  el.innerHTML='<div class="t"><b>'+esc(frName(v.f,FR.friends[v.f]))+'</b> mengundangmu ke '+(v.k==='cu'?'Room Custom':'Lobby')+'</div>'
     +'<div class="b"><button class="ok">TERIMA</button><button class="no">TOLAK</button><span class="tm">25</span></div>';
   box.appendChild(el);tryUI();
   var left=25,iv=setInterval(function(){left--;var t=el.querySelector('.tm');if(t)t.textContent=left;if(left<=0)done(false);},1000);
@@ -9989,8 +10008,8 @@ function frRender(){
   if(FR.err)h+='<div class="fr-err">Fitur teman belum bisa dipakai: '+esc(FR.err)+'<br><small>Pastikan Rules Realtime Database sudah diperbarui (lihat file firebase-rules.json).</small></div>';
   if(FR.msg)h+='<div class="fr-msg">'+esc(FR.msg)+'</div>';
   if(FR.tab==='list'){
-    var inv=frInvitable();
-    if(inv)h+='<div class="fr-room">Room kamu: <b>'+esc(FB.room.code)+'</b> &middot; ketuk UNDANG pada teman yang online</div>';
+    var inv=frInvitable()||(!FB.room&&!FB.busy);
+    if(frInvitable())h+='<div class="fr-room">Room kamu: <b>'+esc(FB.room.code)+'</b> &middot; ketuk UNDANG pada teman yang online</div>';
     if(!ids.length)h+='<div class="fr-empty">Belum ada teman. Buka tab <b>Tambah</b> dan masukkan ID pemain.</div>';
     var ord={game:1,room:1,on:0,off:2};
     ids.sort(function(a,b){var sa=frStatus(a).k,sb=frStatus(b).k;return (ord[sa]-ord[sb])||frName(a,FR.friends[a]).localeCompare(frName(b,FR.friends[b]));});
@@ -10030,16 +10049,71 @@ window.FRX={
   copyId:function(){var v=myPid();try{navigator.clipboard.writeText(v);FR.msg='ID disalin.';}catch(e){FR.msg='ID: '+v;}frRender();}
 };
 
-/* tombol TEMAN mengambang: hanya di layar mode online */
+/* bar kanan-atas: indikator jaringan + tombol teman (ikon kecil) */
+var ICON='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.4 2.7-6 6-6s6 2.6 6 6"/><path d="M19 8v6M16 11h6"/></svg>';
 function frFab(){
-  var f=$('frFab');
-  if(!f){f=document.createElement('button');f.id='frFab';f.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.4 2.7-6 6-6s6 2.6 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M16 14.2c3 0 5 2 5 5.3"/></svg><span>TEMAN</span><i id="frBadge" style="display:none">0</i>';f.onclick=frOpen;document.body.appendChild(f);}
-  var a=document.querySelector('.screen.active'),id=a?a.id:'',show=false;
-  try{show=!!FB.user&&(id==='screen-online'||(id==='screen-lobby'&&lobbyMode==='online'));   /* room custom punya tombol UNDANG TEMAN sendiri */}catch(e){}
-  f.style.display=show?'flex':'none';
-  f.className=(id==='screen-lobby')?'lob':(id==='screen-custom'?'cus':'');
+  var bar=$('nxBar');
+  if(!bar){
+    bar=document.createElement('div');bar.id='nxBar';
+    bar.innerHTML='<div id="nxNet" title="Ping ke server"><span class="nb"><i></i><i></i><i></i><i></i></span><b id="nxMs">--</b><span>ms</span></div><button id="frFab" aria-label="Teman">'+ICON+'<i id="frBadge" style="display:none">0</i></button>';
+    document.body.appendChild(bar);$('frFab').onclick=frOpen;
+  }
+  var a=document.querySelector('.screen.active'),id=a?a.id:'',inGame=false,btn=false,show=false;
+  try{inGame=!!G.running;}catch(e){}
+  try{
+    show=!!FB.user&&!inGame;
+    btn=show&&(id==='screen-menu'||id==='screen-online'||(id==='screen-lobby'&&lobbyMode==='online'));
+  }catch(e){}
+  bar.style.display=show?'flex':'none';
+  bar.className=(id==='screen-menu')?'menu':'';
+  $('frFab').style.display=btn?'flex':'none';
+  ptyRender(show&&id==='screen-menu');
 }
 setInterval(frFab,600);
+
+/* ping NYATA: round-trip tulis->ack server Firebase, median 5 sampel terakhir. Tanpa angka palsu. */
+NX.hist=[];NX.ms=null;
+function nxProbe(){
+  if(!NX.presRef||!dbOK()||NX.probing||nxState()==='game')return;
+  if(NX.connected===false||navigator.onLine===false){NX.hist=[];NX.ms=null;return;}
+  NX.probing=1;var t0=performance.now(),fin=false;
+  function end(v){
+    if(fin)return;fin=true;NX.probing=0;clearTimeout(to);
+    NX.hist.push(v);if(NX.hist.length>5)NX.hist.shift();
+    var ok=NX.hist.filter(function(x){return x!=null;}).sort(function(p,q){return p-q;});
+    NX.ms=(NX.hist.slice(-2).every(function(x){return x==null;})||!ok.length)?null:Math.round(ok[Math.floor(ok.length/2)]);
+    if(NX.ms!=null)NX.fbRtt=NX.ms;
+  }
+  var to=setTimeout(function(){end(null);},4000);
+  NX.presRef.update({t:TS()}).then(function(){end(performance.now()-t0);},function(){end(null);});
+}
+setInterval(nxProbe,4000);
+setInterval(function(){
+  var el=$('nxNet'),m=$('nxMs');if(!el||!m)return;
+  var off=(NX.connected===false)||(navigator.onLine===false),ms=off?null:NX.ms,lv=ms==null?0:nxLevel(ms);
+  el.className='q'+lv;m.textContent=(ms==null)?'--':String(ms);
+  var bars=el.querySelectorAll('.nb i');for(var i=0;i<bars.length;i++)bars[i].className=(i<lv)?'on':'';
+},1000);
+
+/* party ala Mobile Legends: kamu + 4 slot teman, ketuk + untuk mengundang */
+var _ptySig='';
+function ptyRender(show){
+  var p=$('pty'),sc=$('screen-menu');
+  if(!p){if(!sc)return;p=document.createElement('div');p.id='pty';sc.appendChild(p);}
+  p.style.display=show?'flex':'none';if(!show)return;
+  var ms=(FB.room&&FB.room.data&&!FB.room.data.mm&&FB.room.data.members)||{},me=FB.user&&FB.user.uid;
+  if(!Object.keys(ms).length&&me){ms={};ms[me]={name:myName()};}
+  var ids=Object.keys(ms);
+  var sig=ids.join(',')+'|'+ids.map(function(k){return ms[k].name;}).join(',');
+  if(sig===_ptySig)return;_ptySig=sig;
+  ids.sort(function(a,b){return a===me?-1:(b===me?1:0);});
+  var h='';
+  for(var i=0;i<5;i++){
+    if(ids[i]){var nm=ms[ids[i]].name||'?';h+='<button class="'+(ids[i]===me?'me':'')+'" title="'+esc(nm)+'" style="background:'+frAvatar(nm).match(/background:([^"]+)/)[1]+'" onclick="FRX.open()">'+esc(nm.charAt(0).toUpperCase())+'</button>';}
+    else h+='<button class="add" aria-label="Undang teman" onclick="FRX.open()">+</button>';
+  }
+  p.innerHTML=h;
+}
 var _ss=showScreen;showScreen=function(){var r=_ss.apply(this,arguments);try{frFab();}catch(e){}return r;};
 
 /* mulai/hentikan layanan sesuai status login */
