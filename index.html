@@ -1107,6 +1107,14 @@ var HERO_DEFS={
       {name:'Tombak Es',icon:'Q',cd:5.5,cost:55,type:'projectile',range:540,speed:580,radius:70,desc:'Tombak es meledak saat mengenai musuh.'},
       {name:'Badai Salju',icon:'E',cd:13,cost:80,type:'area',range:440,radius:160,duration:4,desc:'Badai salju yang melukai dan memperlambat musuh.'},
       {name:'Zero Mutlak',icon:'R',cd:42,cost:150,type:'area_big',range:500,radius:250,desc:'Membekukan area luas dengan damage besar.'}
+    ]},
+  gabriel:{name:'GABRIEL',role:'Mage',color:'#f2e2a0',accent:'#ffffff',weapon:'halo',
+    desc:'Malaikat penjaga cahaya. Setiap skill berganti antara Order (perisai) dan Chaos (damage ekstra).',
+    hp:820,hpRegen:5,mp:500,mpRegen:9,dmg:80,range:380,atkSpeed:1.0,armor:6,speed:222,
+    skills:[
+      {name:'Okultasi Cahaya',icon:'Q',cd:5,cost:55,type:'projectile',range:540,speed:600,radius:75,desc:'Melontarkan bola cahaya yang meledak saat mengenai musuh.'},
+      {name:'Tarian Surgawi',icon:'E',cd:11,cost:70,type:'custom',fx:'gab_dash',aimAs:'line',range:300,width:90,desc:'Meluncur dengan sayap dan melukai musuh di jalur. Order: perisai. Chaos: damage +30%.'},
+      {name:'Bulan Bintang',icon:'R',cd:40,cost:140,type:'custom',fx:'gab_ult',aimAs:'self',radius:270,desc:'Ledakan cahaya besar di sekitar. Order: perisai + heal. Chaos: damage +30%.'}
     ]}
 };
 
@@ -2303,7 +2311,7 @@ function updateVisibility(){
 function isHiddenToPlayer(e){return !!(G.playerHero&&e.hiddenFrom&&e.hiddenFrom[G.playerHero.team]);}
 
 /* ===== TURRET ===== */
-function Turret(x,y,team){Entity.call(this,x,y,team);this.radius=32;this.maxHp=2200;this.hp=2200;this.armor=40;this.dmg=100;this.range=320;this.atkCooldown=0;}
+function Turret(x,y,team){Entity.call(this,x,y,team);this.radius=32;this.maxHp=2200;this.hp=2200;this.armor=40;this.dmg=100;this.range=260;this.atkCooldown=0;}
 Turret.prototype=Object.create(Entity.prototype);
 Turret.prototype.constructor=Turret;
 Turret.prototype.update=function(dt){
@@ -2312,19 +2320,27 @@ Turret.prototype.update=function(dt){
   if(this.hitFlash>0)this.hitFlash-=dt;
   if(this.focusT>0){this.focusT-=dt;if(this.focusT<=0){this.focusTgt=null;this.focusStacks=0;}}
   var enemyTeam=this.team===TEAM_BLUE?TEAM_RED:TEAM_BLUE;
-  var target=null,bd=1e9,minions=0;
+  var target=null,bd=1e9,minions=0,hd=1e9,hTgt=null,ad=1e9,aTgt=null;
   for(var i=0;i<G.entities.length;i++){
     var e=G.entities[i];
     if(!e||e.dead||e.team!==enemyTeam)continue;
     if(!(e instanceof Hero||e instanceof Minion))continue;
     if(e.hiddenFrom&&e.hiddenFrom[this.team])continue;
     var d=dist(this,e);
-    if(d<this.range){if(e instanceof Minion)minions++;if(d<bd){bd=d;target=e;}}
+    if(d<this.range){
+      if(e instanceof Minion){minions++;if(d<bd){bd=d;target=e;}}
+      else{
+        if(d<hd){hd=d;hTgt=e;}
+        var vv=e.aggroVictim;if(e.aggroUntil>G.time&&vv&&!vv.dead&&vv.team===this.team&&dist(this,vv)<this.range&&d<ad){ad=d;aTgt=e;}
+      }
+    }
   }
+  if(aTgt)target=aTgt;
+  else if(!target&&hTgt)target=hTgt;
   if(target){
     this.facing=angleTo(this,target);
     /* hero masuk area turret tanpa minion pendamping = diburu, damage naik tiap tembakan beruntun */
-    var lone=(minions===0)&&(target instanceof Hero);
+    var lone=(minions===0)&&(target instanceof Hero)&&!aTgt;
     if(this.atkCooldown<=0){
       this.atkCooldown=lone?0.85:1.1;
       this.atkFxT=performance.now()+350;this.atkT0=performance.now();
@@ -2943,8 +2959,34 @@ Hero.prototype.castRin=function(idx,sk,target){
     this.fxp={x:tg.x,y:tg.y};
   }
 };
+Hero.prototype.castGabriel=function(idx,sk,target){
+  var fx=sk.fx,t=target||this.autoT(),ang=this.aimOverride?this.facing:(t?angleTo(this,t):this.facing),i,e,k;
+  this.gabMode=this.gabMode==='chaos'?'order':'chaos';
+  var chaos=this.gabMode==='chaos',mul=chaos?1.3:1,col=chaos?'#b07aff':'#fff2a8';
+  pushP({x:this.x,y:this.y-52,dmgText:chaos?'CHAOS':'ORDER',life:0.9,maxLife:0.9,color:col,isCrit:chaos,size:0.8});
+  if(!chaos){this.shield=Math.max(this.shield,150+this.level*22);this.shieldTime=Math.max(this.shieldTime,3.2);}
+  if(fx==='gab_dash'){
+    this.facing=ang;var ca=Math.cos(ang),sa=Math.sin(ang),px=this.x,py=this.y,sx=px,sy=py,step=18,n=Math.floor(sk.range/step);
+    for(k=0;k<n;k++){var nx=clamp(px+ca*step,40,MAP_W-40),ny=clamp(py+sa*step,40,MAP_H-40);
+      if(resolveWalls(nx,ny,this.radius).hit||collideRocks(nx,ny,this.radius))break;px=nx;py=ny;}
+    for(i=0;i<G.entities.length;i++){e=G.entities[i];
+      if(!e||e.dead||e.team===this.team||!(e instanceof Hero||e instanceof Minion||e instanceof Monster))continue;
+      if(segDist(e.x,e.y,sx,sy,px,py)<sk.width/2+e.radius)dealDamage(this,e,this.baseDmg*1.45*mul,'skill');}
+    for(k=0;k<=6;k++)pfan(sx+(px-sx)*k/6,sy+(py-sy)*k/6,ang+Math.PI,pcount(2),220,0.5,'star',col,4,0.8);
+    this.x=px;this.y=py;this.fxp={x:px,y:py};pring(px,py,col,90,0.4);
+  }else{
+    for(i=0;i<G.entities.length;i++){e=G.entities[i];
+      if(!e||e.dead||e.team===this.team||!(e instanceof Hero||e instanceof Minion||e instanceof Monster))continue;
+      if(dist(this,e)<sk.radius+e.radius){dealDamage(this,e,this.baseDmg*2.3*mul,'skill');if(e instanceof Hero){e.slowTime=Math.max(e.slowTime,1.2);e.slowAmt=Math.max(e.slowAmt||0,0.3);}}}
+    if(!chaos){this.hp=Math.min(this.maxHp,this.hp+this.maxHp*0.12);this.shield=Math.max(this.shield,320+this.level*30);this.shieldTime=Math.max(this.shieldTime,4);}
+    pring(this.x,this.y,col,sk.radius,0.6);pring(this.x,this.y,'#ffffff',sk.radius*0.6,0.4);pflash(this.x,this.y,col,sk.radius*0.7,0.35);
+    for(k=0;k<14;k++)pfan(this.x,this.y,k*0.45,pcount(2),300,0.7,'star',col,4,0.4);
+    addShake(6);this.fxp={x:this.x,y:this.y};
+  }
+};
 Hero.prototype.castCustom=function(idx,sk,target){
   var fx=sk.fx,pt,i;
+  if(fx==='gab_dash'||fx==='gab_ult'){this.castGabriel(idx,sk,target);return;}
   if(fx==='aegis_reflect'){this.reflectT=3;pushP({ring:true,x:this.x,y:this.y,r0:10,r1:90,life:0.5,maxLife:0.5,color:'#ffe9a0'});return;}
   if(fx==='aegis_dome'){G.domes.push({x:this.x,y:this.y,r:sk.radius,team:this.team,life:5,max:5});pushP({ring:true,x:this.x,y:this.y,r0:10,r1:sk.radius,life:0.6,maxLife:0.6,color:'#7ec0ff'});return;}
   if(fx==='aegis_robot'){spawnRobot(this);return;}
@@ -3132,7 +3174,8 @@ var HERO_THEME={
   orion:{shape:'needle',cols:['#7ed957','#f0d070']},
   mira:{shape:'wisp',cols:['#ff9ad6','#fff2a8']},
   toro:{shape:'rock',cols:['#a0643c','#e8c36a']},
-  glacia:{shape:'hex',cols:['#8ae0ff','#e8fbff']}
+  glacia:{shape:'hex',cols:['#8ae0ff','#e8fbff']},
+  gabriel:{shape:'star',cols:['#fff2a8','#ffffff']}
 };
 function heroCastFx(h,idx){
   var k=h.defKey,x=h.x,y=h.y,big=idx===2,R=big?150:90,P=G.particles,i,a;
@@ -3306,6 +3349,7 @@ function itemBuyFx(h,it){
 }
 function dealDamage(src,tgt,amount,type){
   if(!src||!tgt||tgt.dead)return 0;
+  if(src instanceof Hero&&tgt instanceof Hero&&src.team!==tgt.team){src.aggroUntil=G.time+2.5;src.aggroVictim=tgt;}
   if(src.defKey==='kia'&&tgt.crackUntil>G.time&&type!=='debt')amount*=1.25;
   if(src.defKey==='rin'&&src.fogUntil>G.time&&type!=='debt')amount*=1.3;
   if(src.defKey==='sigit'&&tgt instanceof Hero&&tgt.team!==src.team&&type!=='delayed'&&type!=='debt'){
@@ -5874,7 +5918,23 @@ function drawGlaciaShape(c,d,flash,tc){
   c.fillStyle='#2a6a8a';c.beginPath();c.arc(-2.6,-9,1,0,6.2832);c.arc(2.6,-9,1,0,6.2832);c.fill();
   c.restore();
 }
-var NEW_DRAW={trex:drawRexShape,crossbow:drawOrionShape,lotus:drawMiraShape,bull:drawToroShape,frost:drawGlaciaShape};
+function drawGabrielShape(c,d,flash,tc){
+  var ac=d.color,rt=performance.now()/1000,i,s;
+  c.save();c.lineJoin='round';c.lineCap='round';c.lineWidth=3;c.strokeStyle='#2a2438';
+  for(s=-1;s<=1;s+=2){c.fillStyle=flash?'#fff':'#ffffff';c.beginPath();c.moveTo(s*6,-4);c.quadraticCurveTo(s*34,-30+Math.sin(rt*3)*3,s*30,2);c.quadraticCurveTo(s*22,6,s*20,10);c.quadraticCurveTo(s*14,4,s*6,8);c.closePath();c.fill();c.stroke();
+    c.strokeStyle='#e6dcb8';c.lineWidth=1.4;c.beginPath();c.moveTo(s*10,-2);c.lineTo(s*26,-6);c.moveTo(s*10,3);c.lineTo(s*24,1);c.stroke();c.strokeStyle='#2a2438';c.lineWidth=3;}
+  c.fillStyle=flash?'#fff':ac;c.beginPath();c.moveTo(0,-10);c.lineTo(-12,20);c.quadraticCurveTo(0,25,12,20);c.closePath();c.fill();c.stroke();
+  c.fillStyle=tc.main;c.fillRect(-8,9,16,3);
+  c.fillStyle='#f4dcc4';c.beginPath();c.arc(0,-10,7,0,6.2832);c.fill();c.stroke();
+  c.fillStyle=flash?'#fff':'#f6e9a8';c.beginPath();c.arc(0,-12,8,Math.PI,0);c.lineTo(8,-8);c.lineTo(-8,-8);c.closePath();c.fill();c.stroke();
+  c.fillStyle='#4a6aa8';c.beginPath();c.arc(-2.6,-9,1,0,6.2832);c.arc(2.6,-9,1,0,6.2832);c.fill();
+  c.shadowColor='#fff2a8';c.shadowBlur=10;c.strokeStyle='#ffe27a';c.lineWidth=2.6;c.beginPath();c.ellipse(0,-27,9,3.2,0,0,6.2832);c.stroke();c.shadowBlur=0;
+  c.strokeStyle='#2a2438';c.lineWidth=4.2;c.beginPath();c.moveTo(17,14);c.lineTo(17,-22);c.stroke();
+  c.strokeStyle='#ffe27a';c.lineWidth=2;c.beginPath();c.moveTo(17,14);c.lineTo(17,-22);c.stroke();
+  c.fillStyle='#ffffff';c.shadowColor='#ffe27a';c.shadowBlur=12;c.beginPath();c.arc(17,-27,5+Math.sin(rt*4)*0.6,0,6.2832);c.fill();c.shadowBlur=0;c.stroke();
+  c.restore();
+}
+var NEW_DRAW={trex:drawRexShape,crossbow:drawOrionShape,lotus:drawMiraShape,bull:drawToroShape,frost:drawGlaciaShape,halo:drawGabrielShape};
 function drawHeroShape(c,d,flash,team){
   if(!d){d=HERO_DEFS.aegis;}
   var ac=d.color,ac2=d.accent,teamCol=TC[team]||TC[TEAM_BLUE];
@@ -6347,7 +6407,18 @@ function drawRanges(){
     ctx.strokeStyle='rgba(255,255,255,0.45)';ctx.setLineDash([10,8]);
     ctx.beginPath();ctx.arc(p.x,p.y,p.def.range+p.radius*0.5,0,Math.PI*2);ctx.stroke();
   }
-  ctx.setLineDash([8,8]);
+  for(i=0;i<G.turrets.length;i++){
+    var tt=G.turrets[i];if(tt.dead||!p||p.dead||tt.team===p.team)continue;
+    var dd=dist(tt,p);if(dd>tt.range+170)continue;
+    var inside=dd<tt.range+p.radius,pl=0.5+0.5*Math.sin(now/180),base=TEAM_RED===tt.team?'255,74,90':'74,140,255';
+    ctx.setLineDash([]);ctx.globalAlpha=1;
+    ctx.fillStyle='rgba('+base+','+(inside?0.10+0.05*pl:0.05)+')';
+    ctx.beginPath();ctx.arc(tt.x,tt.y,tt.range,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba('+base+','+(inside?0.95:0.55)+')';ctx.lineWidth=inside?4:3;
+    if(!inside)ctx.setLineDash([14,10]);
+    ctx.beginPath();ctx.arc(tt.x,tt.y,tt.range,0,Math.PI*2);ctx.stroke();
+  }
+  ctx.lineWidth=2;ctx.setLineDash([8,8]);
   for(i=0;i<G.turrets.length;i++){
     var t=G.turrets[i];if(t.dead||now>=(t.atkFxT||0))continue;
     ctx.strokeStyle=t.team===TEAM_BLUE?'#4a8cff':'#ff4a5a';ctx.globalAlpha=0.7;
@@ -6419,7 +6490,7 @@ function drawAmbient(){
 
 /* ===== UNIQUE ATTACK FX ===== */
 var MELEE_STYLE={aegis:'bash',raven:'cross',terra:'chop',kael:'thrust',brom:'slam',nox:'crescent',sigit:'stitch',reyun:'thrust',kia:'bash',rin:'crescent',xinyuan:'thrust',louise:'bash',rex:'bash',toro:'slam'};
-var RANGED_SHAPE={pyra:'fire',vex:'arrow',lumi:'star',zora:'bullet',chrona:'sand',vora:'void',orion:'arrow',mira:'star',glacia:'star'};
+var RANGED_SHAPE={pyra:'fire',vex:'arrow',lumi:'star',zora:'bullet',chrona:'sand',vora:'void',orion:'arrow',mira:'star',glacia:'star',gabriel:'star'};
 var ATK_SPEED={fire:520,arrow:860,star:600,bullet:1100,sand:640,void:700};
 var ATK_COLOR={fire:'#ff8a3a',arrow:'#c8ffb0',star:'#ffe27a',bullet:'#c8f4ff',sand:'#ffe9a0',void:'#c9a0ff'};
 var ATK_R={fire:15,arrow:10,star:13,bullet:8,sand:9,void:13};
