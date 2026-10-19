@@ -40,11 +40,12 @@ pre{background:#05070c;border-radius:8px;padding:10px;font-size:11px;overflow:au
 <div class="bar"><i id="lbar"></i></div><p id="lmsg" class="dim" style="margin-top:6px"></p>
 <div class="row" style="margin-top:8px"><button class="btn p" id="lbtn" onclick="upLobby()">UPLOAD &amp; TERAPKAN</button><button class="btn d" onclick="rmLobby()">HAPUS (KEMBALI KE TEKS)</button></div></div>
 
-<div id="p-port" class="card hide"><h2>Portrait Hero &amp; Skin</h2>
+<div id="p-port" class="card hide"><h2>Portrait &amp; Art Hero (per hero / skin)</h2>
+<label>JENIS GAMBAR</label><select id="psMode" onchange="drawSkins()"><option value="port">Portrait (ikon bulat kecil)</option><option value="art">Art Hero (gambar penuh, tombol ART HERO di game)</option></select>
 <label>HERO</label><select id="psHero" onchange="drawSkins()"></select>
 <div class="grid" id="psGrid" style="margin-top:10px"></div>
 <p class="dim" style="margin-top:8px">Pilih foto (maks 5 MB), otomatis dipotong persegi &amp; dikecilkan. Skin tanpa portrait kustom memakai gambar bawaan game.</p>
-<input type="file" id="pfile" accept="image/*" class="hide"><p id="pmsg" class="dim"></p></div>
+<div class="bar"><i id="abar"></i></div><input type="file" id="pfile" accept="image/*" class="hide"><p id="pmsg" class="dim"></p></div>
 
 <div id="p-ban" class="card hide"><h2>Ban Hero</h2><p class="dim">Ketuk hero untuk ban / buka ban. Hero yang di-ban tidak bisa dipilih pemain maupun bot.</p><div class="grid" id="banGrid" style="margin-top:10px"></div></div>
 
@@ -84,7 +85,8 @@ var HEROES=[["aegis", "AEGIS", "Tank", "#5c9edc"], ["raven", "RAVEN", "Assassin"
 var PAL=[['emas','Emas Kerajaan','#d9a21e'],['es','Kristal Es','#4ac8ff'],['darah','Bayangan Darah','#c02040'],['hutan','Zamrud Hutan','#2fa060'],['neon','Neon Ungu','#a040ff'],['malam','Malam Kelam','#2a2f48']];
 var CFG={apiKey:"AIzaSyCcYMdcnO5B5vNkw-m7thb07p27iVzNLIM",authDomain:"caxa-arena.firebaseapp.com",projectId:"caxa-arena",databaseURL:"https://caxa-arena-default-rtdb.firebaseio.com",storageBucket:"caxa-arena.firebasestorage.app",messagingSenderId:"547730128"};
 firebase.initializeApp(CFG);var auth=firebase.auth(),db=firebase.database(),$=function(i){return document.getElementById(i);};
-var S={port:{},ban:{},ev:{},lobby:null,sel:null};
+var S={port:{},art:{},ban:{},ev:{},lobby:null,sel:null};
+function PM(){return $('psMode').value;}
 function login(){$('gmsg').textContent='';auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(function(e){if(/popup/.test(e.code))auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider());else $('gmsg').textContent=e.message;});}
 auth.onAuthStateChanged(function(u){
   if(!u){$('gate').classList.remove('hide');$('app').classList.add('hide');return;}
@@ -106,11 +108,12 @@ async function boot(){
   if(booted)return;booted=true;$('dbst').textContent='Menghubungkan ke database...';
   var url=await findDb();if(!url){booted=false;$('dbst').textContent='Gagal terhubung ke database. Muat ulang halaman / cek koneksi.';$('dbst').className='err';return;}
   $('dbst').textContent='Database terhubung: '+url;$('dbst').className='ok';
-  var T=[['lobby','Lobby'],['port','Portrait'],['ban','Ban Hero'],['ev','Event'],['music','Musik'],['set','Setup']];
+  var T=[['lobby','Lobby'],['port','Portrait & Art'],['ban','Ban Hero'],['ev','Event'],['music','Musik'],['set','Setup']];
   $('tabs').innerHTML='';T.forEach(function(t){var b=document.createElement('button');b.className='btn'+(t[0]==='lobby'?' on':'');b.textContent=t[1];b.onclick=function(){T.forEach(function(x){$('p-'+x[0]).classList.toggle('hide',x[0]!==t[0]);});[].forEach.call($('tabs').children,function(c){c.classList.remove('on');});b.classList.add('on');};$('tabs').appendChild(b);});
   $('psHero').innerHTML=HEROES.map(function(h){return '<option value="'+h[0]+'">'+h[1]+' ('+h[2]+')</option>';}).join('');
   db.ref('config/lobby').on('value',function(s){S.lobby=s.val();showLobby();});
   db.ref('config/portraits').on('value',function(s){S.port=s.val()||{};drawSkins();});
+  db.ref('config/arts').on('value',function(s){S.art=s.val()||{};drawSkins();});
   db.ref('config/banned').on('value',function(s){S.ban=s.val()||{};drawBan();});
   db.ref('config/music').on('value',function(s){S.music=s.val();showMusic();});
   $('mfile').onchange=function(){var f=this.files[0];if(!f)return;if(f.size>MAXB){$('mmsg').textContent='File lebih dari 5 MB.';this.value='';return;}$('mAud').classList.remove('hide');$('mAud').src=URL.createObjectURL(f);$('mmsg').textContent=f.name+' ('+(f.size/1048576).toFixed(2)+' MB)';};
@@ -119,7 +122,7 @@ async function boot(){
   var n=new Date(),p=function(x){return ('0'+x).slice(-2);},ld=function(d){return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());};
   $('eStart').value=ld(n);$('eEnd').value=ld(new Date(n.getTime()+7*864e5));evForm();
   $('r1').textContent='"config":{".read":true,".write":"auth!=null && auth.token.email===\''+ADMIN+'\' && auth.token.email_verified===true"},\n"lobbyData":{".read":true,".write":"auth!=null && auth.token.email===\''+ADMIN+'\' && auth.token.email_verified===true"},\n"userdata":{"$uid":{".read":"auth!=null && auth.uid===$uid",".write":"auth!=null && auth.uid===$uid"}}';
-  $('r2').textContent="create policy \"baca publik\" on storage.objects for select using (bucket_id = 'game asset');\n\ncreate policy \"upload lobby dan music\" on storage.objects for insert with check (bucket_id = 'game asset' and (storage.foldername(name))[1] in ('lobby','music') and lower(storage.extension(name)) in ('jpg','jpeg','png','webp','gif','mp4','webm','mp3','ogg','wav','m4a'));\n\ncreate policy \"timpa file\" on storage.objects for update using (bucket_id = 'game asset') with check (bucket_id = 'game asset' and (storage.foldername(name))[1] in ('lobby','music'));";
+  $('r2').textContent="create policy \"baca publik\" on storage.objects for select using (bucket_id = 'game asset');\n\ncreate policy \"upload lobby dan music\" on storage.objects for insert with check (bucket_id = 'game asset' and (storage.foldername(name))[1] in ('lobby','music','art') and lower(storage.extension(name)) in ('jpg','jpeg','png','webp','gif','mp4','webm','mp3','ogg','wav','m4a'));\n\ncreate policy \"timpa file\" on storage.objects for update using (bucket_id = 'game asset') with check (bucket_id = 'game asset' and (storage.foldername(name))[1] in ('lobby','music','art'));";
 }
 /* ---- lobby ---- */
 function prev(t,src){var i=$('lpImg'),v=$('lpVid');i.classList.toggle('hide',t!=='image');v.classList.toggle('hide',t!=='video');if(t==='image')i.src=src;else{v.src=src;}}
@@ -168,17 +171,33 @@ async function rmMusic(){if(!confirm('Kembali ke musik bawaan?'))return;try{var 
 function skinsOf(k){var i=HEROES.map(function(h){return h[0];}).indexOf(k),o=[['base','Klasik','']];for(var n=0;n<3;n++){var p=PAL[(i+n*2)%6];o.push([k+'_'+p[0],p[1],p[2]]);}return o;}
 function drawSkins(){
   var k=$('psHero').value,g=$('psGrid');if(!k)return;g.innerHTML='';
-  skinsOf(k).forEach(function(s){var id=s[0]==='base'?k:s[0],has=S.port[id],d=document.createElement('div');d.className='it';
+  skinsOf(k).forEach(function(s){var id=s[0]==='base'?k:s[0],has=(PM()==='art'?S.art:S.port)[id],d=document.createElement('div');d.className='it';
     d.innerHTML='<div class="im" style="'+(has?'background-image:url('+has+')':'background:'+(s[2]||'#4a6aa8'))+'"></div><b>'+s[1]+'</b><br><span class="dim">'+(has?'kustom':'bawaan')+'</span>';
     d.onclick=function(){S.sel=id;$('pfile').value='';$('pfile').click();};
-    if(has){var r=document.createElement('button');r.className='btn d';r.style.cssText='padding:2px 6px;font-size:10px;margin-top:4px';r.textContent='RESET';r.onclick=function(e){e.stopPropagation();db.ref('config/portraits/'+id).remove();};d.appendChild(r);}
+    if(has){var r=document.createElement('button');r.className='btn d';r.style.cssText='padding:2px 6px;font-size:10px;margin-top:4px';r.textContent='RESET';r.onclick=function(e){e.stopPropagation();db.ref((PM()==='art'?'config/arts/':'config/portraits/')+id).remove();};d.appendChild(r);}
     g.appendChild(d);});
 }
 $('pfile').onchange=function(){
   var f=this.files[0];if(!f||!S.sel)return;if(f.size>MAXB){$('pmsg').textContent='File lebih dari 5 MB.';return;}
-  var id=S.sel,im=new Image();im.onload=function(){var z=192,c=document.createElement('canvas');c.width=c.height=z;var m=Math.min(im.width,im.height);c.getContext('2d').drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,z,z);
-    var u=c.toDataURL('image/webp',.82);if(u.indexOf('image/webp')<0)u=c.toDataURL('image/jpeg',.85);
-    db.ref('config/portraits/'+id).set(u).then(function(){$('pmsg').textContent='Portrait "'+id+'" tersimpan.';}).catch(function(e){$('pmsg').textContent='Gagal: '+e.message;});};
+  var id=S.sel,art=PM()==='art',im=new Image();
+  im.onerror=function(){$('pmsg').textContent='File gambar tidak valid.';};
+  im.onload=function(){
+    var c=document.createElement('canvas'),x=c.getContext('2d');
+    if(art){var s=Math.min(1,960/Math.max(im.width,im.height));c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);x.drawImage(im,0,0,c.width,c.height);}
+    else{var z=192;c.width=c.height=z;var m=Math.min(im.width,im.height);x.drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,z,z);}
+    var u=c.toDataURL('image/webp',.85);if(u.indexOf('image/webp')<0)u=c.toDataURL('image/jpeg',.88);
+    var ok=function(){$('pmsg').textContent=(art?'Art "':'Portrait "')+id+'" tersimpan.';},er=function(e){$('pmsg').textContent='Gagal: '+e.message;};
+    if(!art){db.ref('config/portraits/'+id).set(u).then(ok).catch(er);return;}
+    $('pmsg').textContent='Mengunggah art...';$('abar').style.width='0';
+    var mt=u.indexOf('data:image/webp')===0?'image/webp':'image/jpeg';
+    c.toBlob(function(b){
+      var ext=mt==='image/webp'?'webp':'jpg',fo=new File([b],id+'.'+ext,{type:mt});
+      sbUp('art/'+id+'_'+Date.now()+'.'+ext,fo,'abar')
+        .then(function(url){return db.ref('config/arts/'+id).set(url);})
+        .catch(function(){if(u.length>300000)throw new Error('Supabase gagal dan gambar terlalu besar untuk cadangan database');return db.ref('config/arts/'+id).set(u);})
+        .then(ok).catch(er);
+    },mt,.85);
+  };
   im.src=URL.createObjectURL(f);
 };
 /* ---- ban ---- */
