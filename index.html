@@ -734,6 +734,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf
     <button id="scoreBtn" onclick="toggleScore()">SKOR</button>
     <div id="myKda" class="my-kda">0 / 0 / 0</div>
     <button id="btnPause" onclick="togglePause()">II</button>
+    <div id="netInd" class="q2" style="display:none"><span class="nb"><i></i><i></i><i></i><i></i></span><span class="nt"><b id="netMs">--</b><small id="netLb">ms</small></span></div>
     <div id="playerPanel">
       <div class="portrait-box">
         <canvas id="portraitCanvas" width="72" height="72"></canvas>
@@ -3723,7 +3724,7 @@ function startRoom(){
     if(enemyComp[i])sk.r[i]=randomSkinId(enemyComp[i]);
   }
   var comp=JSON.stringify({b:teamComp,r:enemyComp,roles:roles,sk:sk});
-  lref().remove().catch(function(){}).then(function(){return FB.db.ref('rooms/'+FB.room.code).update({comp:comp,state:'playing'});}).catch(function(e){olMsg(fbErr(e));});
+  lref().remove().catch(function(){}).then(function(){return FB.db.ref('rooms/'+FB.room.code).update((window.NETX&&NETX.startPayload)?NETX.startPayload(comp):{comp:comp,state:'playing'});}).catch(function(e){olMsg(fbErr(e));});
 }
 function startOnline(){
   try{
@@ -3741,7 +3742,7 @@ function onlinePostStart(){
   FBM.host=FB.room.data.host===me;FBM.mode=FBM.host?'host':'client';
   var hr=FB.db.ref('rooms/'+FB.room.code+'/host'),c5=hr.on('value',function(s){if(!s.exists()&&!G.ended&&!FBM.host){notify('Host keluar. Pertandingan dibubarkan.','red');setTimeout(function(){handleGo('menu');},2500);}});
   FBM.offs.push(function(){hr.off('value',c5);});
-  FBM.hero={};FBM.in={};FBM.inAt={};FBM.ev=[];FBM.px=[];FBM.mm={};FBM.mo={};FBM.pz=false;FBM.first=true;FBM.win=null;FBM.T=G.turrets.slice();FBM.C=G.cores.slice();
+  FBM.hero={};FBM.in={};FBM.inAt={};FBM.ev=[];FBM.px=[];FBM.mm={};FBM.mo={};FBM.pz=false;FBM.first=true;FBM.win=null;FBM.pg={};FBM.pgSent={};FBM.pgN=0;FBM.hist=[];FBM.pc=null;FBM.recon=null;FBM.rtt=null;FBM.cdHold={};FBM.mpHold=0;FBM.lfx={};FBM.lcast={};FBM.htPos=0;FBM.lastSnapAt=performance.now();FBM.snapInf=0;FBM.fastInf=0;FBM.hostRtt=null;FBM.fc=0;FBM.T=G.turrets.slice();FBM.C=G.cores.slice();
   var hi=[[],[]];for(i=0;i<ROLES.length;i++){if(teamComp[i])hi[0][i]=n++;if(enemyComp[i])hi[1][i]=n++;}
   function heroOf(u){var r=FBM.roles[u];if(r===undefined||r===null)return null;var tt=(typeof r==='object')?r.t:0,ss=(typeof r==='object')?r.s:r;return G.heroes[hi[tt][ss]]||null;}
   installOnlineHooks();setPauseBtnOnline(true);
@@ -3754,16 +3755,24 @@ function onlinePostStart(){
     var ri=lref('in'),rc=lref('cmd');
     var c1=ri.on('value',function(s){var v=s.val()||{};for(var k in v)if(!FBM.in[k]||FBM.in[k].n!==v[k].n)FBM.inAt[k]=performance.now();FBM.in=v;},liveErr);
     var c2=rc.on('child_added',function(s){var c=s.val();s.ref.remove();try{hostCmd(c);}catch(e){console.error(e);}},liveErr);
-    FBM.offs.push(function(){ri.off('value',c1);rc.off('child_added',c2);});
+    var rpg=lref('pg'),c6=rpg.on('value',function(s){var v=s.val()||{};for(var k in v)if(v[k])FBM.pg[k]=v[k].n;},function(){});
+    FBM.offs.push(function(){ri.off('value',c1);rc.off('child_added',c2);rpg.off('value',c6);});
   }else{
     var p=G.playerHero;G.waveTimer=1e9;G.camps=[];
     p.attack=function(){FBM.atk=1;};
-    p.useSkill=function(i,t,a,f){var sk=this.def.skills[i];if(!sk||this.dead||this.skillCd[i]>0||this.mp<sk.cost)return false;
-      sendCmd({k:'s',i:i,a:a==null?null:+(+a).toFixed(3),f:f==null?null:+(+f).toFixed(3),x:r0(G.mouse.wx),y:r0(G.mouse.wy)});return true;};
+    p.useSkill=function(i,t,a,f){var sk=this.def.skills[i];if(!sk||this.dead||this.mp<sk.cost)return false;
+      var nn=performance.now(),held=(FBM.cdHold[i]||0)>nn,fresh=this.skillCd[i]<=0;
+      if(!fresh&&!(held&&nn-(FBM.lcast[i]||0)>380))return false;
+      sendCmd({k:'s',i:i,a:a==null?null:+(+a).toFixed(3),f:f==null?null:+(+f).toFixed(3),x:r0(G.mouse.wx),y:r0(G.mouse.wy)});
+      /* prediksi lokal: cooldown, mana, dan suara langsung terasa tanpa menunggu server */
+      var hold=nn+((FBM.rtt||160)+260);FBM.cdHold[i]=hold;FBM.mpHold=hold;FBM.lcast[i]=nn;
+      if(fresh){this.skillCd[i]=sk.cd;this.mp=Math.max(0,this.mp-sk.cost);FBM.lfx[i]=nn;try{Sfx.skillHero(this.defKey,i,this);}catch(e){}}
+      return true;};
     p.buyItem=function(id){sendCmd({k:'b',id:id});return true;};
     p.useRegen=function(){sendCmd({k:'r'});return true;};
     var sr=lref('snap'),c3=sr.on('value',function(s){var v=s.val();if(v)try{applySnap(JSON.parse(v));}catch(e){liveErr(e);}},liveErr);
-    FBM.offs.push(function(){sr.off('value',c3);});
+    var sf=lref('fast'),c7=sf.on('value',function(s){var v=s.val();if(v)try{applyFast(JSON.parse(v));}catch(e){liveErr(e);}},liveErr);
+    FBM.offs.push(function(){sr.off('value',c3);sf.off('value',c7);});
   }
   notify(FBM.host?'Pertandingan online dimulai! (kamu host)':'Pertandingan online dimulai!','blue');
 }
@@ -3807,20 +3816,27 @@ function packSnap(){
   var O=G.monsters.filter(function(m){return !m.dead;}).map(function(m){if(!m._id)m._id=++FBM.nid;return [m._id,m.type,r0(m.x),r0(m.y),r0(m.hp),r0(m.maxHp),m.side,r0(m.vx),r0(m.vy),+(m.facing||0).toFixed(2)];});
   var P=G.projectiles.slice(0,60).filter(function(p){return !p.dead;}).map(function(p){return [r0(p.x),r0(p.y),r0(p.vx),r0(p.vy),p.color,r0(p.r),G.heroes.indexOf(p.owner),p.owner?p.owner.team:0,p.shape||0,p.kind||0,p.fromTurret?1:0,p.trail?1:0];});
   var ev=FBM.ev.slice(0,40);FBM.ev=[];
-  return JSON.stringify({q:++FBM.seq,t:+G.time.toFixed(1),k:G.kills,H:H,M:M,O:O,T:FBM.T.map(function(t){return t.dead?0:r0(t.hp);}),C:FBM.C.map(function(t){return t.dead?0:r0(t.hp);}),P:P,E:ev,X:packPx(),Z:packL(G.zones,14),Q:packL(G.pending,14),R:packL(G.traps,10),D:G.domes.map(function(d){return [r0(d.x),r0(d.y),r0(d.r),d.team,r1(d.life),d.max];}),w:FBM.win});
+  return JSON.stringify({q:++FBM.seq,t:+G.time.toFixed(1),k:G.kills,H:H,M:M,O:O,T:FBM.T.map(function(t){return t.dead?0:r0(t.hp);}),C:FBM.C.map(function(t){return t.dead?0:r0(t.hp);}),P:P,E:ev,X:packPx(),Z:packL(G.zones,14),Q:packL(G.pending,14),R:packL(G.traps,10),D:G.domes.map(function(d){return [r0(d.x),r0(d.y),r0(d.r),d.team,r1(d.life),d.max];}),w:FBM.win,ht:r0(performance.now())});
+}
+function packFast(){
+  var H=G.heroes.map(function(h){return [r0(h.x),r0(h.y),r0(h.hp),+(h.facing||0).toFixed(2),r0(h.vx),r0(h.vy),h.dead?1:0];});
+  var A={};for(var u in FBM.pg)A[u]=FBM.pg[u];
+  return JSON.stringify({ht:r0(performance.now()),H:H,A:A});
 }
 function syncStruct(L,hp){for(var i=0;i<L.length;i++){var t=L[i];if(!t||t.dead)continue;t.hp=hp[i];if(hp[i]<=0){t.hp=0;t.dead=true;try{t.onDeath();}catch(e){}}}}
 function applySnap(S){
   var i,me=G.playerHero,first=FBM.first;FBM.first=false;
-  G.time=S.t;G.kills=S.k;
+  G.time=S.t;G.kills=S.k;FBM.lastSnapAt=performance.now();FBM.fc=(FBM.fc|0)+1;
   for(i=0;i<S.H.length;i++){try{
     var a=S.H[i],h=G.heroes[i];if(!h)continue;
     var wasDead=h.dead,ik=a[17].join();
-    h._tx=a[0];h._ty=a[1];if(first||(wasDead&&!a[5])){h.x=a[0];h.y=a[1];}
+    var okPos=!((S.ht||0)<(FBM.htPos||0)),tnow=performance.now();
+    if(okPos){FBM.htPos=Math.max(FBM.htPos||0,S.ht||0);h._tx=a[0];h._ty=a[1];h._ta=tnow;if(h===me&&!a[5]&&!first)FBM.recon={x:a[0],y:a[1],at:tnow};}
+    if(first||(wasDead&&!a[5])){h.x=a[0];h.y=a[1];h._tx=a[0];h._ty=a[1];h._ta=tnow;}
     if(h._ik!==ik){h._ik=ik;h.items=[];h.itemBonus={hp:0,mp:0,dmg:0,armor:0,speed:0,hpRegen:0,mpRegen:0,ls:0,crit:0};a[17].forEach(function(id){var it=itemById(id);if(it){h.items.push(it);addItemBonus(h,it);}});}
     h.level=a[6];h.buffT.blue=a[18][0];h.buffT.red=a[18][1];h.buffT.turtle=a[18][2];h.buffT.lord=a[18][3];h.recomputeStats();
-    h.hp=a[2];h.mp=a[3];h.gold=a[7];h.kills=a[8];h.deaths=a[9];h.assists=a[10];h.respawnTimer=a[11];h.stunTime=a[12];h.slowAmt=a[13];h.slowTime=a[13]>0?1:0;
-    h.shield=a[14];h.shieldTime=a[14]>0?1:0;h.recalling=!!a[15];h.skillCd=a[16].slice();h.vx=a[19];h.vy=a[20];h.xp=a[21];h.reflectT=a[22]||0;if(h.defKey==='louise'&&!!a[23]!==!!h.mech){try{louSetForm(h,!!a[23],true);}catch(er){}}
+    h.hp=a[2];h.mp=(h===me&&(FBM.mpHold||0)>performance.now()&&a[3]>h.mp)?h.mp:a[3];h.gold=a[7];h.kills=a[8];h.deaths=a[9];h.assists=a[10];h.respawnTimer=a[11];h.stunTime=a[12];h.slowAmt=a[13];h.slowTime=a[13]>0?1:0;
+    h.shield=a[14];h.shieldTime=a[14]>0?1:0;h.recalling=!!a[15];if(h===me&&FBM.cdHold){var nn=performance.now(),nc=a[16].slice(),ii;for(ii=0;ii<nc.length;ii++)if((FBM.cdHold[ii]||0)>nn&&nc[ii]<h.skillCd[ii])nc[ii]=h.skillCd[ii];h.skillCd=nc;}else h.skillCd=a[16].slice();if(h!==me){h.vx=a[19];h.vy=a[20];}h.xp=a[21];h.reflectT=a[22]||0;if(h.defKey==='louise'&&!!a[23]!==!!h.mech){try{louSetForm(h,!!a[23],true);}catch(er){}}
     if(h!==me)h.facing=a[4];
     if(a[5]&&!wasDead){h.dead=true;spawnBurst(h.x,h.y,TC[h.team].main,30,true);if(h===me){G.deathDetail=false;try{fillDeathCard(h);}catch(e){}}}
     else if(!a[5]&&wasDead){h.dead=false;spawnBurst(h.x,h.y,'#8ccfff',26,true);
@@ -3830,12 +3846,12 @@ function applySnap(S){
   var seen={},LN=['top','mid','bot'],id;
   S.M.forEach(function(a){try{seen[a[0]]=1;var m=FBM.mm[a[0]];
     if(!m){m=new Minion(a[1],LN[a[2]]||'mid');m.x=a[3];m.y=a[4];if(a[7]){m.isLord=true;m.isSuper=false;m.type='lord';m.def=MONSTER_TYPES.lord;m.radius=40;}FBM.mm[a[0]]=m;G.minions.push(m);G.entities.push(m);}
-    m._tx=a[3];m._ty=a[4];m.hp=a[5];m.maxHp=a[6];m.vx=a[8];m.vy=a[9];m.facing=a[10];m.robotLife=a[11]||0;if(a[11]>0){m.isRobot=true;m.radius=18;}if(a[12]){m.isRobot=true;m.louKind=a[12]===2?'big':'army';m.radius=a[12]===2?26:12;}}catch(er){}});
+    m._tx=a[3];m._ty=a[4];m._ta=performance.now();m.hp=a[5];m.maxHp=a[6];m.vx=a[8];m.vy=a[9];m.facing=a[10];m.robotLife=a[11]||0;if(a[11]>0){m.isRobot=true;m.radius=18;}if(a[12]){m.isRobot=true;m.louKind=a[12]===2?'big':'army';m.radius=a[12]===2?26:12;}}catch(er){}});
   for(id in FBM.mm)if(!seen[id]){FBM.mm[id].dead=true;delete FBM.mm[id];}
   seen={};
   S.O.forEach(function(a){try{seen[a[0]]=1;var m=FBM.mo[a[0]];
     if(!m){m=new Monster(a[1],a[2],a[3],a[6]);FBM.mo[a[0]]=m;G.monsters.push(m);G.entities.push(m);}
-    m._tx=a[2];m._ty=a[3];m.hp=a[4];m.maxHp=a[5];m.vx=a[7];m.vy=a[8];m.facing=a[9];}catch(er){}});
+    m._tx=a[2];m._ty=a[3];m._ta=performance.now();m.hp=a[4];m.maxHp=a[5];m.vx=a[7];m.vy=a[8];m.facing=a[9];}catch(er){}});
   for(id in FBM.mo)if(!seen[id]){FBM.mo[id].dead=true;delete FBM.mo[id];}
   G.monsters=G.monsters.filter(function(m){return !m.dead;});
   syncStruct(FBM.T,S.T);syncStruct(FBM.C,S.C);
@@ -3847,19 +3863,58 @@ function applySnap(S){
   (S.X||[]).forEach(function(o){G.particles.push(o);});
   G.projectiles=(S.P||[]).map(function(a){
     var o=a[6]>=0?G.heroes[a[6]]:null;if(!o)o={team:a[7],x:a[0],y:a[1],defKey:'',def:{accent:a[4]},radius:12};
-    var p=new Projectile(a[0],a[1],a[2],a[3],700,o,a[4],a[5],0,a[9]||'single',null,!!a[10],!!a[11]);if(a[8])p.shape=a[8];return p;});
+    var p=new Projectile(a[0],a[1],a[2],a[3],700,o,a[4],a[5],0,a[9]||'single',null,!!a[10],!!a[11]);{var adv=Math.min(0.12,(FBM.rtt||0)/2000);p.x+=p.vx*adv;p.y+=p.vy*adv;}if(a[8])p.shape=a[8];return p;});
   (S.E||[]).forEach(function(v){try{
     if(v[0]==='n'){notify(v[1],v[2]);return;}
     if(v[0]==='k'){feedKill(v[1],v[2]);return;}
     var h=G.heroes[v[1]];if(!h)return;
-    if(v[0]==='f'){h.facing=v[3];try{Sfx.skillHero(h.defKey,v[2],h);}catch(e){}}
+    if(v[0]==='f'){if(h===me&&performance.now()-((FBM.lfx&&FBM.lfx[v[2]])||0)<1500){}else{h.facing=v[3];try{Sfx.skillHero(h.defKey,v[2],h);}catch(e){}}}
     else if(v[0]==='a'){h.atkT0=performance.now();h.atkMelee=!!MELEE_STYLE[h.defKey]||(!RANGED_SHAPE[h.defKey]&&h.def.range<150);h.swingDir=-(h.swingDir||1);try{Sfx.atkHero(h.defKey,h);}catch(e){}}
   }catch(e){}});
   try{updateScoreUI();updateGoldUI();}catch(e){}
   if(S.w!=null&&!G.ended)endGame(S.w);
 }
+function applyFast(S){
+  var now=performance.now(),me=G.playerHero,i;
+  FBM.lastSnapAt=now;FBM.fc=(FBM.fc|0)+1;
+  if(!G.running||G.ended||!S||!S.H)return;
+  var an=(S.A&&FB.user)?S.A[FB.user.uid]:null;
+  if(an!=null&&FBM.pgSent&&FBM.pgSent[an]!==undefined){
+    var rt=Math.max(4,now-FBM.pgSent[an]-20);delete FBM.pgSent[an];
+    FBM.rtt=FBM.rtt==null?rt:FBM.rtt*0.7+rt*0.3;
+    FBM.rttMax=Math.max(rt,(FBM.rttMax||0)*0.97);
+  }
+  if((S.ht||0)<(FBM.htPos||0))return;
+  FBM.htPos=S.ht||FBM.htPos;
+  for(i=0;i<S.H.length;i++){
+    var a=S.H[i],h=G.heroes[i];if(!h||a[6]||h.dead)continue;
+    h._tx=a[0];h._ty=a[1];h._ta=now;h.hp=a[2];
+    if(h===me)FBM.recon={x:a[0],y:a[1],at:now};
+    else{h.facing=a[3];h.vx=a[4];h.vy=a[5];}
+  }
+}
+function clientReconcile(e,dt,now){
+  var H=FBM.hist=FBM.hist||[],pc=FBM.pc,R=FBM.recon,j;
+  H.push({t:now,x:e.x,y:e.y});
+  while(H.length>180||(H.length>1&&now-H[0].t>3000))H.shift();
+  if(R){
+    FBM.recon=null;
+    /* posisi host pada snapshot ini = posisi prediksi kita sekitar satu RTT yang lalu */
+    var tq=R.at-(FBM.rtt==null?150:FBM.rtt),hp=H[0];
+    for(j=H.length-1;j>=0;j--){if(H[j].t<=tq){hp=H[j];break;}}
+    var ex=R.x-hp.x-(pc?pc.x:0),ey=R.y-hp.y-(pc?pc.y:0),el=Math.hypot(ex,ey);
+    if(el>260){e.x=R.x;e.y=R.y;H.length=0;FBM.pc=pc=null;}
+    else if(el>7){pc=pc||{x:0,y:0};pc.x+=ex*0.5;pc.y+=ey*0.5;FBM.pc=pc;}
+  }
+  if(pc){
+    var f=1-Math.exp(-dt*12),cx=pc.x*f,cy=pc.y*f,k;
+    e.x+=cx;e.y+=cy;pc.x-=cx;pc.y-=cy;
+    for(k=0;k<H.length;k++){H[k].x+=cx;H[k].y+=cy;}
+    if(Math.abs(pc.x)<0.3&&Math.abs(pc.y)<0.3)FBM.pc=null;
+  }
+}
 function clientTick(dt){
-  var me=G.playerHero,k=Math.min(1,dt*12),L=[G.heroes,G.minions,G.monsters],a,i,e,dx,dy;
+  var me=G.playerHero,now=performance.now(),L=[G.heroes,G.minions,G.monsters],a,i,e,dx,dy,kk=1-Math.exp(-dt*16);
   for(a=0;a<3;a++)for(i=0;i<L[a].length;i++){
     e=L[a][i];if(e._tx===undefined||e.dead)continue;
     if(e===me){
@@ -3868,12 +3923,13 @@ function clientTick(dt){
       if(e.recalling&&(q.mx||q.my)){e.recalling=false;}
       if(e.recalling){e.vx=0;e.vy=0;}else{e.vx=lerp(e.vx,q.mx*sp,Math.min(1,dt*14));e.vy=lerp(e.vy,q.my*sp,Math.min(1,dt*14));}
       e.applyMovement(dt);
-      dx=e._tx-e.x;dy=e._ty-e.y;
-      if(dx*dx+dy*dy>22500){e.x=e._tx;e.y=e._ty;}else{var kk=Math.min(1,dt*5);e.x+=dx*kk;e.y+=dy*kk;}
+      clientReconcile(e,dt,now);
       var fa1=inputFaceAngle(e);if(fa1!==null)e.facing=faceStep(e.facing,fa1,dt,24);
     }else{
-      dx=e._tx-e.x;dy=e._ty-e.y;
-      if(dx*dx+dy*dy>90000){e.x=e._tx;e.y=e._ty;}else{e.x+=dx*k;e.y+=dy*k;}
+      /* dead-reckoning: tebak posisi sekarang dari kecepatan terakhir supaya tidak ketinggalan snapshot */
+      var age=Math.min(0.2,(now-(e._ta||now))/1000),tx=e._tx+(e.vx||0)*age,ty=e._ty+(e.vy||0)*age;
+      dx=tx-e.x;dy=ty-e.y;
+      if(dx*dx+dy*dy>90000){e.x=tx;e.y=ty;}else{e.x+=dx*kk;e.y+=dy*kk;}
     }
     e.anim+=dt*(Math.abs(e.vx||0)+Math.abs(e.vy||0))*0.01;
   }
@@ -3913,8 +3969,16 @@ function installOnlineHooks(){
   },50);
   setInterval(function(){
     if(FBM.mode!=='host'||!G.running||!FB.room)return;
-    lref('snap').set(packSnap()).catch(liveErr);
-  },125);
+    if((FBM.snapInf|0)>=3)return;   /* jangan menumpuk antrean tulis: ini penyebab lag menumpuk di klien */
+    FBM.snapInf=(FBM.snapInf|0)+1;var t0=performance.now();
+    lref('snap').set(packSnap()).then(function(){FBM.snapInf=Math.max(0,FBM.snapInf-1);var x=performance.now()-t0;FBM.hostRtt=FBM.hostRtt==null?x:FBM.hostRtt*0.8+x*0.2;},function(e){FBM.snapInf=Math.max(0,FBM.snapInf-1);liveErr(e);});
+  },100);
+  setInterval(function(){
+    if(FBM.mode!=='host'||!G.running||!FB.room)return;
+    if((FBM.fastInf|0)>=3)return;
+    FBM.fastInf=(FBM.fastInf|0)+1;
+    lref('fast').set(packFast()).then(function(){FBM.fastInf=Math.max(0,FBM.fastInf-1);},function(e){FBM.fastInf=Math.max(0,FBM.fastInf-1);liveErr(e);});
+  },50);
   setInterval(function(){
     try{
       if(FBM.mode!=='client'||!G.running||G.ended||!FB.room||!G.playerHero)return;
@@ -3922,9 +3986,17 @@ function installOnlineHooks(){
       var fa=inputFaceAngle(me);if(fa===null||!isFinite(fa))fa=fin(me.facing,0);fa=+fa.toFixed(1);
       FBM.atk=0;
       var mx=+fin(q.mx).toFixed(2),my=+fin(q.my).toFixed(2),tm=G.settings.targetMode==='low'?'low':'near',key=[mx,my,att,fa,tm].join();
-      if(key!==FBM.lk||now-FBM.ls>400){FBM.lk=key;FBM.ls=now;FBM.n++;lref('in/'+FB.user.uid).set({mx:mx,my:my,att:att,fa:fa,tm:tm,n:FBM.n}).catch(liveErr);}
+      if(key!==FBM.lk||now-FBM.ls>250){FBM.lk=key;FBM.ls=now;FBM.n++;lref('in/'+FB.user.uid).set({mx:mx,my:my,att:att,fa:fa,tm:tm,n:FBM.n}).catch(liveErr);}
     }catch(e){liveErr(e);}
-  },80);
+  },40);
+  setInterval(function(){
+    try{
+      if(FBM.mode!=='client'||!G.running||G.ended||!FB.room||!FB.user)return;
+      FBM.pgN=(FBM.pgN|0)+1;FBM.pgSent=FBM.pgSent||{};FBM.pgSent[FBM.pgN]=performance.now();
+      var ks=Object.keys(FBM.pgSent);if(ks.length>14)delete FBM.pgSent[ks[0]];
+      lref('pg/'+FB.user.uid).set({n:FBM.pgN}).catch(function(){});
+    }catch(e){}
+  },700);
 }
 
 
@@ -4054,7 +4126,7 @@ function startRoom(){
   rs.ids.forEach(function(id){var r=rs.role[id],k=rs.hero[id],sid=ms[id].skin;sk.b[r]=(sid&&getSkins(k).some(function(s){return s.id===sid;}))?sid:'base';});
   for(i=0;i<5;i++){if(teamComp[i]&&!sk.b[i])sk.b[i]=randomSkinId(teamComp[i]);if(enemyComp[i])sk.r[i]=randomSkinId(enemyComp[i]);}
   var comp=JSON.stringify({b:teamComp,r:enemyComp,roles:roles,sk:sk});
-  lref().remove().catch(function(){}).then(function(){return FB.db.ref('rooms/'+FB.room.code).update({comp:comp,state:'playing'});}).catch(liveErr);
+  lref().remove().catch(function(){}).then(function(){return FB.db.ref('rooms/'+FB.room.code).update((window.NETX&&NETX.startPayload)?NETX.startPayload(comp):{comp:comp,state:'playing'});}).catch(liveErr);
 }
 function leaveRoom(silent){
   var r=FB.room;if(FB.unsub){FB.unsub();FB.unsub=null;}FB.room=null;FB.started=false;FBM.lobbyOpen=false;
@@ -8709,7 +8781,7 @@ function mmHostStart(){
   mmStatus('Pertandingan ditemukan! Menyiapkan...');
   FB.db.ref(MMQ+'/open/'+code).remove().catch(function(){});
   FB.db.ref('rooms/'+code+'/live').remove().catch(function(){}).then(function(){
-    return FB.db.ref('rooms/'+code).update({comp:JSON.stringify(comp),state:'playing'});
+    return FB.db.ref('rooms/'+code).update((window.NETX&&NETX.startPayload)?NETX.startPayload(comp):{comp:JSON.stringify(comp),state:'playing'});
   }).catch(function(e){MM.starting=false;liveErr(e);});
 }
 function mmMergeScan(){
@@ -9171,14 +9243,14 @@ function cuStart(){
   if(!FB.room||FB.room.data.host!==FB.user.uid||FB.room.data.state!=='lobby')return;
   var comp;try{comp=mmBuildComp(FB.room.data.members||{});delete comp.mm;}catch(e){notify('Gagal menyusun tim: '+e.message,'red');return;}
   var code=FB.room.code;try{Sfx.ui();}catch(e){}
-  FB.db.ref('rooms/'+code+'/live').remove().catch(function(){}).then(function(){return FB.db.ref('rooms/'+code).update({comp:JSON.stringify(comp),state:'playing'});}).catch(liveErr);
+  FB.db.ref('rooms/'+code+'/live').remove().catch(function(){}).then(function(){return FB.db.ref('rooms/'+code).update((window.NETX&&NETX.startPayload)?NETX.startPayload(comp):{comp:JSON.stringify(comp),state:'playing'});}).catch(liveErr);
 }
 var _ol3=olRender;
 olRender=function(){
   _ol3();
   var b=document.getElementById('olBody');if(!b||!FB.ready||!FB.user)return;
   b.insertAdjacentHTML('beforeend','<div style="margin-top:16px;border-top:1px solid rgba(110,150,240,.25);padding-top:12px"><div style="font-size:11px;letter-spacing:.22em;color:#8ea2c8;font-weight:800;margin-bottom:8px">ROOM CUSTOM</div>'
-    +'<div style="font-size:12px;color:#aebddd;margin-bottom:8px">Buat room, bagikan kode ke teman, pilih tim Biru/Merah dan lane. Slot kosong diisi bot.</div>'
+    +'<div style="font-size:12px;color:#aebddd;margin-bottom:8px">Buat room, bagikan kode ke teman, pilih tim Biru/Merah dan lane. Slot kosong dibiarkan kosong; host bebas menambah bot AI per slot.</div>'
     +'<button class="btn" style="width:100%" onclick="cuCreate()">BUAT ROOM CUSTOM</button>'
     +'<div style="display:flex;gap:8px;margin-top:8px"><input id="cuJoinCode" maxlength="5" placeholder="KODE ROOM" style="flex:1;background:#131c34;color:#fff;border:1px solid rgba(110,150,240,.35);border-radius:8px;padding:10px;font-size:16px;letter-spacing:.3em;text-align:center;text-transform:uppercase"><button class="btn primary" onclick="cuJoin()">GABUNG</button></div></div>');
 };
@@ -9559,6 +9631,560 @@ HV.loop=function(){
   cv.addEventListener('touchstart',function(e){x0=e.changedTouches[0].clientX;},{passive:true});
   cv.addEventListener('touchend',function(e){if(x0===null)return;var d=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(d)>60)HV.step(d<0?1:-1);},{passive:true});})();
 })();
+</script>
+<style>
+/* ===== v12: indikator jaringan, teman & undangan, room custom bebas ===== */
+#netInd{position:absolute;top:6px;left:calc(50% + 120px);height:30px;display:none;align-items:center;gap:6px;padding:0 9px;border-radius:9px;background:rgba(8,14,28,.78);border:1px solid rgba(110,150,240,.3);backdrop-filter:blur(6px);pointer-events:none;color:#c4d6ff;z-index:5;--nc:#8ea2c8}
+#netInd .nb{display:flex;align-items:flex-end;gap:2px;height:14px}
+#netInd .nb i{display:block;width:3px;border-radius:1px;background:rgba(255,255,255,.2)}
+#netInd .nb i:nth-child(1){height:4px}#netInd .nb i:nth-child(2){height:7px}#netInd .nb i:nth-child(3){height:10px}#netInd .nb i:nth-child(4){height:14px}
+#netInd .nb i.on{background:var(--nc)}
+#netInd.q4{--nc:#3ddc84}#netInd.q3{--nc:#b6e03d}#netInd.q2{--nc:#ffb02e}#netInd.q1{--nc:#ff6a3d}#netInd.q0{--nc:#ff3b3b}#netInd.qw{--nc:#8ea2c8}
+#netInd .nt{display:flex;flex-direction:column;align-items:flex-start;line-height:1;min-width:30px}
+#netInd .nt b{font-size:12px;font-weight:900;color:var(--nc);letter-spacing:.02em}
+#netInd .nt small{font-size:8px;font-weight:800;letter-spacing:.1em;color:#8ea2c8;margin-top:2px}
+#netInd.q0 .nt small,#netInd.q1 .nt small{color:var(--nc)}
+
+#frFab{position:fixed;z-index:120;display:none;align-items:center;gap:6px;top:calc(10px + env(safe-area-inset-top,0px));right:calc(10px + env(safe-area-inset-right,0px));height:36px;padding:0 12px;border-radius:18px;border:1px solid #6fa8ff;background:linear-gradient(180deg,#2a4fae,#1b3374);color:#fff;font:800 11px/1 inherit;letter-spacing:.1em;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.45)}
+#frFab:active{transform:scale(.96)}
+#frFab i{position:absolute;top:-6px;right:-4px;min-width:17px;height:17px;border-radius:9px;background:#ff3b3b;color:#fff;font:800 10px/17px inherit;font-style:normal;text-align:center;align-items:center;justify-content:center;padding:0 4px}
+#frModal{position:fixed;inset:0;z-index:210;display:none;align-items:center;justify-content:center;background:rgba(3,6,14,.72);padding:calc(6px + env(safe-area-inset-top,0px)) 6px 6px}
+#frModal.on{display:flex}
+.fr-panel{width:min(560px,100%);max-height:100%;display:flex;flex-direction:column;background:linear-gradient(180deg,#141d36,#0d1426);border:1px solid rgba(232,195,106,.45);border-radius:14px;overflow:hidden;color:#dfe8ff}
+.fr-head{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;font-size:13px;letter-spacing:.22em;color:#ffd76e}
+.fr-x{background:#7a2323;color:#fff;border:0;border-radius:8px;width:30px;height:30px;font-size:13px;cursor:pointer}
+.fr-tabs{display:flex;gap:4px;padding:0 10px 6px}
+.fr-tabs button{flex:1;padding:8px 4px;border-radius:8px;border:1px solid rgba(110,150,240,.3);background:#131c34;color:#9fb2d8;font:800 11px/1 inherit;cursor:pointer}
+.fr-tabs button.on{background:#2a4fae;color:#fff;border-color:#6fa8ff}
+.fr-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 10px 12px;min-height:90px}
+.fr-row{display:flex;align-items:center;gap:8px;padding:7px 8px;margin-bottom:5px;background:#131c34;border:1px solid rgba(110,150,240,.2);border-radius:10px}
+.fr-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;color:#fff;flex-shrink:0}
+.fr-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.fr-info a{color:#cfe0ff;font-weight:800;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.fr-info small{font-size:10px;color:#8ea2c8;display:flex;align-items:center;gap:5px}
+.fr-info .d{display:inline-block;width:7px;height:7px;border-radius:50%;background:#58627d}
+.fr-info .d.on{background:#3ddc84}.fr-info .d.room{background:#ffb02e}.fr-info .d.game{background:#5aa8ff}
+.fr-btn{padding:7px 10px;border-radius:8px;border:1px solid rgba(110,150,240,.4);background:#1a2650;color:#dfe8ff;font:800 10.5px/1 inherit;letter-spacing:.06em;cursor:pointer;flex-shrink:0}
+.fr-btn.pri{background:#c8991c;border-color:#ffd76e;color:#fff}
+.fr-btn.dng{background:#7a2323;border-color:#c25a5a;color:#fff}
+.fr-btn[disabled]{opacity:.38;cursor:default}
+.fr-empty{padding:18px 8px;text-align:center;color:#8ea2c8;font-size:12px}
+.fr-msg{margin:4px 0 8px;padding:7px 10px;border-radius:8px;background:rgba(80,130,230,.16);border:1px solid rgba(110,150,240,.35);font-size:12px;color:#cfe0ff}
+.fr-err{margin:4px 0 8px;padding:8px 10px;border-radius:8px;background:rgba(220,60,60,.15);border:1px solid rgba(220,90,90,.5);font-size:12px;color:#ffc9c9}
+.fr-room{margin:2px 0 8px;font-size:11px;color:#aebddd}.fr-room b{color:#ffd76e;letter-spacing:.2em}
+.fr-sub{margin:10px 0 6px;font-size:10px;letter-spacing:.2em;color:#8ea2c8;font-weight:800}
+.fr-mine{display:flex;align-items:center;gap:10px;margin:6px 0 10px;padding:9px 12px;background:#131c34;border-radius:10px;border:1px solid rgba(232,195,106,.35);font-size:11px;color:#8ea2c8}
+.fr-mine b{flex:1;font-size:20px;letter-spacing:.14em;color:#ffd76e}
+.fr-add{display:flex;gap:8px}
+.fr-add input{flex:1;min-width:0;background:#131c34;color:#fff;border:1px solid rgba(110,150,240,.35);border-radius:8px;padding:10px;font-size:15px;letter-spacing:.12em}
+.fr-hint{margin-top:10px;font-size:11px;line-height:1.5;color:#8ea2c8}
+#frInv{position:fixed;z-index:230;left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.fr-inv{pointer-events:auto;min-width:250px;max-width:92vw;padding:10px 14px;border-radius:12px;background:rgba(14,22,44,.97);border:1px solid #ffd76e;box-shadow:0 8px 30px rgba(0,0,0,.6);color:#fff;font-size:13px;animation:frIn .25s ease}
+.fr-inv .t{margin-bottom:8px;text-align:center}.fr-inv .t b{color:#ffd76e}
+.fr-inv .b{display:flex;gap:8px;align-items:center;justify-content:center}
+.fr-inv button{padding:8px 16px;border-radius:8px;border:0;font:800 12px/1 inherit;cursor:pointer}
+.fr-inv .ok{background:#2e9d57;color:#fff}.fr-inv .no{background:#7a2323;color:#fff}
+.fr-inv .tm{font-size:11px;color:#8ea2c8;min-width:20px;text-align:center}
+@keyframes frIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+#frNote{position:fixed;z-index:240;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;pointer-events:none;padding:9px 16px;border-radius:10px;background:rgba(14,22,44,.96);border:1px solid rgba(110,150,240,.5);color:#fff;font-size:12px;font-weight:700;transition:.25s}
+#frNote.on{opacity:1;transform:translate(-50%,0)}
+.cu-s.ai{background:#16284a;border-color:rgba(110,170,255,.35)}
+.cu-s.ai .nm{color:#9ec6ff}
+.cu-s.empty .mv{font-size:9px;color:#586a92;letter-spacing:.08em;margin-left:auto}
+.cu-s .aiadd{background:#1e4a8a;color:#fff;border:1px solid #6fa8ff;border-radius:6px;padding:3px 8px;font:800 10px/1 inherit;cursor:pointer;flex-shrink:0}
+#cuTools{display:flex;align-items:center;gap:6px;margin-top:8px;flex-shrink:0;flex-wrap:wrap}
+#cuTools:empty{display:none}
+#cuTools span{font-size:10px;letter-spacing:.2em;color:#8ea2c8;font-weight:800}
+#cuTools .btn{padding:6px 10px;font-size:11px}
+.cu-foot .btn{white-space:nowrap}
+</style>
+<script>
+/* =====================================================================
+   v12: JARINGAN (ping + indikator + pilih host terbaik), TEMAN & UNDANGAN
+   (ala Mobile Legends), ROOM CUSTOM BEBAS (AI opsional per slot)
+   ===================================================================== */
+(function(){
+var $=function(i){return document.getElementById(i);};
+function TS(){try{return firebase.database.ServerValue.TIMESTAMP;}catch(e){return Date.now();}}
+function myName(){try{return userName();}catch(e){return 'Pemain';}}
+function myPid(){try{return String(PROFILE.id||'');}catch(e){return '';}}
+function dbOK(){return !!(FB&&FB.ready&&FB.db&&FB.user);}
+function tryUI(){try{Sfx.ui();}catch(e){}}
+function note(t){
+  var el=$('frNote');if(!el){el=document.createElement('div');el.id='frNote';document.body.appendChild(el);}
+  el.textContent=t;el.classList.add('on');clearTimeout(note.t);note.t=setTimeout(function(){el.classList.remove('on');},2800);
+}
+
+/* ================================================================
+   1. JARINGAN: presence + latensi + indikator
+   ================================================================ */
+var NX=window.NETX={lat:{},fbRtt:null,connected:true,uid:null,state:'menu',lastPres:0,latRefs:{},ptimer:null,conn:null,presRef:null,err:null,pf:{t:0,c:0,r:0}};
+
+function nxState(){
+  try{if((FBM.mode==='host'||FBM.mode==='client')&&G.running&&!G.ended)return 'game';}catch(e){}
+  return FB.room?'room':'menu';
+}
+function nxStart(uid){
+  nxStop();NX.uid=uid;
+  var ref=FB.db.ref('presence/'+uid);NX.presRef=ref;
+  var cref=FB.db.ref('.info/connected');
+  var cb=cref.on('value',function(s){
+    NX.connected=(s.val()===true);
+    if(NX.connected){try{ref.onDisconnect().update({on:0,st:'off',t:TS()});}catch(e){}nxBeat(true);}
+  });
+  NX.conn=function(){cref.off('value',cb);};
+  NX.ptimer=setInterval(function(){nxBeat(false);nxWatchLat();},3000);
+}
+function nxStop(){
+  if(NX.ptimer){clearInterval(NX.ptimer);NX.ptimer=null;}
+  if(NX.conn){try{NX.conn();}catch(e){}NX.conn=null;}
+  try{if(NX.presRef){NX.presRef.update({on:0,st:'off',t:TS()});NX.presRef.onDisconnect().cancel();}}catch(e){}
+  NX.presRef=null;NX.uid=null;
+  Object.keys(NX.latRefs).forEach(function(k){try{NX.latRefs[k].r.off('value',NX.latRefs[k].c);}catch(e){}});NX.latRefs={};NX.lat={};
+}
+function nxBeat(force){
+  if(!NX.presRef||!dbOK()||!NX.connected)return;
+  var st=nxState(),now=Date.now(),every=(st==='menu')?20000:3000;
+  if(!force&&st===NX.state&&now-NX.lastPres<every)return;
+  NX.state=st;NX.lastPres=now;
+  var t0=performance.now(),d={on:1,st:st,t:TS()};
+  if(NX.fbRtt!=null)d.lat=Math.round(NX.fbRtt);
+  NX.presRef.update(d).then(function(){var r=performance.now()-t0;NX.fbRtt=NX.fbRtt==null?r:NX.fbRtt*0.6+r*0.4;NX.err=null;},function(e){NX.err=e;});
+}
+/* host memantau latensi anggota room supaya bisa memilih host dengan koneksi terbaik saat mulai */
+function nxWatchLat(){
+  if(!dbOK()||!FB.room||!FB.room.data||FB.room.data.state!=='lobby'){return;}
+  var ms=FB.room.data.members||{},ids=Object.keys(ms),me=FB.user.uid;
+  ids.forEach(function(id){
+    if(id===me||NX.latRefs[id])return;
+    var r=FB.db.ref('presence/'+id+'/lat'),c=r.on('value',function(s){var v=s.val();if(typeof v==='number')NX.lat[id]=v;},function(){});
+    NX.latRefs[id]={r:r,c:c};
+  });
+  Object.keys(NX.latRefs).forEach(function(id){if(!ms[id]){try{NX.latRefs[id].r.off('value',NX.latRefs[id].c);}catch(e){}delete NX.latRefs[id];delete NX.lat[id];}});
+}
+NX.startPayload=function(comp){
+  var cs=(typeof comp==='string')?comp:JSON.stringify(comp),o={comp:cs,state:'playing'};
+  try{
+    var c=(typeof comp==='string')?JSON.parse(comp):comp,me=FB.user.uid,cur=FB.room.data.host;
+    if(cur!==me||NX.fbRtt==null)return o;
+    var best=me,bl=NX.fbRtt,u,l;
+    Object.keys(c.roles||{}).forEach(function(id){
+      l=(id===me)?NX.fbRtt:NX.lat[id];
+      if(typeof l==='number'&&l>0&&l<bl){best=id;bl=l;}
+    });
+    /* pindah host hanya jika selisihnya jelas (hindari pindah-pindah tanpa alasan) */
+    if(best!==me&&bl<NX.fbRtt-60&&bl<NX.fbRtt*0.7){o.host=best;o.hostPick=Math.round(bl);}
+  }catch(e){}
+  return o;
+};
+/* indikator */
+function nxLevel(ms){return ms==null?0:(ms<=60?4:(ms<=110?3:(ms<=180?2:1)));}
+var _rate={t:performance.now(),c:0,v:20};
+function nxIndicator(){
+  var el=$('netInd');if(!el)return;
+  var on=false;try{on=(FBM.mode==='host'||FBM.mode==='client')&&G.running&&!G.ended;}catch(e){}
+  if(!on){if(el.style.display!=='none')el.style.display='none';return;}
+  el.style.display='flex';
+  var tb=$('topBar'),hud=$('hud');
+  if(tb&&hud){var r=tb.getBoundingClientRect(),hr=hud.getBoundingClientRect();el.style.left=Math.round(r.right-hr.left+6)+'px';}
+  var now=performance.now(),ms=null,lv,lb='ms',host=(FBM.mode==='host'),off=(NX.connected===false)||(navigator.onLine===false);
+  if(now-_rate.t>=2000){_rate.v=((FBM.fc|0)-_rate.c)/((now-_rate.t)/1000);_rate.c=FBM.fc|0;_rate.t=now;}
+  if(host){ms=FBM.hostRtt!=null?FBM.hostRtt:NX.fbRtt;lb='HOST';}
+  else{ms=FBM.rtt;}
+  lv=nxLevel(ms);
+  if(!host){
+    var gap=now-(FBM.lastSnapAt||now);
+    if(gap>3500){lv=0;lb='PUTUS';}
+    else if(gap>1300){lv=Math.min(lv||1,1);lb='LAG';}
+    else if(_rate.v<9&&lv>1){lv--;}
+  }
+  if(off){lv=0;lb='OFFLINE';ms=null;}
+  var waiting=(lv===0&&lb==='ms');   /* belum ada sampel ping */
+  el.className=waiting?'qw':'q'+lv;
+  var m=$('netMs'),l=$('netLb');
+  if(m)m.textContent=(ms==null||(lv===0&&!waiting))?'--':String(Math.round(ms));
+  if(l)l.textContent=lb;
+  var bars=el.querySelectorAll('.nb i');
+  for(var i=0;i<bars.length;i++)bars[i].className=(i<lv)?'on':'';
+}
+setInterval(nxIndicator,500);
+
+/* ================================================================
+   2. TEMAN & UNDANGAN
+   ================================================================ */
+var FR={uid:null,friends:{},req:{},pres:{},presRefs:{},refs:[],tab:'list',msg:'',open:false,err:null,loaded:false,invCd:{},names:{},pendingInv:[],seenReq:null};
+
+function frInvitable(){
+  var r=FB&&FB.room;return !!(r&&r.data&&r.data.state==='lobby'&&!r.data.mm);
+}
+function frStart(uid){
+  frStop();FR.uid=uid;FR.err=null;
+  var db=FB.db;
+  function er(e){FR.err=fbErr(e);frRefresh();}
+  var rf=db.ref('friends/'+uid),cf=rf.on('value',function(s){
+    FR.friends=s.val()||{};FR.loaded=true;frSyncPres();frNames();frFlushInv();frBadge();frRefresh();
+  },er);
+  FR.refs.push(function(){rf.off('value',cf);});
+  var rq=db.ref('friendReq/'+uid),cq=rq.on('value',function(s){
+    var v=s.val()||{};
+    if(FR.seenReq){Object.keys(v).forEach(function(k){if(!FR.seenReq[k]){tryUI();note((v[k].n||'Seseorang')+' mengirim permintaan pertemanan');}});}
+    FR.seenReq={};Object.keys(v).forEach(function(k){FR.seenReq[k]=1;});
+    FR.req=v;frBadge();frRefresh();
+  },er);
+  FR.refs.push(function(){rq.off('value',cq);});
+  var ri=db.ref('invites/'+uid).limitToLast(5),ci=ri.on('child_added',function(s){frInviteIn(s.key,s.val());},er);
+  FR.refs.push(function(){ri.off('child_added',ci);});
+}
+function frStop(){
+  FR.refs.forEach(function(f){try{f();}catch(e){}});FR.refs=[];
+  Object.keys(FR.presRefs).forEach(function(k){try{FR.presRefs[k].r.off('value',FR.presRefs[k].c);}catch(e){}});FR.presRefs={};
+  FR.uid=null;FR.friends={};FR.req={};FR.pres={};FR.loaded=false;FR.seenReq=null;frBadge();
+}
+function frSyncPres(){
+  var ids=Object.keys(FR.friends);
+  ids.forEach(function(id){
+    if(FR.presRefs[id])return;
+    var r=FB.db.ref('presence/'+id),c=r.on('value',function(s){FR.pres[id]=s.val()||null;frRefreshSoft();},function(){});
+    FR.presRefs[id]={r:r,c:c};
+  });
+  Object.keys(FR.presRefs).forEach(function(id){if(!FR.friends[id]){try{FR.presRefs[id].r.off('value',FR.presRefs[id].c);}catch(e){}delete FR.presRefs[id];delete FR.pres[id];}});
+}
+function frNames(){
+  Object.keys(FR.friends).forEach(function(id){
+    if(FR.names[id]!==undefined)return;FR.names[id]=null;
+    FB.db.ref('profiles/'+id+'/name').once('value').then(function(s){var v=s.val();if(typeof v==='string'&&v){FR.names[id]=v;frRefreshSoft();}},function(){});
+  });
+}
+function frName(id,f){return FR.names[id]||(f&&f.n)||'Pemain';}
+function frStatus(id){
+  var p=FR.pres[id];if(!p||!p.on)return {k:'off',t:'Offline'};
+  if(p.st==='game')return {k:'game',t:'Bertanding'};
+  if(p.st==='room')return {k:'room',t:'Di room'};
+  return {k:'on',t:'Online'};
+}
+function frBadge(){
+  var n=Object.keys(FR.req).length,b=$('frBadge');
+  if(b){b.textContent=n;b.style.display=n?'flex':'none';}
+}
+var _rst=0;
+function frRefreshSoft(){if(!FR.open)return;clearTimeout(_rst);_rst=setTimeout(frRender,150);}
+function frRefresh(){if(FR.open)frRender();}
+
+/* --- aksi --- */
+function frSearchAdd(){
+  var el=$('frId'),v=((el&&el.value)||'').replace(/\D/g,'');
+  if(!v){FR.msg='Masukkan ID pemain (angka).';return frRender();}
+  if(v===myPid()){FR.msg='Itu ID kamu sendiri.';return frRender();}
+  if(!dbOK()){FR.msg='Masuk dulu dan sambungkan internet.';return frRender();}
+  FR.msg='Mencari...';frRender();
+  withTimeout(FB.db.ref('profiles').orderByChild('id').equalTo(v).limitToFirst(1).once('value'),12000).then(function(s){
+    var o=s.val();if(!o){FR.msg='ID tidak ditemukan.';return frRender();}
+    var uid=Object.keys(o)[0];frRequest(uid,o[uid]&&o[uid].name);
+  }).catch(function(e){FR.msg='Gagal mencari: '+fbErr(e);frRender();});
+}
+function frRequest(uid,name){
+  if(!dbOK())return;var me=FB.user.uid;
+  if(uid===me){FR.msg='Itu kamu sendiri.';return frRender();}
+  if(FR.friends[uid]){FR.msg=(name||'Pemain')+' sudah menjadi temanmu.';return frRender();}
+  if(FR.req[uid]){return frAccept(uid);}
+  FB.db.ref('friendReq/'+uid+'/'+me).set({n:myName(),id:myPid(),t:TS()}).then(function(){FR.msg='Permintaan dikirim ke '+(name||'pemain')+'.';tryUI();frRender();}).catch(function(e){FR.msg='Gagal mengirim: '+fbErr(e);frRender();});
+}
+function frAccept(from){
+  if(!dbOK())return;var me=FB.user.uid,r=FR.req[from]||{},u={};
+  u['friends/'+me+'/'+from]={n:r.n||'Pemain',id:r.id||'',t:TS()};
+  u['friends/'+from+'/'+me]={n:myName(),id:myPid(),t:TS()};
+  u['friendReq/'+me+'/'+from]=null;u['friendReq/'+from+'/'+me]=null;
+  FB.db.ref().update(u).then(function(){tryUI();FR.msg=(r.n||'Pemain')+' kini temanmu.';frRender();}).catch(function(e){FR.msg='Gagal menerima: '+fbErr(e);frRender();});
+}
+function frDecline(from){
+  if(!dbOK())return;FB.db.ref('friendReq/'+FB.user.uid+'/'+from).remove().catch(function(){});
+}
+function frRemove(id){
+  if(!dbOK())return;var nm=frName(id,FR.friends[id]);
+  var ok=true;try{ok=window.confirm('Hapus '+nm+' dari daftar teman?');}catch(e){}
+  if(!ok)return;var u={};u['friends/'+FB.user.uid+'/'+id]=null;u['friends/'+id+'/'+FB.user.uid]=null;
+  FB.db.ref().update(u).catch(function(e){FR.msg=fbErr(e);frRender();});
+}
+function frInvite(id){
+  if(!dbOK())return;
+  if(!frInvitable()){FR.msg='Buat atau masuk room dulu untuk mengundang.';return frRender();}
+  var now=Date.now();
+  if(FR.invCd[id]&&now-FR.invCd[id]<8000){FR.msg='Tunggu sebentar sebelum mengundang lagi.';return frRender();}
+  FR.invCd[id]=now;
+  var d=FB.room.data,o={f:FB.user.uid,n:myName(),c:FB.room.code,k:d.custom?'cu':'tm',t:TS()};
+  FB.db.ref('invites/'+id).push(o).then(function(){tryUI();FR.msg='Undangan dikirim ke '+frName(id,FR.friends[id])+'.';frRender();note('Undangan terkirim');}).catch(function(e){FR.invCd[id]=0;FR.msg='Gagal mengundang: '+fbErr(e);frRender();});
+}
+/* --- undangan masuk --- */
+function frInviteIn(key,v){
+  if(!v||!v.f||!v.c){try{FB.db.ref('invites/'+FR.uid+'/'+key).remove();}catch(e){}return;}
+  v.key=key;
+  if(!FR.loaded){FR.pendingInv.push(v);return;}
+  frShowInvite(v);
+}
+function frFlushInv(){var q=FR.pendingInv;FR.pendingInv=[];q.forEach(frShowInvite);}
+function frDelInv(key){try{FB.db.ref('invites/'+FR.uid+'/'+key).remove();}catch(e){}}
+function frShowInvite(v){
+  var srv=Date.now()+(FB.off||0);
+  if(typeof v.t==='number'&&Math.abs(srv-v.t)<86400000&&srv-v.t>90000){frDelInv(v.key);return;}  /* kedaluwarsa */
+  if(!FR.friends[v.f]){frDelInv(v.key);return;}                                                  /* hanya dari teman */
+  var box=$('frInv');if(!box){box=document.createElement('div');box.id='frInv';document.body.appendChild(box);}
+  var el=document.createElement('div');el.className='fr-inv';
+  el.innerHTML='<div class="t"><b>'+esc(frName(v.f,FR.friends[v.f]))+'</b> mengundangmu ke '+(v.k==='cu'?'Room Custom':'Tim Online')+'</div>'
+    +'<div class="b"><button class="ok">TERIMA</button><button class="no">TOLAK</button><span class="tm">25</span></div>';
+  box.appendChild(el);tryUI();
+  var left=25,iv=setInterval(function(){left--;var t=el.querySelector('.tm');if(t)t.textContent=left;if(left<=0)done(false);},1000);
+  function done(acc){clearInterval(iv);if(el.parentNode)el.parentNode.removeChild(el);frDelInv(v.key);if(acc)frJoin(v.c);}
+  el.querySelector('.ok').onclick=function(){done(true);};
+  el.querySelector('.no').onclick=function(){done(false);};
+}
+function frJoin(code){
+  var busy=false;try{busy=!!(G.running&&FBM.mode);}catch(e){}
+  if(busy){note('Selesaikan pertandingan dulu.');return;}
+  try{if(MM.active){note('Batalkan pencarian pertandingan dulu.');return;}}catch(e){}
+  if(!dbOK())return;
+  frClose();
+  if(FB.room){if(FB.room.code===code){note('Kamu sudah di room ini.');return;}try{leaveRoom(true);}catch(e){}}
+  note('Masuk room '+code+'...');
+  var uid=FB.user.uid,ref=FB.db.ref('rooms/'+code);
+  ensureDb().then(function(){return withTimeout(ref.once('value'),12000);}).then(function(snap){
+    if(!snap.exists()){note('Room sudah tidak ada.');return;}
+    var d=snap.val(),ms=d.members||{};
+    if(d.mm){note('Room ini tidak bisa dimasuki lewat undangan.');return;}
+    if(!ms[uid]){
+      if(d.state!=='lobby'){note('Room sudah mulai bermain.');return;}
+      if(d.custom){
+        if(Object.keys(ms).length>=10){note('Room penuh.');return;}
+        return withTimeout(ref.child('members/'+uid).set(cuMember(ms)),12000).then(function(){cuWatch(code);});
+      }
+      if(Object.keys(ms).length>=5){note('Tim sudah penuh.');return;}
+      return withTimeout(ref.child('members/'+uid).set(myMember(freeHeroFor(ms),freeRoleFor(ms))),12000).then(function(){watchRoom(code);});
+    }
+    if(d.custom)cuWatch(code);else watchRoom(code);
+  }).catch(function(e){note('Gagal masuk: '+fbErr(e));});
+}
+
+/* --- panel --- */
+function frAvatar(name){
+  var h=0,i;for(i=0;i<name.length;i++)h=(h*31+name.charCodeAt(i))|0;
+  var cols=['#3d6fe0','#2c9a7a','#c0802a','#8a4ad8','#c02a3a','#2a8ac0','#d86a2a','#b89a1a'];
+  return '<span class="fr-av" style="background:'+cols[Math.abs(h)%cols.length]+'">'+esc((name||'?').charAt(0).toUpperCase())+'</span>';
+}
+function frEnsure(){
+  var m=$('frModal');if(m)return m;
+  m=document.createElement('div');m.id='frModal';m.onclick=function(e){if(e.target===m)frClose();};
+  m.innerHTML='<div class="fr-panel"><div class="fr-head"><b>TEMAN</b><button class="fr-x" onclick="FRX.close()">&#10005;</button></div><div class="fr-tabs" id="frTabs"></div><div class="fr-body" id="frBody"></div></div>';
+  document.body.appendChild(m);return m;
+}
+function frOpen(){
+  if(!FB.user||!FB.ready){note('Masuk dulu di menu Online untuk memakai fitur teman.');return;}
+  tryUI();frEnsure().classList.add('on');FR.open=true;FR.msg='';frRender();
+}
+function frClose(){FR.open=false;var m=$('frModal');if(m)m.classList.remove('on');}
+function frRender(){
+  if(!FR.open)return;frEnsure();
+  var ids=Object.keys(FR.friends),rq=Object.keys(FR.req),tabs=$('frTabs'),body=$('frBody');if(!tabs||!body)return;
+  var T=[['list','Teman ('+ids.length+')'],['req','Permintaan'+(rq.length?' ('+rq.length+')':'')],['add','Tambah']];
+  tabs.innerHTML=T.map(function(t){return '<button class="'+(FR.tab===t[0]?'on':'')+'" onclick="FRX.tab(\''+t[0]+'\')">'+t[1]+'</button>';}).join('');
+  var h='';
+  if(FR.err)h+='<div class="fr-err">Fitur teman belum bisa dipakai: '+esc(FR.err)+'<br><small>Pastikan Rules Realtime Database sudah diperbarui (lihat file firebase-rules.json).</small></div>';
+  if(FR.msg)h+='<div class="fr-msg">'+esc(FR.msg)+'</div>';
+  if(FR.tab==='list'){
+    var inv=frInvitable();
+    if(inv)h+='<div class="fr-room">Room kamu: <b>'+esc(FB.room.code)+'</b> &middot; ketuk UNDANG pada teman yang online</div>';
+    if(!ids.length)h+='<div class="fr-empty">Belum ada teman. Buka tab <b>Tambah</b> dan masukkan ID pemain.</div>';
+    var ord={game:1,room:1,on:0,off:2};
+    ids.sort(function(a,b){var sa=frStatus(a).k,sb=frStatus(b).k;return (ord[sa]-ord[sb])||frName(a,FR.friends[a]).localeCompare(frName(b,FR.friends[b]));});
+    ids.forEach(function(id){
+      var f=FR.friends[id],nm=frName(id,f),st=frStatus(id),canInv=inv&&st.k!=='off'&&st.k!=='game';
+      h+='<div class="fr-row">'+frAvatar(nm)+'<div class="fr-info"><a onclick="FRX.profile(\''+id+'\')">'+esc(nm)+'</a><small><i class="d '+st.k+'"></i>'+st.t+(f&&f.id?' &middot; ID '+esc(f.id):'')+'</small></div>'
+        +(inv?'<button class="fr-btn'+(canInv?' pri':'')+'"'+(canInv?'':' disabled')+' onclick="FRX.invite(\''+id+'\')">UNDANG</button>':'')
+        +'<button class="fr-btn dng" onclick="FRX.remove(\''+id+'\')" title="Hapus teman">&#10005;</button></div>';
+    });
+    /* pemain di room yang belum jadi teman */
+    if(FB.room&&FB.room.data&&FB.room.data.members){
+      var ms=FB.room.data.members,others=Object.keys(ms).filter(function(u){return u!==FB.user.uid&&!FR.friends[u];});
+      if(others.length){
+        h+='<div class="fr-sub">PEMAIN DI ROOM</div>';
+        others.forEach(function(u){var nm=ms[u].name||'Pemain';h+='<div class="fr-row">'+frAvatar(nm)+'<div class="fr-info"><a onclick="FRX.profile(\''+u+'\')">'+esc(nm)+'</a><small>Belum berteman</small></div><button class="fr-btn pri" onclick="FRX.req(\''+u+'\')">+ TEMAN</button></div>';});
+      }
+    }
+  }else if(FR.tab==='req'){
+    if(!rq.length)h+='<div class="fr-empty">Tidak ada permintaan pertemanan.</div>';
+    rq.forEach(function(id){var r=FR.req[id],nm=r.n||'Pemain';
+      h+='<div class="fr-row">'+frAvatar(nm)+'<div class="fr-info"><a onclick="FRX.profile(\''+id+'\')">'+esc(nm)+'</a><small>'+(r.id?'ID '+esc(r.id):'ingin berteman')+'</small></div><button class="fr-btn pri" onclick="FRX.accept(\''+id+'\')">TERIMA</button><button class="fr-btn dng" onclick="FRX.decline(\''+id+'\')">TOLAK</button></div>';});
+  }else{
+    h+='<div class="fr-mine">ID kamu<b>'+esc(myPid()||'-')+'</b><button class="fr-btn" onclick="FRX.copyId()">SALIN</button></div>'
+      +'<div class="fr-add"><input id="frId" inputmode="numeric" maxlength="12" placeholder="Masukkan ID pemain" onkeydown="if(event.key===\'Enter\')FRX.add()"><button class="fr-btn pri" onclick="FRX.add()">TAMBAH</button></div>'
+      +'<div class="fr-hint">Teman bisa dicari lewat ID pemain (ada di profil). Setelah diterima, kalian saling terlihat online dan bisa saling mengundang ke room.</div>';
+  }
+  var keep=$('frId'),kv=keep?keep.value:'';
+  body.innerHTML=h;
+  if(kv){var n2=$('frId');if(n2)n2.value=kv;}
+}
+window.FRX={
+  open:frOpen,close:frClose,
+  tab:function(t){FR.tab=t;FR.msg='';frRender();},
+  add:frSearchAdd,req:function(u){var m=FB.room&&FB.room.data.members&&FB.room.data.members[u];frRequest(u,m&&m.name);},
+  accept:frAccept,decline:frDecline,remove:frRemove,invite:frInvite,
+  profile:function(id){frClose();try{openProfileUid(id);}catch(e){}},
+  copyId:function(){var v=myPid();try{navigator.clipboard.writeText(v);FR.msg='ID disalin.';}catch(e){FR.msg='ID: '+v;}frRender();}
+};
+
+/* tombol TEMAN mengambang: hanya di layar mode online */
+function frFab(){
+  var f=$('frFab');
+  if(!f){f=document.createElement('button');f.id='frFab';f.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.4 2.7-6 6-6s6 2.6 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M16 14.2c3 0 5 2 5 5.3"/></svg><span>TEMAN</span><i id="frBadge" style="display:none">0</i>';f.onclick=frOpen;document.body.appendChild(f);}
+  var a=document.querySelector('.screen.active'),id=a?a.id:'',show=false;
+  try{show=!!FB.user&&(id==='screen-online'||(id==='screen-lobby'&&lobbyMode==='online'));   /* room custom punya tombol UNDANG TEMAN sendiri */}catch(e){}
+  f.style.display=show?'flex':'none';
+  f.className=(id==='screen-lobby')?'lob':(id==='screen-custom'?'cus':'');
+}
+setInterval(frFab,600);
+var _ss=showScreen;showScreen=function(){var r=_ss.apply(this,arguments);try{frFab();}catch(e){}return r;};
+
+/* mulai/hentikan layanan sesuai status login */
+setInterval(function(){
+  try{
+    if(dbOK()&&FB.dbOk){
+      if(NX.uid!==FB.user.uid)nxStart(FB.user.uid);
+      if(FR.uid!==FB.user.uid)frStart(FB.user.uid);
+      if(FB.off===undefined&&!FR.offBusy){FR.offBusy=1;FB.db.ref('.info/serverTimeOffset').once('value').then(function(s){FB.off=+s.val()||0;},function(){FB.off=0;});}
+    }else if(!FB.user){
+      if(NX.uid)nxStop();if(FR.uid)frStop();
+    }else if(FB.ready&&FB.user&&!FB.dbOk&&!FR.dbBusy){
+      FR.dbBusy=1;ensureDb().then(function(){FR.dbBusy=0;},function(){setTimeout(function(){FR.dbBusy=0;},15000);});
+    }
+  }catch(e){}
+},1500);
+
+/* ================================================================
+   3. ROOM CUSTOM BEBAS: AI opsional per slot
+   ================================================================ */
+function cuAiMap(){return (FB.room&&FB.room.data&&FB.room.data.ai)||{};}
+function cuIsHost(){return !!(FB.room&&FB.user&&FB.room.data.host===FB.user.uid);}
+function cuAiRef(){return FB.db.ref('rooms/'+FB.room.code+'/ai');}
+window.cuAiAdd=function(tm,r){
+  if(!cuIsHost())return;tryUI();
+  var o={};o[tm+'_'+r]='auto';cuAiRef().update(o).catch(liveErr);
+};
+window.cuAiRemove=function(tm,r){
+  if(!cuIsHost())return;tryUI();
+  var o={};o[tm+'_'+r]=null;cuAiRef().update(o).catch(liveErr);
+};
+window.cuAiHero=function(tm,r,k){
+  if(!cuIsHost())return;
+  var o={};o[tm+'_'+r]=(k&&HERO_DEFS[k])?k:'auto';cuAiRef().update(o).catch(liveErr);
+};
+window.cuAiFill=function(){
+  if(!cuIsHost())return;tryUI();
+  var lay=cuLayout(FB.room.data.members||{}),o={},tm,r;
+  for(tm=0;tm<2;tm++)for(r=0;r<5;r++)if(!lay.L[tm][r]&&!cuAiMap()[tm+'_'+r])o[tm+'_'+r]='auto';
+  cuAiRef().update(o).catch(liveErr);
+};
+window.cuAiClear=function(){
+  if(!cuIsHost())return;tryUI();
+  FB.db.ref('rooms/'+FB.room.code+'/ai').remove().catch(liveErr);
+};
+/* pemain mengambil slot (jika slot berisi AI, AI-nya digantikan) */
+window.cuMove=function(tm,r){
+  if(!FB.room||!FB.user)return;
+  var ms=FB.room.data.members||{},lay=cuLayout(ms);if(lay.L[tm][r])return;
+  tryUI();
+  var u={},base='members/'+FB.user.uid;
+  u[base+'/team']=tm;u[base+'/role']=r;u['ai/'+tm+'_'+r]=null;
+  FB.db.ref('rooms/'+FB.room.code).update(u).catch(liveErr);
+};
+function cuBuildComp(ms,ai){
+  ai=ai||{};
+  var ids=Object.keys(ms).sort(function(a,b){return((ms[a].t||0)-(ms[b].t||0))||(a<b?-1:1);}),T=[[],[]];
+  ids.forEach(function(id){T[ms[id].team===1?1:0].push(id);});
+  while(T[0].length>5)T[1].push(T[0].pop());
+  while(T[1].length>5)T[0].push(T[1].pop());
+  var keys=Object.keys(HERO_DEFS),used={},comp=[[null,null,null,null,null],[null,null,null,null,null]],roles={},sk={b:[],r:[]},tm,j,r,k,id,m,sid;
+  for(tm=0;tm<2;tm++){
+    var takenR={};
+    for(j=0;j<T[tm].length;j++){
+      id=T[tm][j];m=ms[id];r=m.role;
+      if(!(r>=0&&r<5)||takenR[r])r=[1,2,0,3,4].filter(function(x){return !takenR[x];})[0];
+      takenR[r]=1;
+      k=m.hero;if(!HERO_DEFS[k]||used[k]||heroBanned(k))k=keys.filter(function(x){return !used[x]&&!heroBanned(x);})[0];
+      used[k]=1;comp[tm][r]=k;roles[id]={t:tm,s:r};
+      sid=(k===m.hero&&m.skin&&getSkins(k).some(function(s){return s.id===m.skin;}))?m.skin:'base';
+      sk[tm?'r':'b'][r]=sid;
+    }
+  }
+  /* AI hanya di slot yang diminta host. Slot kosong lain tetap kosong. */
+  var pool=keys.filter(function(x){return !used[x]&&!heroBanned(x);}),slots=[];
+  for(tm=0;tm<2;tm++)for(r=0;r<5;r++)if(!comp[tm][r]&&ai[tm+'_'+r])slots.push([tm,r,ai[tm+'_'+r]]);
+  slots.forEach(function(s){   /* hero pilihan host dulu */
+    var pk=s[2];if(pk!=='auto'&&HERO_DEFS[pk]&&pool.indexOf(pk)>=0){pool.splice(pool.indexOf(pk),1);used[pk]=1;comp[s[0]][s[1]]=pk;sk[s[0]?'r':'b'][s[1]]=randomSkinId(pk);}
+  });
+  slots.forEach(function(s){   /* sisanya acak sesuai lane */
+    if(comp[s[0]][s[1]]||!pool.length)return;
+    var pk=pickForRole(s[1],pool);pool.splice(pool.indexOf(pk),1);used[pk]=1;comp[s[0]][s[1]]=pk;sk[s[0]?'r':'b'][s[1]]=randomSkinId(pk);
+  });
+  return{b:comp[0],r:comp[1],roles:roles,sk:sk};
+}
+window.cuBuildComp=cuBuildComp;
+window.cuStart=function(){
+  if(!FB.room||FB.room.data.host!==FB.user.uid||FB.room.data.state!=='lobby')return;
+  var d=FB.room.data,comp;
+  try{comp=cuBuildComp(d.members||{},d.ai||{});}catch(e){notify('Gagal menyusun tim: '+e.message,'red');return;}
+  if(!comp.b.some(Boolean)||!comp.r.some(Boolean)){notify('Tiap tim butuh minimal 1 pemain atau 1 AI.','red');return;}
+  var code=FB.room.code;tryUI();
+  FB.db.ref('rooms/'+code+'/live').remove().catch(function(){}).then(function(){
+    return FB.db.ref('rooms/'+code).update(NETX.startPayload(comp));
+  }).catch(liveErr);
+};
+window.cuInviteBtn=function(){frOpen();FR.tab='list';frRender();};
+window.cuRender=function(){
+  if(!FB.room||!FB.user)return;
+  var d=FB.room.data,ms=d.members||{},ai=d.ai||{},me=FB.user.uid,host=d.host===me,lay=cuLayout(ms),used={},nAi=0;
+  Object.keys(ms).forEach(function(k){used[ms[k].hero]=k;});
+  var cc=$('cuCode');if(cc)cc.textContent=FB.room.code;
+  /* bersihkan AI yang bentrok dengan pemain (hanya host yang menulis) */
+  if(host){var bad={},any=false;Object.keys(ai).forEach(function(k){var p=k.split('_');if(lay.L[+p[0]]&&lay.L[+p[0]][+p[1]]){bad[k]=null;any=true;}});if(any)cuAiRef().update(bad).catch(function(){});}
+  for(var tm=0;tm<2;tm++){
+    var box=$('cuT'+tm),h='';if(!box)continue;
+    var cnt=0;
+    for(var r=0;r<5;r++){
+      var id=lay.L[tm][r],rn=ROLES[r].name.replace(' LANE',''),key=tm+'_'+r;
+      if(id){
+        cnt++;
+        var m=ms[id],mine=id===me,sel;
+        if(mine)sel='<select onchange="cuHero(this.value)">'+Object.keys(HERO_DEFS).map(function(k){return '<option value="'+k+'"'+(k===m.hero?' selected':'')+((used[k]&&used[k]!==me)?' disabled':'')+'>'+HERO_DEFS[k].name+'</option>';}).join('')+'</select>';
+        else sel='<b style="font-size:11px">'+esc((HERO_DEFS[m.hero]||{}).name||'-')+'</b>'+(host?' <button class="x" onclick="cuKick(\''+id+'\')">&#10005;</button>':'');
+        h+='<div class="cu-s'+(mine?' me':'')+'"><span class="rn">'+rn+'</span><span class="nm">'+(id===d.host?'&#9733; ':'')+'<a style="color:#9ec0ff" onclick="openProfileUid(\''+id+'\')">'+esc(m.name||'-')+'</a></span>'+sel+'</div>';
+      }else if(ai[key]){
+        cnt++;nAi++;
+        var pref=ai[key],hn=(pref!=='auto'&&HERO_DEFS[pref])?HERO_DEFS[pref].name:'Acak';
+        if(host){
+          var opts='<option value="auto"'+(pref==='auto'?' selected':'')+'>Acak</option>'+Object.keys(HERO_DEFS).map(function(k){return '<option value="'+k+'"'+(k===pref?' selected':'')+'>'+HERO_DEFS[k].name+'</option>';}).join('');
+          h+='<div class="cu-s ai"><span class="rn">'+rn+'</span><span class="nm">&#129302; Bot AI</span><select onchange="cuAiHero('+tm+','+r+',this.value)">'+opts+'</select><button class="x" onclick="cuAiRemove('+tm+','+r+')">&#10005;</button></div>';
+        }else{
+          h+='<div class="cu-s ai" onclick="cuMove('+tm+','+r+')"><span class="rn">'+rn+'</span><span class="nm">&#129302; Bot AI</span><b style="font-size:11px">'+esc(hn)+'</b></div>';
+        }
+      }else{
+        h+='<div class="cu-s empty" onclick="cuMove('+tm+','+r+')"><span class="rn">'+rn+'</span><span class="nm">Kosong</span>'
+          +(host?'<button class="aiadd" onclick="event.stopPropagation();cuAiAdd('+tm+','+r+')">+ AI</button>':'')
+          +'<span class="mv">pindah</span></div>';
+      }
+    }
+    box.innerHTML=h;var ct=$('cuCnt'+tm);if(ct)ct.textContent=cnt+'/5';
+  }
+  var inf=$('cuInfo');if(inf)inf.innerHTML=Object.keys(ms).length+' pemain &middot; '+nAi+' bot AI<br>Slot kosong tetap kosong';
+  /* alat host */
+  var tools=$('cuTools');
+  if(!tools){tools=document.createElement('div');tools.id='cuTools';var ft0=$('cuFoot');if(ft0&&ft0.parentNode)ft0.parentNode.insertBefore(tools,ft0);}
+  if(tools)tools.innerHTML=host?'<span>AI:</span><button class="btn small" onclick="cuAiFill()">ISI SLOT KOSONG</button><button class="btn small" onclick="cuAiClear()">KOSONGKAN SEMUA AI</button>':'';
+  var ft=$('cuFoot');
+  if(ft)ft.innerHTML=(host?'<button class="btn primary" style="flex:1" onclick="cuStart()">MULAI PERTANDINGAN</button>':'<div style="flex:1;color:#8ea2c8;font-size:12px">Menunggu host memulai...</div>')
+    +'<button class="btn" onclick="cuInviteBtn()">UNDANG TEMAN</button>'
+    +'<button class="btn danger" onclick="cuLeave()">'+(host?'BUBARKAN':'KELUAR')+'</button>';
+};
+/* beri tahu sistem kalau layar online tampil: segarkan tombol teman */
+})();
+
 </script>
 </body>
 </html>
