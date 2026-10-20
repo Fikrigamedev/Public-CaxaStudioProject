@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>CAXA ARENA - MOBA 5v5 v10.0</title>
+<title>CAXA ARENA - MOBA 5v5 v10.1</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf5;font-family:'Segoe UI',Roboto,Arial,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
@@ -644,6 +644,59 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf
   .cu-s{min-height:24px}
   .cu-code{font-size:16px}
 }
+
+/* ===== v10.1: tanpa scroll/geser, menu modern, pengaturan penuh ===== */
+html,body{overflow:hidden;max-width:100vw}
+.screen{overflow:hidden}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none;width:0;height:0}
+.screen.fit .panel,.screen.fit .cu-panel,.screen.fit .pt-wrap{max-height:none!important;overflow:visible!important}
+.screen.fit .cu-cols,.screen.fit .hp-grid,.screen.fit .hp-detail,.screen.fit .info-body{max-height:none!important;overflow:visible!important}
+.hp-grid{grid-template-columns:repeat(6,1fr)!important;width:58%!important}
+@media (max-width:640px){.hp-grid{grid-template-columns:repeat(4,1fr)!important;width:52%!important}}
+.pf-pen{font-size:9px}
+/* --- menu utama modern --- */
+#screen-menu{background:radial-gradient(ellipse at 30% 20%,#16264e 0%,#0b1224 60%,#070c1a 100%)}
+.mm-profile,.mm-gear,.mm-side,.mm-bt{background:rgba(18,27,54,.62)!important;border:1px solid rgba(140,170,255,.22)!important;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 4px 14px rgba(0,0,0,.28)}
+.mm-profile{border-radius:14px!important;padding:5px 12px 5px 5px!important;gap:9px!important}
+.mm-avatar{width:38px!important;height:38px!important;border-radius:11px!important;font-size:17px!important}
+.mm-name{font-size:13px!important}.mm-sub{font-size:10px!important}
+.mm-gear{width:40px!important;height:40px!important;border-radius:12px!important}
+.mm-gear svg,.mm-bt svg{width:20px!important;height:20px!important}
+.mm-right{top:calc(60px + env(safe-area-inset-top,0px))!important;gap:8px!important}
+.mm-side{width:40px!important;height:40px!important;border-radius:12px!important}
+.mm-side svg{width:20px!important;height:20px!important}
+.mm-bottom{gap:8px!important;bottom:calc(12px + env(safe-area-inset-bottom,0px))!important}
+.mm-bt{min-width:66px!important;padding:7px 10px!important;border-radius:12px!important;font-size:9px!important;gap:3px!important}
+.mm-play{min-width:176px!important;height:66px;padding:0 22px!important;border-radius:16px!important;border:1px solid #ffe9a8!important;background:linear-gradient(180deg,#f1bc3a,#c78a10)!important;font-size:20px!important;letter-spacing:.16em!important;box-shadow:0 6px 22px rgba(217,162,30,.4),inset 0 1px 0 rgba(255,255,255,.45)!important;right:calc(12px + env(safe-area-inset-right,0px))!important;bottom:calc(12px + env(safe-area-inset-bottom,0px))!important}
+.mm-play small{font-size:9px!important}
+.mm-train{height:66px!important;min-width:128px!important;right:calc(200px + env(safe-area-inset-right,0px))!important;bottom:calc(12px + env(safe-area-inset-bottom,0px))!important;border-radius:16px!important;border:1px solid rgba(160,200,255,.5)!important;background:linear-gradient(180deg,#2a62c6,#173f8c)!important;font-size:13px!important;box-shadow:0 6px 18px rgba(30,80,180,.35)!important}
+.mm-rank{height:66px!important;min-width:128px!important;right:calc(336px + env(safe-area-inset-right,0px))!important;bottom:calc(12px + env(safe-area-inset-bottom,0px))!important;border-radius:16px!important;border:1px solid rgba(201,160,255,.55)!important;font-size:13px!important}
+.mm-credit{bottom:calc(84px + env(safe-area-inset-bottom,0px))!important}
+.ver97{bottom:calc(80px + env(safe-area-inset-bottom,0px))!important}
+@media (max-height:380px){.mm-play,.mm-train,.mm-rank{height:56px!important}.mm-play{min-width:150px!important;font-size:17px!important}.mm-train{right:calc(172px + env(safe-area-inset-right,0px))!important;min-width:108px!important}.mm-rank{right:calc(288px + env(safe-area-inset-right,0px))!important;min-width:108px!important}.mm-bt{padding:5px 8px!important}.ver97{bottom:calc(70px + env(safe-area-inset-bottom,0px))!important}}
+/* indikator tim (minimize lobby) */
+#mmTeam{position:absolute;top:calc(60px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:12px;background:rgba(18,40,36,.78);border:1px solid rgba(80,220,140,.5);cursor:pointer;z-index:6;backdrop-filter:blur(8px);box-shadow:0 4px 14px rgba(0,0,0,.3)}
+#mmTeam .mt-live{width:8px;height:8px;border-radius:50%;background:#46e08a;box-shadow:0 0 8px #46e08a;animation:mtp 1.4s ease-in-out infinite}
+@keyframes mtp{50%{opacity:.35}}
+#mmTeam .mt-t{display:flex;flex-direction:column;line-height:1.15;text-align:left}
+#mmTeam .mt-t b{font-size:10.5px;letter-spacing:.12em;color:#bff5d4}
+#mmTeam .mt-t small{font-size:9.5px;color:#8ec8a6;letter-spacing:.06em}
+#mmTeam .mt-av{display:flex;gap:3px;align-items:center}
+#mmTeam .pav.s{width:20px;height:20px;font-size:9px;margin:0}
+#mmTeam .mt-e{width:20px;height:20px;border-radius:50%;border:1.5px dashed rgba(140,190,160,.45)}
+#mmTeam .mt-go{font-size:9.5px;font-weight:900;letter-spacing:.1em;color:#0b1a12;background:#46e08a;border-radius:7px;padding:4px 8px}
+/* --- pengaturan penuh --- */
+#screen-settings{padding:0!important;background:#0b1224;justify-content:flex-start;align-items:stretch}
+#screen-settings.overlay{background:rgba(5,8,15,.97)}
+#screen-settings .panel{width:100%!important;max-width:none!important;min-height:100%;border-radius:0!important;border:0!important;box-shadow:none!important;background:transparent!important;padding:calc(10px + env(safe-area-inset-top,0px)) calc(20px + env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) calc(20px + env(safe-area-inset-left,0px))!important;display:grid!important;grid-template-columns:1fr 1fr;column-gap:28px;grid-auto-rows:min-content;align-content:start}
+#screen-settings .set-head{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+#screen-settings .set-head h2{font-size:18px;letter-spacing:.2em;margin:0}
+#screen-settings .back-row{grid-column:1/-1;position:static!important;margin:6px 0 0!important;padding:0!important;background:none!important;justify-content:flex-end}
+#screen-settings .srow{padding:7px 0;border-bottom:1px solid rgba(110,150,240,.12)}
+#screen-settings .srow label{font-size:13.5px;line-height:1.3}
+#screen-settings .hint{font-size:10.5px}
+#screen-settings .seg button{padding:6px 12px;font-size:12px}
+@media (max-width:640px){#screen-settings .panel{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -657,6 +710,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf
       <div class="mm-avatar" id="mmAvatar">P</div>
       <div><div class="mm-name" id="mmName">Pemain</div><div class="mm-sub">Lv. <b id="mmLv">1</b> &middot; Koin <b id="mmCoins">0</b></div></div>
     </div>
+    <div id="mmTeam" onclick="lbRestore()" style="display:none"></div>
     <button class="mm-gear" onclick="openSettings('menu')" aria-label="Pengaturan"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/><circle cx="12" cy="12" r="7"/></svg></button>
     <button class="mm-rank" onclick="handleGo('rank')">RANK<small id="mmRankLbl">Warrior III</small></button>
     <div class="mm-right">
@@ -669,7 +723,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf
       <canvas id="logoCanvas" width="520" height="130"></canvas>
       <p class="tag">ARENA PERTEMPURAN 5 VS 5</p>
     </div>
-    <div class="ver97">Versi 10.0</div>
+    <div class="ver97">Versi 10.1</div>
     <div class="mm-bottom">
       <button class="mm-bt" onclick="openInfo('backpack')"><svg viewBox="0 0 24 24"><path d="M6 8h12l1 12H5z"/><path d="M9 8V6a3 3 0 0 1 6 0v2M9 13h6"/></svg>BACKPACK</button>
       <button class="mm-bt" onclick="openInfo('emblem')"><svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.4 6.8 19.2l1-5.9L3.5 9.2l5.9-.8z"/></svg>EMBLEM</button>
@@ -688,10 +742,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf
 <div id="mmDraft"><div class="dh"><b>PILIH HERO</b><span class="dtm" id="drTeam"></span><span class="dt" id="drT">--</span></div><div id="drRoles"></div><div id="drGrid"></div><button id="drLock" onclick="PARTY.lock()">KUNCI HERO</button></div>
 <div id="screen-lobby" class="screen">
     <div class="lb-top">
-      <button class="lb-back" onclick="handleGo('menu')" aria-label="Kembali">&#10094;</button>
+      <button class="lb-back" onclick="lbBack()" aria-label="Minimize lobby">&#10094;</button>
       <div class="lb-title"><b id="lbTitleB">CLASSIC</b><span id="lbTitleS">DRAFT PICK &middot; 5 VS 5</span></div>
       <div class="lb-hint" id="lobbyHint">Pilih hero untuk dimainkan</div>
-      <button id="lbCode" class="lb-emb hidden" onclick="olCopyCode()"><span class="eb" style="background:#2a3a66">&#10697;</span><span class="et"><b id="lbCodeTxt">-----</b><small id="lbCodeSm">Salin kode tim</small></span></button>
+      <button id="lbCode" class="lb-emb hidden" onclick="olCopyCode()"><span class="eb" style="background:#2a3a66">SALIN</span><span class="et"><b id="lbCodeTxt">-----</b><small id="lbCodeSm">Salin kode tim</small></span></button>
       <button class="lb-emb" onclick="openEmblemModal()"><span class="eb" id="lbEmbIcon">E</span><span class="et"><b id="lbEmbName">EMBLEM</b><small id="lbEmbLv">Lv 1</small></span></button>
     </div>
     <div class="lb-body">
@@ -870,7 +924,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05070c;color:#e7ecf
       <div id="sbBody"></div>
     </div></div>
     <div id="signalBar"><button onclick="sendSignal('attack')" class="sg atk" aria-label="Serang"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M16 16l4 4"/><path d="M19 21l2-2"/><path d="M14.5 6.5 18 3h3v3l-3.5 3.5"/><path d="M5 14l4 4"/><path d="M7 17l-3 3"/><path d="M3 19l2 2"/></svg></button><button onclick="sendSignal('retreat')" class="sg ret" aria-label="Mundur"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button><button onclick="sendSignal('gather')" class="sg gth" aria-label="Berkumpul"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></button></div>
-    <button id="deathBar" class="hidden" onclick="G.deathDetail=true"><span class="db-skull">&#9760;</span><div class="db-mid"><div class="db-t">Bangkit dalam <b id="dbTime">0</b> detik</div><div class="db-track"><div id="dbFill"></div></div></div><span class="db-tap">DETAIL</span></button>
+    <button id="deathBar" class="hidden" onclick="G.deathDetail=true"><span class="db-skull">X</span><div class="db-mid"><div class="db-t">Bangkit dalam <b id="dbTime">0</b> detik</div><div class="db-track"><div id="dbFill"></div></div></div><span class="db-tap">DETAIL</span></button>
     <div id="killBanner"></div>
     <div id="killFeed"></div>
     <div id="notifArea"></div>
@@ -4613,7 +4667,7 @@ function sendSignal(type){
   if(allies.length){
     var a=allies[Math.floor(Math.random()*allies.length)],rs=ORDER_REPLY[type];
     setTimeout(function(){if(!G.running||G.ended)return;feedKill(a.def.name+': '+rs[Math.floor(Math.random()*rs.length)],'blue');
-      pushP({x:a.x,y:a.y-46,dmgText:'💬',life:1.6,maxLife:1.6,color:'#ffffff',isCrit:false,size:1});},500+Math.random()*700);
+      pushP({x:a.x,y:a.y-46,dmgText:'...',life:1.6,maxLife:1.6,color:'#ffffff',isCrit:false,size:1});},500+Math.random()*700);
   }
   try{Sfx.ui();}catch(e){}
 }
@@ -9123,7 +9177,7 @@ function startOnline(){
    riwayat pertandingan, simpan lokal + sinkron otomatis saat online
    ===================================================================== */
 var PF={view:'info',tab:'info',mode:'me',data:null,hist:[],prev:'screen-menu',msg:'',syncing:false,ref1:null,ref2:null,uid:null};
-var AV_PRESETS=[['\u2694\uFE0F','#3d6fe0'],['\uD83D\uDEE1\uFE0F','#2c9a7a'],['\uD83C\uDFF9','#c0802a'],['\uD83D\uDD2E','#8a4ad8'],['\uD83D\uDC09','#c02a3a'],['\uD83E\uDD85','#2a8ac0'],['\uD83D\uDD25','#d86a2a'],['\u2B50','#b89a1a']];
+var AV_PRESETS=[['\u25C6','#3d6fe0'],['\u25B2','#2c9a7a'],['\u25CF','#c0802a'],['\u25A0','#8a4ad8'],['\u2726','#c02a3a'],['A','#2a8ac0'],['X','#d86a2a'],['\u2605','#b89a1a']];
 function pfInit(){
   if(!PROFILE.stats)PROFILE.stats={m:0,w:0,k:0,d:0,a:0};
   if(!PROFILE.hist)PROFILE.hist=[];
@@ -9300,8 +9354,8 @@ function pfRender(){
     else if(PROFILE.pfDirty||PROFILE.hist.some(function(r){return !r.s;}))st='<b class="off">Menyinkronkan...</b>';
     else st='<b>Tersinkron \u2713</b>'+(PROFILE.pfSyncAt?'<br>'+pfAgo(PROFILE.pfSyncAt):'');
   }
-  L.innerHTML='<div class="pf-avwrap">'+pfAvHTML(pub.photo,pub.name)+'<span class="pf-lv">Lv.'+(pub.lv|0)+'</span>'+(me?'<button class="pf-pen" onclick="pfAvatarMenu()" aria-label="Ganti foto">&#9998;</button>':'')+'</div>'
-    +'<div class="pf-name">'+esc(pub.name)+(me?' <button class="pf-pen" style="position:static;display:inline-block;width:20px;height:20px" onclick="pfEditName()" aria-label="Ganti nama">&#9998;</button>':'')+'</div>'
+  L.innerHTML='<div class="pf-avwrap">'+pfAvHTML(pub.photo,pub.name)+'<span class="pf-lv">Lv.'+(pub.lv|0)+'</span>'+(me?'<button class="pf-pen" onclick="pfAvatarMenu()" aria-label="Ganti foto">Ubah</button>':'')+'</div>'
+    +'<div class="pf-name">'+esc(pub.name)+(me?' <button class="pf-pen" style="position:static;display:inline-block;width:20px;height:20px" onclick="pfEditName()" aria-label="Ganti nama">Ubah</button>':'')+'</div>'
     +'<div class="pf-id">ID: '+esc(pub.id)+(me?'<button onclick="pfCopyId()">SALIN</button>':'')+'</div>'
     +'<div class="pf-rank" style="color:'+rk.color+'">'+esc(rankLabel(rk,true))+'</div>'
     +(me?'<div class="pf-sync">'+st+'</div>'+(pfLogged()?'<div class="pf-sync">'+esc((PROFILE.acct&&PROFILE.acct.email)||'Akun Google')+'</div><button class="btn danger" onclick="pfLogout()">KELUAR AKUN</button>':'<button class="btn primary" onclick="pfShowLogin()">MASUK / DAFTAR</button>'):'<button class="btn" onclick="pfBackMe()">PROFIL SAYA</button>');
@@ -9398,7 +9452,7 @@ function cuWatch(code){
       if(!c||!c.roles||c.roles[uid]===undefined){FB.started=false;return;}
       FBM.lobbyOpen=false;startOnline();return;
     }
-    if(data.state==='lobby'){FB.started=false;var s=document.getElementById('screen-custom');if(s&&!s.classList.contains('active')&&!G.running)showScreen('screen-custom');cuRender();}
+    if(data.state==='lobby'){FB.started=false;var s=document.getElementById('screen-custom');if(s&&!s.classList.contains('active')&&!G.running&&!window.LBMIN)showScreen('screen-custom');cuRender();}
   },function(e){olMsg('Koneksi room terputus: '+fbErr(e));});
   FB.unsub=function(){ref.off('value',cb);};
 }
@@ -9578,7 +9632,7 @@ window.PortOv={imgs:{},t:0,
   set:function(o){var old=this.imgs,n={};this.imgs=n;for(var id in o){var s=o[id];if(typeof s!=='string'||s.indexOf('data:image/')!==0||s.length>250000)continue;(function(id,s){var im=(old[id]&&old[id].src===s)?old[id]:null;if(!im){im=new Image();im.onload=sched;im.src=s;}n[id]=im;})(id,s);}sched();}};
 
 /* --- EVENT --- */
-var ICON={spin:'\uD83C\uDFA1',chest:'\uD83C\uDF81',skin:'\uD83C\uDFAD',coins:'\uD83D\uDCB0',info:'\uD83D\uDCE2'},LABEL={spin:'PUTAR RODA',chest:'BUKA PETI',skin:'KLAIM SKIN',coins:'AMBIL KOIN'};
+var ICON={spin:'\u25CE',chest:'\u25A3',skin:'\u25C8',coins:'\u25CF',info:'i'},LABEL={spin:'PUTAR RODA',chest:'BUKA PETI',skin:'KLAIM SKIN',coins:'AMBIL KOIN'};
 function today(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
 function claims(){if(!PROFILE.evClaims)PROFILE.evClaims={};return PROFILE.evClaims;}
 function evList(){var n=Date.now(),a=[];for(var id in CFG7.events){var e=CFG7.events[id];if(!e||e.on===false||(e.start||0)>n||(e.end||0)<n)continue;e.id=id;a.push(e);}return a.sort(function(x,y){return (x.end||0)-(y.end||0);});}
@@ -10471,9 +10525,9 @@ window.cuRender=function(){
         var pref=ai[key],hn=(pref!=='auto'&&HERO_DEFS[pref])?HERO_DEFS[pref].name:'Acak';
         if(host){
           var opts='<option value="auto"'+(pref==='auto'?' selected':'')+'>Acak</option>'+Object.keys(HERO_DEFS).map(function(k){return '<option value="'+k+'"'+(k===pref?' selected':'')+'>'+HERO_DEFS[k].name+'</option>';}).join('');
-          h+='<div class="cu-s ai"><span class="rn">'+rn+'</span><span class="nm">&#129302; Bot AI</span><select onchange="cuAiHero('+tm+','+r+',this.value)">'+opts+'</select><button class="x" onclick="cuAiRemove('+tm+','+r+')">&#10005;</button></div>';
+          h+='<div class="cu-s ai"><span class="rn">'+rn+'</span><span class="nm">BOT AI</span><select onchange="cuAiHero('+tm+','+r+',this.value)">'+opts+'</select><button class="x" onclick="cuAiRemove('+tm+','+r+')">&#10005;</button></div>';
         }else{
-          h+='<div class="cu-s ai" onclick="cuMove('+tm+','+r+')"><span class="rn">'+rn+'</span><span class="nm">&#129302; Bot AI</span><b style="font-size:11px">'+esc(hn)+'</b></div>';
+          h+='<div class="cu-s ai" onclick="cuMove('+tm+','+r+')"><span class="rn">'+rn+'</span><span class="nm">BOT AI</span><b style="font-size:11px">'+esc(hn)+'</b></div>';
         }
       }else{
         h+='<div class="cu-s empty" onclick="cuMove('+tm+','+r+')"><span class="rn">'+rn+'</span><span class="nm">Kosong</span>'
@@ -11578,7 +11632,7 @@ var _pfr95=pfRender;pfRender=function(){
       h+='<div class="pf-bd'+(cur==='none'?' on':'')+'" onclick="pfSetBorder(\'none\')"><div class="pf-bd-a"></div><small>Tanpa</small></div>';
       (window.BORDERS95||[]).forEach(function(d){
         var has=own.indexOf(d.id)>=0;
-        h+='<div class="pf-bd'+(cur===d.id?' on':'')+(has?'':' lock')+'" onclick="pfSetBorder(\''+d.id+'\')"><div class="pf-bd-a bdx'+(d.rain?' bdx-rain':'')+'" data-sm="0" style="--b1:'+d.b1+';--b2:'+d.b2+(has?'':';opacity:.35')+'"></div><small>'+esc(d.name)+(has?'':' &#128274;')+'</small></div>';
+        h+='<div class="pf-bd'+(cur===d.id?' on':'')+(has?'':' lock')+'" onclick="pfSetBorder(\''+d.id+'\')"><div class="pf-bd-a bdx'+(d.rain?' bdx-rain':'')+'" data-sm="0" style="--b1:'+d.b1+';--b2:'+d.b2+(has?'':';opacity:.35')+'"></div><small>'+esc(d.name)+(has?'':' (terkunci)')+'</small></div>';
       });
       h+='</div><div class="pf-msg">'+esc(PF.msg||'Border dipakai terlihat oleh pemain lain. Dapatkan lewat Spin Border di SHOP.')+'</div><button class="btn" style="margin-top:6px;width:100%" onclick="PF.view=\'info\';PF.msg=\'\';pfRender()">SELESAI</button>';
       B.innerHTML=h;
@@ -11704,7 +11758,7 @@ window.ptKick=function(uid){
     +'#chFeed{position:fixed;left:56px;top:40%;width:min(300px,50vw);z-index:69;pointer-events:none;font-size:11.5px;line-height:1.35;color:#fff;text-shadow:0 1px 3px #000,0 0 6px #000;display:none}'
     +'#chFeed .ch-m{background:rgba(8,12,26,.5);border-radius:6px;padding:2px 6px;margin-bottom:2px}';
     document.head.appendChild(st);
-    var fab=document.createElement('div');fab.id='chFab';fab.innerHTML='&#128172;<i id="chBadge"></i>';
+    var fab=document.createElement('div');fab.id='chFab';fab.innerHTML='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg><i id="chBadge"></i>';
     fab.onclick=function(){toggle(true);};document.body.appendChild(fab);
     var p=document.createElement('div');p.id='chPanel';
     p.innerHTML='<div class="ch-h"><button class="ch-tab on" id="chTabT">TIM</button><button class="ch-tab" id="chTabA">SEMUA</button><button class="ch-x" id="chClose">&#10005;</button></div>'
@@ -11758,51 +11812,102 @@ window.ptKick=function(uid){
   window.CHAT95={send:send,toggle:toggle};
 })();
 </script>
+
 <script>
 /* =====================================================================
-   v10 : UI ringkas - auto-fit panel supaya tidak perlu scroll
+   v10.1 : auto-fit UI (tanpa scroll / geser), minimize lobby, indikator tim
    ===================================================================== */
 (function(){
-  var TARGETS=[
-    {sel:'#screen-custom .cu-panel',scroll:['.cu-cols']},
-    {sel:'#screen-online .panel',scroll:[]},
-    {sel:'#screen-settings .panel',scroll:[]},
-    {sel:'#screen-party .pt-wrap',scroll:[]}
-  ];
-  var MIN=0.66;
-  function setZoom(p,z){
-    var kids=p.children,i;
-    for(i=0;i<kids.length;i++){
-      if(kids[i].classList.contains('back-row'))continue;
-      kids[i].style.zoom=z>=0.999?'':String(z);
-    }
-  }
-  function over(p,scrolls){
-    if(p.scrollHeight>p.clientHeight+2)return true;
-    for(var i=0;i<scrolls.length;i++){var e=p.querySelector(scrolls[i]);if(e&&e.scrollHeight>e.clientHeight+2)return true;}
-    return false;
-  }
+  var MAP={'screen-info':'.panel','screen-settings':'.panel','screen-about':'.panel','screen-online':'.panel','screen-custom':'.cu-panel','screen-party':'.pt-wrap'};
   function fit(){
-    var act=document.querySelector('.screen.active');if(!act)return;
-    TARGETS.forEach(function(T){
-      var p=act.matches&&document.querySelector(T.sel);
-      if(!p||!act.contains(p))return;
-      setZoom(p,1);
-      if(!over(p,T.scroll)){return;}
-      var z=1;
-      while(z>MIN){z=Math.round((z-0.04)*100)/100;setZoom(p,z);if(!over(p,T.scroll))break;}
-    });
+    var act=document.querySelector('.screen.active');
+    if(!act||!MAP[act.id])return;
+    var el=act.querySelector(MAP[act.id]);if(!el)return;
+    act.classList.add('fit');el.style.transform='';
+    var cs=getComputedStyle(act);
+    var aw=act.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
+    var ah=act.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
+    var w=Math.max(el.offsetWidth,el.scrollWidth),h=Math.max(el.offsetHeight,el.scrollHeight);
+    if(!w||!h)return;
+    var s=Math.min(1,aw/w,ah/h);if(s<0.45)s=0.45;
+    if(s<0.995){el.style.transform='scale('+s+')';el.style.transformOrigin='center center';}
   }
-  var tm=0;
-  function later(){clearTimeout(tm);tm=setTimeout(fit,90);}
-  window.addEventListener('resize',later);
-  window.addEventListener('orientationchange',later);
-  try{new MutationObserver(later).observe(document.body,{childList:true,subtree:true});}catch(e){}
+  var tm=0;function later(){clearTimeout(tm);tm=setTimeout(fit,70);}
+  window.addEventListener('resize',later);window.addEventListener('orientationchange',later);
+  try{new MutationObserver(later).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});}catch(e){}
+  setInterval(fit,1200);window.fitUI=fit;
+
+  /* ---------- minimize lobby ---------- */
+  window.LBMIN=null;
+  function sfx(){try{Sfx.ui();}catch(e){}}
+  window.lbMinimize=function(kind){
+    if(!FB.room)return;
+    window.LBMIN=kind;sfx();
+    try{resetHudState();}catch(e){}
+    try{renderProfile();}catch(e){}
+    showScreen('screen-menu');chipUpdate();
+  };
+  window.lbRestore=function(){
+    var k=window.LBMIN;window.LBMIN=null;sfx();
+    if(!FB.room){chipUpdate();return;}
+    if(k==='custom'){showScreen('screen-custom');try{cuRender();}catch(e){}}
+    else{FBM.lobbyOpen=true;lobbyMode='online';showScreen('screen-lobby');try{olApplyRoom();refreshLobby();}catch(e){}}
+    chipUpdate();
+  };
+  window.lbBack=function(){
+    if(lobbyMode==='online'&&FB.room){window.lbMinimize('lobby');return;}
+    handleGo('menu');
+  };
+  window.lbLeaveRoom=function(){
+    if(!window.confirm('Keluar dan bubarkan/tinggalkan lobby ini?'))return;
+    window.LBMIN=null;
+    try{leaveRoom();}catch(e){}
+    lobbyMode='classic';FBM.lobbyOpen=false;
+    try{showScreen('screen-online');olRender();}catch(e){showScreen('screen-menu');}
+    chipUpdate();
+  };
+  function members(){
+    var d=FB.room&&FB.room.data,ms=(d&&d.members)||{};return {d:d,ms:ms,ids:Object.keys(ms)};
+  }
+  function chipUpdate(){
+    var chip=document.getElementById('mmTeam'),menu=document.getElementById('screen-menu');
+    if(!chip||!menu)return;
+    if(window.LBMIN&&(!FB.room||G.running)){window.LBMIN=null;}
+    var on=!!(window.LBMIN&&FB.room&&menu.classList.contains('active'));
+    chip.style.display=on?'flex':'none';
+    if(!on)return;
+    var m=members(),max=m.d&&m.d.custom?10:5,h='';
+    var shown=m.ids.slice(0,5);
+    shown.forEach(function(id){var nm=(m.ms[id]&&m.ms[id].name)||'?';h+='<span class="pav s" data-pav="'+id+'">'+esc(nm.charAt(0).toUpperCase())+'</span>';});
+    for(var i=shown.length;i<Math.min(5,max);i++)h+='<span class="mt-e"></span>';
+    var key=h+m.ids.length+FB.room.code;
+    if(chip._k!==key){chip._k=key;
+      chip.innerHTML='<span class="mt-live"></span><span class="mt-t"><b>'+(m.d&&m.d.custom?'ROOM CUSTOM':'LOBBY TIM')+'</b><small>'+esc(FB.room.code)+' &middot; '+m.ids.length+'/'+max+'</small></span><span class="mt-av">'+h+'</span><span class="mt-go">BUKA</span>';}
+  }
+  setInterval(chipUpdate,500);
+
+  /* tombol minimize di room custom + keluar di lobby online */
   setInterval(function(){
-    var act=document.querySelector('.screen.active');if(!act)return;
-    if(act.id==='screen-custom'||act.id==='screen-online'||act.id==='screen-settings'||act.id==='screen-party')fit();
-  },1500);
-  window.fitUI=fit;
+    var top=document.querySelector('#screen-custom .cu-top');
+    if(top&&!document.getElementById('cuMin')){
+      var b=document.createElement('button');b.id='cuMin';b.className='btn small';b.textContent='MINIMIZE';
+      b.onclick=function(){window.lbMinimize('custom');};
+      var info=document.getElementById('cuInfo');top.insertBefore(b,info||null);
+    }
+    var lt=document.querySelector('#screen-lobby .lb-top');
+    if(lt&&!document.getElementById('lbLeave')){
+      var l=document.createElement('button');l.id='lbLeave';l.className='lb-emb hidden';l.innerHTML='<span class="et"><b style="color:#ff9aa8">KELUAR</b><small>Tinggalkan lobby</small></span>';
+      l.onclick=window.lbLeaveRoom;var c=document.getElementById('lbCode');lt.insertBefore(l,c||null);
+    }
+    var lv=document.getElementById('lbLeave');
+    if(lv)lv.classList.toggle('hidden',!(lobbyMode==='online'&&FB.room));
+  },700);
+  /* cegah custom/lobby terbuka sendiri saat diminimize */
+  var _ss=showScreen;
+  showScreen=function(id){
+    if(window.LBMIN&&(id==='screen-custom')&&FB.room&&!G.running){id='screen-menu';}
+    return _ss(id);
+  };
 })();
 </script>
 </body>
