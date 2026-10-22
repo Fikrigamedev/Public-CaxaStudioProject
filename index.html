@@ -5188,7 +5188,7 @@ function resizeCanvas(){
   var w=window.innerWidth||800,h=window.innerHeight||600;
   if(w<10)w=800;
   if(h<10)h=600;
-  dpr=Math.min(window.devicePixelRatio||1,2)*(window.__RS||1);
+  dpr=Math.min(window.devicePixelRatio||1,2);
   canvas.width=Math.floor(w*dpr);canvas.height=Math.floor(h*dpr);
   canvas.style.width=w+'px';canvas.style.height=h+'px';
 }
@@ -11843,7 +11843,7 @@ window.ptKick=function(uid){
    ===================================================================== */
 (function(){
   var CENTER={'screen-online':'.panel','screen-custom':'.cu-panel','screen-party':'.pt-wrap'};
-  var FILL={'screen-settings':'.panel','screen-info':'.panel','screen-about':'.panel'};
+  var FILL={'screen-info':'.panel','screen-about':'.panel'};
   function fit(){
     var act=document.querySelector('.screen.active');
     if(!act)return;
@@ -12688,13 +12688,17 @@ try{window.SPR_H=Object.assign(window.SPR_H||{},{ORION:72,MIRA:77,TORO:76,GLACIA
 var E=window.ENVF={lit:1,dark:0,rain:0,snow:0,hour:12,on:false,flash:0};
 var st=document.createElement('style');
 st.textContent=
-'#screen-settings .set-head h2{font-size:22px!important}'+
-'#screen-settings .srow{padding:11px 0!important}'+
-'#screen-settings .srow label{font-size:15.5px!important;line-height:1.35!important}'+
-'#screen-settings .hint{font-size:12.5px!important;line-height:1.5!important}'+
-'#screen-settings .seg button{padding:9px 15px!important;font-size:14px!important}'+
+'#screen-settings .set-head h2{font-size:21px!important}'+
+'#screen-settings .srow{padding:9px 0!important}'+
+'#screen-settings .srow label{font-size:14.5px!important;line-height:1.35!important}'+
+'#screen-settings .hint{font-size:12px!important;line-height:1.45!important}'+
+'#screen-settings .seg button{padding:8px 12px!important;font-size:13px!important}'+
 '#screen-settings .srow b{font-size:14px!important}'+
-'#screen-settings .panel{column-gap:42px!important}'+
+'#screen-settings .panel{transform:none!important;width:100%!important;max-width:none!important;height:auto!important;display:grid!important;column-count:auto!important;grid-template-columns:1fr 1fr;column-gap:42px!important;align-content:start;overflow-y:auto!important;box-sizing:border-box;max-height:100vh!important;max-height:100dvh!important;width:100%;-webkit-overflow-scrolling:touch}'+
+'#screen-settings .set-head,#screen-settings .back-row{grid-column:1/-1}'+
+'#screen-settings .srow{break-inside:auto!important;min-width:0}'+
+'@media (max-width:640px){#screen-settings .panel{grid-template-columns:1fr!important}}'+
+'@media (max-height:520px){#screen-settings .srow{padding:7px 0!important}#screen-settings .srow label{font-size:14px!important}#screen-settings .hint{font-size:11.5px!important}}'+
 '#screen-settings .btn{font-size:14px!important;padding:10px 18px!important}'+
 '#screen-settings .tg{width:62px!important;height:32px!important;border-radius:17px!important}'+
 '#screen-settings .tg::after{width:26px!important;height:26px!important;top:2px!important;left:2px!important}'+
@@ -12942,7 +12946,7 @@ st.textContent='.ld-user{font-style:normal;font-size:clamp(8px,1.5vw,11px);font-
 '.ld-mini{width:100%;height:6px;background:#0b1224;border:1px solid #2c3d6e;border-radius:3px;overflow:hidden;margin-top:4px}'+
 '.ld-mini div{height:100%;width:0;background:#4aa8ff;transition:width .25s linear}'+
 '.ld-card.me .ld-mini div{background:#d9a21e}.ld-card.ai .ld-mini div{background:#6b7fa8}'+
-'.ld-pc{font-size:8px;color:#b8c8e6;margin-top:2px}';
+'.ld-pc{font-size:8px;color:#b8c8e6;margin-top:2px}.ld-bar,#ldPct{display:none!important}.ld-text{justify-content:center!important}';
 document.head.appendChild(st);
 
 /* ---------------- 1. LOADING ---------------- */
@@ -13094,17 +13098,6 @@ drawHero=function(h){
   }else _dh.apply(this,arguments);
 };
 
-/* ---------------- 4. RESOLUSI ADAPTIF (anti frame-drop) ---------------- */
-window.__RS=1;var good=0;
-setInterval(function(){
-  try{
-    if(!G.running||G.paused||G.ended||G.intro)return;
-    var cap=G.settings.fpsCap,lim=1000/Math.max(20,(cap>0&&cap<120)?cap:60);
-    if(PERF.ema>lim*1.5&&window.__RS>0.65){window.__RS=Math.max(0.65,window.__RS-0.12);good=0;resizeCanvas();}
-    else if(PERF.ema<lim*1.12){if(++good>=8&&window.__RS<1){window.__RS=Math.min(1,window.__RS+0.12);good=0;resizeCanvas();}}
-    else good=0;
-  }catch(e){}
-},1000);
 })();
 </script>
 
