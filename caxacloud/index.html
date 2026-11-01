@@ -73,6 +73,12 @@ input[type=file]{display:none}
       <div id="posts" class="space-y-5"><div class="flex justify-center py-20"><div class="spinner"></div></div></div>
     </div>
 
+    <!-- DETAIL APLIKASI (link share) -->
+    <div id="view-detail" class="page-view space-y-4">
+      <button onclick="closeDetail()" class="flex items-center gap-2 text-sm font-bold dark:text-gray-400 text-gray-500 hover:text-blue-600"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 19l-7-7 7-7"/></svg> Semua Aplikasi</button>
+      <div id="detail-card"></div>
+    </div>
+
     <!-- PROFILE -->
     <div id="view-profile" class="page-view space-y-5">
       <div id="profile-guest" class="hidden p-10 rounded-[2.5rem] glass-card text-center space-y-4">
@@ -235,6 +241,7 @@ function updateAuthUI() {
 onValue(ref(db, 'posts'), snap => {
   allPosts = Object.entries(snap.val() || {}).map(([id, p]) => ({ id, ...p }))
     .filter(p => p.apkUrl).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  postsLoaded = true;
   renderPosts(); renderProfile();
 });
 onValue(ref(db, 'ratings'), snap => { allRatings = snap.val() || {}; renderPosts(); });
@@ -247,37 +254,93 @@ function ratingOf(id) {
   const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
   return { avg: Math.round(avg * 10) / 10, count: vals.length, mine: currentUser ? (allRatings[id]?.[currentUser.uid] || 0) : 0 };
 }
+const openDescs = new Set();
+let postsLoaded = false;
+const dlUrl = p => `${p.apkUrl}?download=${encodeURIComponent((p.title || 'app').replace(/[\\/:*?"<>|]+/g, '').trim() || 'app')}.apk`;
+const shareUrl = id => `${location.origin}${location.pathname}#app/${id}`;
+
+function buildCard(p, detail) {
+  const r = ratingOf(p.id);
+  const open = detail || openDescs.has(p.id);
+  const date = p.createdAt ? new Date(p.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+  const stars = [1, 2, 3, 4, 5].map(s =>
+    `<button class="star-btn ${s <= r.mine ? 'text-yellow-400' : 'dark:text-gray-500 text-gray-400'}" onclick="submitRating('${p.id}',${s})" title="${s} bintang">${starSvg(s <= Math.round(r.avg), 'w-6 h-6')}</button>`).join('');
+  const iconBtn = (fn, title, svg, extra = '') => `<button onclick="${fn}('${p.id}')" class="p-2 rounded-xl ${extra}" title="${title}">${svg}</button>`;
+  return `
+  <div class="p-6 rounded-[2.5rem] glass-card space-y-4">
+    <div class="flex items-start gap-4">
+      <img src="${escHtml(p.iconUrl)}" class="${detail ? 'w-24 h-24' : 'w-20 h-20'} rounded-[1.4rem] object-cover flex-shrink-0 border dark:border-white/10 border-gray-200" alt="">
+      <div class="flex-1 min-w-0">
+        <h3 class="${detail ? 'text-2xl' : 'text-xl'} font-bold leading-tight break-words">${escHtml(p.title)}</h3>
+        <p class="text-xs dark:text-gray-400 text-gray-500 mt-1 font-semibold">APK • ${fmtSize(p.apkSize || 0)} • ${date}</p>
+        <p class="text-xs mt-1"><span class="font-black text-blue-600">${escHtml(p.uploaderName || 'Developer')}</span>${p.uploaderEmail === DEV_EMAIL ? ' <span class="badge-dev text-white font-black px-2 py-0.5 rounded-full uppercase">Dev</span>' : ''}</p>
+      </div>
+      <div class="flex flex-col gap-1 flex-shrink-0">
+        ${iconBtn('sharePost', 'Bagikan link', '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>', 'dark:hover:bg-white/10 hover:bg-black/5 text-blue-600')}
+        ${isDev() ? iconBtn('deletePost', 'Hapus', '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>', 'hover:bg-red-500/20 text-red-400') : ''}
+      </div>
+    </div>
+    ${p.description ? (detail
+      ? `<p class="text-sm dark:text-gray-300 text-gray-600 whitespace-pre-line break-words">${escHtml(p.description)}</p>`
+      : `<div>
+          <button onclick="toggleDesc('${p.id}')" class="flex items-center gap-1 text-xs font-bold text-blue-600">Deskripsi <span id="arrow-${p.id}" class="inline-flex transition-transform ${open ? 'rotate-180' : ''}"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></button>
+          <p id="desc-${p.id}" class="${open ? '' : 'hidden'} text-sm dark:text-gray-300 text-gray-600 whitespace-pre-line break-words mt-2">${escHtml(p.description)}</p>
+        </div>`) : ''}
+    <a href="${escHtml(dlUrl(p))}" class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-2xl font-bold text-sm shadow-lg shadow-blue-600/20"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Download APK</a>
+    <div class="pt-3 border-t dark:border-white/10 border-black/5 flex items-center justify-between">
+      <div class="flex items-center">${stars}</div>
+      <span class="text-xs dark:text-gray-400 text-gray-500 font-bold">${r.count ? `${r.avg} ${starSvg(true, 'w-3.5 h-3.5 inline text-yellow-400 -mt-0.5')} (${r.count})` : 'Belum ada rating'}</span>
+    </div>
+  </div>`;
+}
+
 function renderPosts() {
   $('count-badge').textContent = `${allPosts.length} aplikasi`;
-  if (!allPosts.length) {
-    $('posts').innerHTML = `<p class="text-center py-20 font-bold text-sm dark:text-gray-500 text-gray-400">Belum ada aplikasi</p>`;
-    return;
-  }
-  $('posts').innerHTML = allPosts.map(p => {
-    const r = ratingOf(p.id);
-    const date = p.createdAt ? new Date(p.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
-    const stars = [1, 2, 3, 4, 5].map(s =>
-      `<button class="star-btn ${s <= r.mine ? 'text-yellow-400' : 'dark:text-gray-500 text-gray-400'}" onclick="submitRating('${p.id}',${s})" title="${s} bintang">${starSvg(s <= Math.round(r.avg),'w-6 h-6')}</button>`).join('');
-    return `
-    <div class="p-6 rounded-[2.5rem] glass-card space-y-4">
-      <div class="flex items-start gap-4">
-        <img src="${escHtml(p.iconUrl)}" class="w-20 h-20 rounded-[1.4rem] object-cover flex-shrink-0 border dark:border-white/10 border-gray-200" alt="">
-        <div class="flex-1 min-w-0">
-          <h3 class="text-xl font-bold leading-tight break-words">${escHtml(p.title)}</h3>
-          <p class="text-xs dark:text-gray-400 text-gray-500 mt-1 font-semibold">APK • ${fmtSize(p.apkSize || 0)} • ${date}</p>
-          <p class="text-xs mt-1"><span class="font-black text-blue-600">${escHtml(p.uploaderName || 'Developer')}</span>${p.uploaderEmail === DEV_EMAIL ? ' <span class="badge-dev text-white font-black px-2 py-0.5 rounded-full uppercase">Dev</span>' : ''}</p>
-        </div>
-        ${isDev() ? `<button onclick="deletePost('${p.id}')" class="p-2 rounded-xl hover:bg-red-500/20 text-red-400" title="Hapus"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>` : ''}
-      </div>
-      ${p.description ? `<p class="text-sm dark:text-gray-300 text-gray-600 whitespace-pre-line break-words">${escHtml(p.description)}</p>` : ''}
-      <a href="${escHtml(p.apkUrl)}" download="${escHtml(p.apkName || 'app.apk')}" class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-2xl font-bold text-sm shadow-lg shadow-blue-600/20"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Download APK</a>
-      <div class="pt-3 border-t dark:border-white/10 border-black/5 flex items-center justify-between">
-        <div class="flex items-center">${stars}</div>
-        <span class="text-xs dark:text-gray-400 text-gray-500 font-bold">${r.count ? `${r.avg} ${starSvg(true,'w-3.5 h-3.5 inline text-yellow-400 -mt-0.5')} (${r.count})` : 'Belum ada rating'}</span>
-      </div>
-    </div>`;
-  }).join('');
+  $('posts').innerHTML = !postsLoaded ? `<div class="flex justify-center py-20"><div class="spinner"></div></div>`
+    : !allPosts.length ? `<p class="text-center py-20 font-bold text-sm dark:text-gray-500 text-gray-400">Belum ada aplikasi</p>`
+    : allPosts.map(p => buildCard(p, false)).join('');
+  renderDetail();
 }
+
+window.toggleDesc = id => {
+  const open = !openDescs.has(id);
+  open ? openDescs.add(id) : openDescs.delete(id);
+  $('desc-' + id)?.classList.toggle('hidden', !open);
+  $('arrow-' + id)?.classList.toggle('rotate-180', open);
+};
+
+/* ====== SHARE & HALAMAN DETAIL ====== */
+window.sharePost = async id => {
+  const p = allPosts.find(x => x.id === id);
+  const url = shareUrl(id);
+  if (navigator.share) {
+    try { await navigator.share({ title: p?.title || 'CaxaCloud', text: `Download ${p?.title || 'aplikasi'} di CaxaCloud`, url }); return; }
+    catch (e) { if (e.name === 'AbortError') return; }
+  }
+  try { await navigator.clipboard.writeText(url); }
+  catch {
+    const t = document.createElement('textarea'); t.value = url; document.body.appendChild(t); t.select();
+    try { document.execCommand('copy'); } catch {} t.remove();
+  }
+  showToast("Link disalin!");
+};
+
+const routeId = () => (location.hash.match(/^#app\/([^/?]+)/) || [])[1] || null;
+function renderDetail() {
+  const id = routeId();
+  if (!id) return;
+  const p = allPosts.find(x => x.id === id);
+  $('detail-card').innerHTML = !postsLoaded ? `<div class="flex justify-center py-20"><div class="spinner"></div></div>`
+    : p ? buildCard(p, true)
+    : `<div class="p-10 rounded-[2.5rem] glass-card text-center font-bold">Aplikasi tidak ditemukan atau sudah dihapus.</div>`;
+  document.title = p ? `${p.title} - CaxaCloud` : 'CaxaCloud - Share APK';
+}
+function handleRoute() {
+  if (routeId()) { renderDetail(); navigate('detail'); }
+  else { document.title = 'CaxaCloud - Share APK'; navigate('home'); }
+}
+window.closeDetail = () => { history.pushState('', '', location.pathname + location.search); handleRoute(); };
+window.addEventListener('hashchange', handleRoute);
 
 window.submitRating = async (postId, star) => {
   if (!currentUser) { showToast("Login untuk memberi rating."); return; }
@@ -387,6 +450,7 @@ window.submitUpload = async () => {
   btn.disabled = false; btn.textContent = 'Publikasikan';
 };
 
+setTimeout(handleRoute, 0);
 function escHtml(s) { return s ? String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') : ''; }
 </script>
 
@@ -403,7 +467,7 @@ function navigate(page) {
   document.querySelectorAll('.page-view').forEach(el => el.classList.remove('active'));
   document.getElementById('view-' + page).classList.add('active');
   for (const p of ['home', 'profile'])
-    document.getElementById('nav-' + p).className = 'px-4 py-1.5 rounded-full text-xs font-bold ' + (p === page ? 'bg-blue-600 text-white shadow-md' : 'dark:text-gray-400 text-gray-500');
+    document.getElementById('nav-' + p).className = 'px-4 py-1.5 rounded-full text-xs font-bold ' + (p === (page === 'detail' ? 'home' : page) ? 'bg-blue-600 text-white shadow-md' : 'dark:text-gray-400 text-gray-500');
 }
 function openSidebar() {
   document.getElementById('sidebar').classList.remove('-translate-x-full');
