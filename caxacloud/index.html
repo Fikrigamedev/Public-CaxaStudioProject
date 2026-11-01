@@ -27,7 +27,7 @@ body{-webkit-tap-highlight-color:transparent;transition:background-color .3s,col
 #sidebar,#sidebar-overlay{transition:all .45s cubic-bezier(.4,0,.2,1)}
 .modal-box{transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
 input[type=file]{display:none}
-.star-btn{cursor:pointer;font-size:22px;transition:transform .15s}.star-btn:hover{transform:scale(1.25)}
+.star-btn{cursor:pointer;display:flex;padding:2px;transition:transform .15s}.star-btn:hover{transform:scale(1.25)}
 </style>
 </head>
 <body class="bg-gray-50 text-gray-900 dark:bg-[#050508] dark:text-white font-sans font-medium min-h-screen flex flex-col antialiased">
@@ -37,7 +37,7 @@ input[type=file]{display:none}
 <aside id="sidebar" class="fixed top-0 left-0 h-full w-[85%] max-w-sm z-50 transform -translate-x-full glass flex flex-col p-6 gap-4 overflow-y-auto">
   <div class="flex items-center justify-between mb-4">
     <h1 class="text-2xl font-bold text-blue-600">CaxaCloud</h1>
-    <button onclick="closeSidebar()" class="p-2 rounded-full dark:hover:bg-white/10 hover:bg-black/5 text-xl leading-none">✕</button>
+    <button onclick="closeSidebar()" class="p-2 rounded-full dark:hover:bg-white/10 hover:bg-black/5 "><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
   </div>
   <div id="sidebar-auth"></div>
   <div class="p-5 rounded-3xl dark:bg-white/5 bg-blue-50">
@@ -45,7 +45,7 @@ input[type=file]{display:none}
     <p class="text-sm dark:text-gray-300 text-gray-600">CaxaCloud adalah tempat berbagi aplikasi APK. Semua orang bisa mengunduh dan memberi rating.</p>
   </div>
   <button onclick="toggleTheme()" class="w-full flex items-center justify-between p-4 rounded-3xl glass-card font-bold">
-    <span id="theme-label">Tema Gelap</span>
+    <span id="theme-label" class="flex items-center gap-3">Tema Gelap</span>
     <div id="theme-bg" class="w-12 h-6 rounded-full p-1 bg-blue-600"><div id="theme-dot" class="w-4 h-4 rounded-full bg-white transition-transform translate-x-6"></div></div>
   </button>
   <div class="mt-auto p-5 rounded-3xl text-center dark:bg-white/5 bg-gray-100">
@@ -55,7 +55,7 @@ input[type=file]{display:none}
 
 <div class="max-w-3xl mx-auto w-full flex-1 flex flex-col">
   <header class="sticky top-0 z-30 px-3 py-2 flex items-center justify-between glass gap-2">
-    <button onclick="openSidebar()" class="p-2.5 rounded-full dark:bg-white/5 bg-white border border-gray-200 shadow-sm" title="Pengaturan">⚙️</button>
+    <button onclick="openSidebar()" class="p-2.5 rounded-full flex dark:bg-white/5 bg-white border border-gray-200 shadow-sm" title="Pengaturan"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
     <nav class="flex gap-0.5 glass-card rounded-full p-1.5">
       <button onclick="navigate('home')" id="nav-home" class="px-4 py-1.5 rounded-full text-xs font-bold bg-blue-600 text-white shadow-md">Beranda</button>
       <button onclick="navigate('profile')" id="nav-profile" class="px-4 py-1.5 rounded-full text-xs font-bold dark:text-gray-400 text-gray-500">Profil</button>
@@ -85,12 +85,12 @@ input[type=file]{display:none}
           <img id="p-photo" class="w-28 h-28 rounded-full object-cover border-4 dark:border-white/10 border-white shadow-2xl mb-4" alt="">
           <div id="name-view" class="flex items-center gap-2 mb-1">
             <h2 id="p-name" class="text-2xl font-bold"></h2>
-            <button onclick="editName()" class="p-1.5 rounded-lg dark:hover:bg-white/10 hover:bg-gray-100">✏️</button>
+            <button onclick="editName()" class="p-1.5 rounded-lg dark:hover:bg-white/10 hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
           </div>
           <div id="name-edit" class="hidden flex gap-2 mb-1 w-full max-w-xs">
             <input id="name-input" class="glass-input flex-1 px-4 py-2 rounded-xl font-bold text-center min-w-0">
-            <button onclick="saveName()" class="px-3 bg-blue-600 text-white rounded-xl">✓</button>
-            <button onclick="cancelName()" class="px-3 dark:bg-white/10 bg-gray-100 rounded-xl">✕</button>
+            <button onclick="saveName()" class="px-3 bg-blue-600 text-white rounded-xl"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></button>
+            <button onclick="cancelName()" class="px-3 dark:bg-white/10 bg-gray-100 rounded-xl"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
           </div>
           <div class="flex items-center gap-2"><p id="p-email" class="text-sm font-bold text-blue-600"></p><span id="p-dev" class="hidden badge-dev text-white font-black px-2 py-0.5 rounded-full uppercase">Dev</span></div>
           <div id="p-stat" class="hidden mt-5 p-5 rounded-[2rem] dark:bg-black/40 bg-gray-50 w-full max-w-xs">
@@ -109,13 +109,13 @@ input[type=file]{display:none}
   <div id="modal-box" class="relative w-full max-w-2xl mx-4 rounded-t-[2.5rem] sm:rounded-[2.5rem] p-6 sm:p-8 z-10 glass modal-box translate-y-full overflow-y-auto max-h-[92vh] space-y-4">
     <div class="flex items-center justify-between">
       <div><h2 class="text-2xl font-bold">Upload APK</h2><p class="text-sm dark:text-gray-400 text-gray-500">Disimpan di Supabase Storage</p></div>
-      <button onclick="closeUploadModal()" class="p-2 rounded-full dark:hover:bg-white/10 hover:bg-black/5 text-xl leading-none">✕</button>
+      <button onclick="closeUploadModal()" class="p-2 rounded-full dark:hover:bg-white/10 hover:bg-black/5 "><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>
 
     <div>
       <label class="block text-sm font-bold mb-2 ml-1">File APK <span class="text-blue-500">*</span></label>
       <div class="flex items-center p-3 rounded-2xl border-2 border-dashed dark:border-white/20 border-gray-300 cursor-pointer" onclick="$('up-apk').click()">
-        <div class="p-3 bg-blue-600 rounded-xl text-white mr-3">📦</div>
+        <div class="p-3 bg-blue-600 rounded-xl text-white mr-3"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3.3 7.5L12 12.5l8.7-5M12 22V12.5"/></svg></div>
         <span id="apk-name" class="text-sm truncate font-bold dark:text-gray-300 text-gray-500">Pilih file .apk...</span>
         <input type="file" id="up-apk" accept=".apk,application/vnd.android.package-archive" onchange="pickFile('up-apk','apk-name','Pilih file .apk...')">
       </div>
@@ -124,7 +124,7 @@ input[type=file]{display:none}
       <label class="block text-sm font-bold mb-2 ml-1">Icon APK <span class="text-blue-500">*</span></label>
       <div class="flex items-center p-3 rounded-2xl border-2 border-dashed dark:border-white/20 border-gray-300 cursor-pointer" onclick="$('up-icon').click()">
         <img id="icon-preview" class="hidden w-12 h-12 rounded-xl object-cover mr-3" alt="">
-        <div id="icon-ph" class="p-3 bg-blue-600 rounded-xl text-white mr-3">🖼️</div>
+        <div id="icon-ph" class="p-3 bg-blue-600 rounded-xl text-white mr-3"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
         <span id="icon-name" class="text-sm truncate font-bold dark:text-gray-300 text-gray-500">Pilih gambar icon...</span>
         <input type="file" id="up-icon" accept="image/*" onchange="pickIcon()">
       </div>
@@ -156,13 +156,13 @@ import { getDatabase, ref, push, set, update, remove, onValue } from "https://ww
 
 /* ====== KONFIGURASI ====== */
 const firebaseConfig = {
-  apiKey: "AIzaSyBSeUbZClSP6MrNka2X3lCq1n5ZUT1qmp0",
-  authDomain: "linku-3c5b0.firebaseapp.com",
-  databaseURL: "https://linku-3c5b0-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "linku-3c5b0",
-  storageBucket: "linku-3c5b0.firebasestorage.app",
-  messagingSenderId: "103189639915",
-  appId: "1:103189639915:web:3306039376c104eec444ae"
+  apiKey: "AIzaSyDUIBVyW1YymS_R_EG61OnT3bFNesYCiqs",
+  authDomain: "caxacloud.firebaseapp.com",
+  databaseURL: "https://caxacloud-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "caxacloud",
+  storageBucket: "caxacloud.firebasestorage.app",
+  messagingSenderId: "643869353919",
+  appId: "1:643869353919:web:e1ba6c95752c11a784a30a"
 };
 const SB_URL = "https://ozylaepgfjxoddauuhdu.supabase.co";
 const SB_KEY = "sb_publishable_RnEtacohJfkHt-tOHEyz8Q_CONhZCzh";   // publishable key Supabase
@@ -187,7 +187,13 @@ function sbUpload(file, path, onProgress) {
     xhr.setRequestHeader('apikey', SB_KEY);
     xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
     xhr.upload.onprogress = e => e.lengthComputable && onProgress?.(e.loaded / e.total);
-    xhr.onload = () => xhr.status < 300 ? resolve(publicUrl(path)) : reject(new Error(`Supabase ${xhr.status}: ${xhr.responseText}`));
+    xhr.onload = () => {
+      if (xhr.status < 300) return resolve(publicUrl(path));
+      const t = xhr.responseText || '';
+      if (/NoSuchBucket|Bucket not found/i.test(t)) return reject(new Error(`Bucket "${SB_BUCKET}" belum dibuat di Supabase Storage (harus bernama persis sama & public).`));
+      if (/row-level security|Unauthorized|violates/i.test(t)) return reject(new Error('Policy upload Supabase belum dipasang (RLS menolak).'));
+      reject(new Error(`Supabase ${xhr.status}: ${t}`));
+    };
     xhr.onerror = () => reject(new Error('Koneksi ke Supabase gagal'));
     xhr.send(file);
   });
@@ -216,7 +222,7 @@ function updateAuthUI() {
   $('header-auth').innerHTML = !u
     ? `<button onclick="signInWithGoogle()" class="px-4 py-2 rounded-full bg-blue-600 text-white text-sm font-bold shadow-md">Masuk</button>`
     : isDev()
-      ? `<button onclick="openUploadModal()" class="w-11 h-11 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-2xl font-bold shadow-lg shadow-blue-600/30" title="Upload APK">+</button>`
+      ? `<button onclick="openUploadModal()" class="w-11 h-11 rounded-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/30" title="Upload APK"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16m-8-8h16"/></svg></button>`
       : `<img src="${escHtml(avatar(u))}" class="w-10 h-10 rounded-full object-cover" alt="">`;
   $('sidebar-auth').innerHTML = !u
     ? `<button onclick="signInWithGoogle()" class="w-full p-4 rounded-3xl bg-blue-600 text-white font-bold">Masuk dengan Google</button>`
@@ -234,6 +240,7 @@ onValue(ref(db, 'posts'), snap => {
 onValue(ref(db, 'ratings'), snap => { allRatings = snap.val() || {}; renderPosts(); });
 
 /* ====== RENDER ====== */
+const starSvg = (on, cls) => `<svg xmlns="http://www.w3.org/2000/svg" class="${cls}" viewBox="0 0 24 24" fill="${on ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 17.5l-5.9 3.2 1.2-6.6L2.5 9.5l6.6-.9L12 2.5z"/></svg>`;
 const fmtSize = b => b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
 function ratingOf(id) {
   const vals = Object.values(allRatings[id] || {});
@@ -250,7 +257,7 @@ function renderPosts() {
     const r = ratingOf(p.id);
     const date = p.createdAt ? new Date(p.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
     const stars = [1, 2, 3, 4, 5].map(s =>
-      `<button class="star-btn ${s <= r.mine ? 'text-yellow-400' : 'dark:text-gray-500 text-gray-400'}" onclick="submitRating('${p.id}',${s})" title="${s} bintang">${s <= Math.round(r.avg) ? '★' : '☆'}</button>`).join('');
+      `<button class="star-btn ${s <= r.mine ? 'text-yellow-400' : 'dark:text-gray-500 text-gray-400'}" onclick="submitRating('${p.id}',${s})" title="${s} bintang">${starSvg(s <= Math.round(r.avg),'w-6 h-6')}</button>`).join('');
     return `
     <div class="p-6 rounded-[2.5rem] glass-card space-y-4">
       <div class="flex items-start gap-4">
@@ -260,13 +267,13 @@ function renderPosts() {
           <p class="text-xs dark:text-gray-400 text-gray-500 mt-1 font-semibold">APK • ${fmtSize(p.apkSize || 0)} • ${date}</p>
           <p class="text-xs mt-1"><span class="font-black text-blue-600">${escHtml(p.uploaderName || 'Developer')}</span>${p.uploaderEmail === DEV_EMAIL ? ' <span class="badge-dev text-white font-black px-2 py-0.5 rounded-full uppercase">Dev</span>' : ''}</p>
         </div>
-        ${isDev() ? `<button onclick="deletePost('${p.id}')" class="p-2 rounded-xl hover:bg-red-500/20 text-red-400" title="Hapus">🗑️</button>` : ''}
+        ${isDev() ? `<button onclick="deletePost('${p.id}')" class="p-2 rounded-xl hover:bg-red-500/20 text-red-400" title="Hapus"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>` : ''}
       </div>
       ${p.description ? `<p class="text-sm dark:text-gray-300 text-gray-600 whitespace-pre-line break-words">${escHtml(p.description)}</p>` : ''}
-      <a href="${escHtml(p.apkUrl)}" download="${escHtml(p.apkName || 'app.apk')}" class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-2xl font-bold text-sm shadow-lg shadow-blue-600/20">⬇ Download APK</a>
+      <a href="${escHtml(p.apkUrl)}" download="${escHtml(p.apkName || 'app.apk')}" class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-2xl font-bold text-sm shadow-lg shadow-blue-600/20"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Download APK</a>
       <div class="pt-3 border-t dark:border-white/10 border-black/5 flex items-center justify-between">
         <div class="flex items-center">${stars}</div>
-        <span class="text-xs dark:text-gray-400 text-gray-500 font-bold">${r.count ? `${r.avg} ★ (${r.count})` : 'Belum ada rating'}</span>
+        <span class="text-xs dark:text-gray-400 text-gray-500 font-bold">${r.count ? `${r.avg} ${starSvg(true,'w-3.5 h-3.5 inline text-yellow-400 -mt-0.5')} (${r.count})` : 'Belum ada rating'}</span>
       </div>
     </div>`;
   }).join('');
@@ -388,7 +395,7 @@ let isDark = true, toastTimer;
 function toggleTheme() { isDark = !isDark; applyTheme(); }
 function applyTheme() {
   for (const el of [document.documentElement, document.body]) { el.classList.toggle('dark', isDark); el.classList.toggle('light', !isDark); }
-  document.getElementById('theme-label').textContent = isDark ? '🌙 Tema Gelap' : '☀️ Tema Terang';
+  document.getElementById('theme-label').innerHTML = isDark ? `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg> Tema Gelap` : `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg> Tema Terang`;
   document.getElementById('theme-bg').className = 'w-12 h-6 rounded-full p-1 ' + (isDark ? 'bg-blue-600' : 'bg-gray-300');
   document.getElementById('theme-dot').className = 'w-4 h-4 rounded-full bg-white transition-transform ' + (isDark ? 'translate-x-6' : '');
 }
