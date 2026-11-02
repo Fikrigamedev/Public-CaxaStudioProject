@@ -55,7 +55,7 @@ input[type=file]{display:none}
 
 <div class="max-w-3xl mx-auto w-full flex-1 flex flex-col">
   <header class="sticky top-0 z-30 px-3 py-2 flex items-center justify-between glass gap-2">
-    <button onclick="openSidebar()" class="p-2.5 rounded-full flex dark:bg-white/5 bg-white border border-gray-200 shadow-sm" title="Pengaturan"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+    <div class="flex gap-1.5"><button onclick="openSidebar()" class="p-2.5 rounded-full flex dark:bg-white/5 bg-white border border-gray-200 shadow-sm" title="Pengaturan"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button><button onclick="openHistory()" class="p-2.5 rounded-full flex dark:bg-white/5 bg-white border border-gray-200 shadow-sm" title="Riwayat download"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></button></div>
     <nav class="flex gap-0.5 glass-card rounded-full p-1.5">
       <button onclick="navigate('home')" id="nav-home" class="px-4 py-1.5 rounded-full text-xs font-bold bg-blue-600 text-white shadow-md">Beranda</button>
       <button onclick="navigate('profile')" id="nav-profile" class="px-4 py-1.5 rounded-full text-xs font-bold dark:text-gray-400 text-gray-500">Profil</button>
@@ -109,16 +109,15 @@ input[type=file]{display:none}
   </main>
 </div>
 
-<!-- UPLOAD MODAL (hanya developer) -->
+<!-- MODAL UPLOAD / EDIT / UPDATE (hanya developer) -->
 <div id="upload-modal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center opacity-0" style="pointer-events:none">
   <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeUploadModal()"></div>
-  <div id="modal-box" class="relative w-full max-w-2xl mx-4 rounded-t-[2.5rem] sm:rounded-[2.5rem] p-6 sm:p-8 z-10 glass modal-box translate-y-full overflow-y-auto max-h-[92vh] space-y-4">
+  <div class="relative w-full max-w-2xl mx-4 rounded-t-[2.5rem] sm:rounded-[2.5rem] p-6 sm:p-8 z-10 glass modal-box translate-y-full overflow-y-auto max-h-[92vh] space-y-4">
     <div class="flex items-center justify-between">
-      <div><h2 class="text-2xl font-bold">Upload APK</h2><p class="text-sm dark:text-gray-400 text-gray-500">Disimpan di Supabase Storage</p></div>
-      <button onclick="closeUploadModal()" class="p-2 rounded-full dark:hover:bg-white/10 hover:bg-black/5 "><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+      <div><h2 id="modal-title" class="text-2xl font-bold">Upload APK</h2><p id="modal-sub" class="text-sm dark:text-gray-400 text-gray-500"></p></div>
+      <button onclick="closeUploadModal()" class="p-2 rounded-full dark:hover:bg-white/10 hover:bg-black/5"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>
-
-    <div>
+    <div id="f-apk">
       <label class="block text-sm font-bold mb-2 ml-1">File APK <span class="text-blue-500">*</span></label>
       <div class="flex items-center p-3 rounded-2xl border-2 border-dashed dark:border-white/20 border-gray-300 cursor-pointer" onclick="$('up-apk').click()">
         <div class="p-3 bg-blue-600 rounded-xl text-white mr-3"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3.3 7.5L12 12.5l8.7-5M12 22V12.5"/></svg></div>
@@ -126,8 +125,8 @@ input[type=file]{display:none}
         <input type="file" id="up-apk" accept=".apk,application/vnd.android.package-archive" onchange="pickFile('up-apk','apk-name','Pilih file .apk...')">
       </div>
     </div>
-    <div>
-      <label class="block text-sm font-bold mb-2 ml-1">Icon APK <span class="text-blue-500">*</span></label>
+    <div id="f-icon">
+      <label class="block text-sm font-bold mb-2 ml-1">Icon APK <span id="icon-req" class="text-blue-500">*</span></label>
       <div class="flex items-center p-3 rounded-2xl border-2 border-dashed dark:border-white/20 border-gray-300 cursor-pointer" onclick="$('up-icon').click()">
         <img id="icon-preview" class="hidden w-12 h-12 rounded-xl object-cover mr-3" alt="">
         <div id="icon-ph" class="p-3 bg-blue-600 rounded-xl text-white mr-3"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
@@ -135,19 +134,34 @@ input[type=file]{display:none}
         <input type="file" id="up-icon" accept="image/*" onchange="pickIcon()">
       </div>
     </div>
-    <div>
-      <label class="block text-sm font-bold mb-2 ml-1">Judul <span class="text-blue-500">*</span></label>
-      <input id="up-title" placeholder="Nama aplikasi" class="glass-input w-full p-4 rounded-2xl font-semibold">
-    </div>
-    <div>
-      <label class="block text-sm font-bold mb-2 ml-1">Deskripsi <span class="text-blue-500">*</span></label>
-      <textarea id="up-desc" rows="3" placeholder="Deskripsi singkat aplikasi..." class="glass-input w-full p-4 rounded-2xl font-semibold resize-none"></textarea>
-    </div>
+    <div id="f-title"><label class="block text-sm font-bold mb-2 ml-1">Judul <span class="text-blue-500">*</span></label>
+      <input id="up-title" placeholder="Nama aplikasi" class="glass-input w-full p-4 rounded-2xl font-semibold"></div>
+    <div id="f-desc"><label class="block text-sm font-bold mb-2 ml-1">Deskripsi <span class="text-blue-500">*</span></label>
+      <textarea id="up-desc" rows="3" placeholder="Deskripsi singkat aplikasi..." class="glass-input w-full p-4 rounded-2xl font-semibold resize-none"></textarea></div>
+    <div id="f-version"><label class="block text-sm font-bold mb-2 ml-1">Versi <span class="text-blue-500">*</span></label>
+      <input id="up-version" placeholder="contoh: 1.0" maxlength="20" class="glass-input w-full p-4 rounded-2xl font-semibold"></div>
+    <div id="f-note"><label class="block text-sm font-bold mb-2 ml-1">Catatan update <span class="text-gray-400 font-medium">(opsional)</span></label>
+      <textarea id="up-note" rows="2" placeholder="Apa yang baru di versi ini..." class="glass-input w-full p-4 rounded-2xl font-semibold resize-none"></textarea></div>
     <div id="progress-wrap" class="hidden">
       <div class="h-2 rounded-full dark:bg-white/10 bg-gray-200 overflow-hidden"><div id="progress-bar" class="h-full bg-blue-600 transition-all" style="width:0"></div></div>
       <p id="progress-text" class="text-xs font-bold mt-1 dark:text-gray-400 text-gray-500 text-center"></p>
     </div>
     <button onclick="submitUpload()" id="btn-submit" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold shadow-xl shadow-blue-600/30">Publikasikan</button>
+  </div>
+</div>
+
+<!-- MODAL RIWAYAT DOWNLOAD -->
+<div id="hist-modal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center opacity-0" style="pointer-events:none">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeHistory()"></div>
+  <div class="relative w-full max-w-2xl mx-4 rounded-t-[2.5rem] sm:rounded-[2.5rem] p-6 z-10 glass modal-box translate-y-full overflow-y-auto max-h-[85vh] space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-2xl font-bold">Riwayat Download</h2>
+      <div class="flex items-center gap-1">
+        <button onclick="clearHistory()" class="px-3 py-1.5 rounded-full text-xs font-bold text-red-400 hover:bg-red-500/10">Hapus semua</button>
+        <button onclick="closeHistory()" class="p-2 rounded-full dark:hover:bg-white/10 hover:bg-black/5"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+      </div>
+    </div>
+    <div id="hist-list" class="space-y-2"></div>
   </div>
 </div>
 
@@ -256,23 +270,90 @@ function ratingOf(id) {
 }
 const openDescs = new Set();
 let postsLoaded = false;
-const dlUrl = p => `${p.apkUrl}?download=${encodeURIComponent((p.title || 'app').replace(/[\\/:*?"<>|]+/g, '').trim() || 'app')}.apk`;
 const shareUrl = id => `${location.origin}${location.pathname}#app/${id}`;
 
+const openVers = new Set();
+const dlState = {}, dlReg = {};
+const fmtDate = t => t ? new Date(t).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+const fileName = (title, ver) => `${(title || 'app').replace(/[\\/:*?"<>|]+/g, '').trim() || 'app'} v${ver}.apk`;
+function versionsOf(p) {
+  const arr = Object.entries(p.versions || {}).map(([key, v]) => ({ key, ...v }));
+  if (!arr.length) arr.push({ key: 'main', version: p.version || '1.0', apkUrl: p.apkUrl, apkName: p.apkName, apkSize: p.apkSize, createdAt: p.createdAt });
+  return arr.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+}
+function dlInner(key, label) {
+  const pct = dlState[key];
+  if (pct === undefined) return `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> ${label}`;
+  return `<span class="absolute inset-y-0 left-0 bg-white/30 transition-all" style="width:${pct}%"></span><span class="relative">Mengunduh${pct ? ' ' + pct + '%' : '...'}</span>`;
+}
+function dlBtn(key, url, name, meta, cls, label) {
+  dlReg[key] = { url, name, meta };
+  return `<button data-dl="${key}" data-label="${label}" onclick="runDl('${key}')" class="relative overflow-hidden inline-flex items-center justify-center gap-2 ${cls}">${dlInner(key, label)}</button>`;
+}
+function updateDl(key) {
+  document.querySelectorAll('[data-dl]').forEach(b => { if (b.dataset.dl === key) b.innerHTML = dlInner(key, b.dataset.label); });
+}
+window.runDl = async key => {
+  const d = dlReg[key];
+  if (!d || dlState[key] !== undefined) return;
+  dlState[key] = 0; updateDl(key);
+  try {
+    const res = await fetch(d.url);
+    if (!res.ok) throw new Error('http ' + res.status);
+    const total = +res.headers.get('content-length') || d.meta.size || 0;
+    const reader = res.body.getReader(), chunks = [];
+    let got = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value); got += value.length;
+      const pct = total ? Math.min(99, Math.round(got / total * 100)) : 0;
+      if (pct !== dlState[key]) { dlState[key] = pct; updateDl(key); }
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(chunks, { type: 'application/vnd.android.package-archive' }));
+    a.download = d.name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    showToast('Download selesai!');
+  } catch { location.href = `${d.url}?download=${encodeURIComponent(d.name)}`; }
+  logHistory(d.meta);
+  delete dlState[key]; updateDl(key);
+};
+
+function verRow(p, v, i) {
+  const key = `${p.id}:${v.key}`;
+  const meta = { postId: p.id, title: p.title, version: v.version, iconUrl: p.iconUrl, url: v.apkUrl, size: v.apkSize || 0, at: 0 };
+  return `<div class="flex items-center gap-3 p-3 rounded-2xl dark:bg-white/5 bg-gray-100">
+    <div class="flex-1 min-w-0">
+      <p class="text-sm font-bold">v${escHtml(v.version)}${i === 0 ? ' <span class="badge-dev text-white font-black px-2 py-0.5 rounded-full uppercase">Terbaru</span>' : ''}</p>
+      <p class="text-xs dark:text-gray-400 text-gray-500">${fmtDate(v.createdAt)} • ${fmtSize(v.apkSize || 0)}</p>
+      ${v.note ? `<p class="text-xs mt-1 dark:text-gray-300 text-gray-600 whitespace-pre-line break-words">${escHtml(v.note)}</p>` : ''}
+    </div>
+    ${dlBtn(key, v.apkUrl, fileName(p.title, v.version), meta, 'px-3 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold', 'Download')}
+  </div>`;
+}
+
 function buildCard(p, detail) {
-  const r = ratingOf(p.id);
-  const open = detail || openDescs.has(p.id);
-  const date = p.createdAt ? new Date(p.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+  const r = ratingOf(p.id), vs = versionsOf(p), cur = vs[0];
   const stars = [1, 2, 3, 4, 5].map(s =>
     `<button class="star-btn ${s <= r.mine ? 'text-yellow-400' : 'dark:text-gray-500 text-gray-400'}" onclick="submitRating('${p.id}',${s})" title="${s} bintang">${starSvg(s <= Math.round(r.avg), 'w-6 h-6')}</button>`).join('');
-  const iconBtn = (fn, title, svg, extra = '') => `<button onclick="${fn}('${p.id}')" class="p-2 rounded-xl ${extra}" title="${title}">${svg}</button>`;
+  const iconBtn = (fn, title, svg, extra) => `<button onclick="${fn}('${p.id}')" class="p-2 rounded-xl ${extra}" title="${title}">${svg}</button>`;
+  const fold = (kind, label, body, set) => {
+    const o = set.has(p.id);
+    return detail ? `<div><p class="text-xs font-bold text-blue-600 mb-2">${label}</p>${body}</div>`
+      : `<div><button onclick="toggleFold('${kind}','${p.id}')" class="flex items-center gap-1 text-xs font-bold text-blue-600">${label} <span id="arrow-${kind}-${p.id}" class="inline-flex transition-transform ${o ? 'rotate-180' : ''}"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></button>
+        <div id="${kind}-${p.id}" class="${o ? '' : 'hidden'} mt-2">${body}</div></div>`;
+  };
+  const key = `${p.id}:${cur.key}`;
+  const meta = { postId: p.id, title: p.title, version: cur.version, iconUrl: p.iconUrl, url: cur.apkUrl, size: cur.apkSize || 0 };
+  const act = 'flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold dark:bg-white/10 bg-gray-100';
   return `
   <div class="p-6 rounded-[2.5rem] glass-card space-y-4">
     <div class="flex items-start gap-4">
       <img src="${escHtml(p.iconUrl)}" class="${detail ? 'w-24 h-24' : 'w-20 h-20'} rounded-[1.4rem] object-cover flex-shrink-0 border dark:border-white/10 border-gray-200" alt="">
       <div class="flex-1 min-w-0">
         <h3 class="${detail ? 'text-2xl' : 'text-xl'} font-bold leading-tight break-words">${escHtml(p.title)}</h3>
-        <p class="text-xs dark:text-gray-400 text-gray-500 mt-1 font-semibold">APK • ${fmtSize(p.apkSize || 0)} • ${date}</p>
+        <p class="text-xs dark:text-gray-400 text-gray-500 mt-1 font-semibold"><span class="bg-blue-600/15 text-blue-600 font-black px-2 py-0.5 rounded-full">v${escHtml(cur.version)}</span> • ${fmtSize(cur.apkSize || 0)} • ${fmtDate(cur.createdAt)}</p>
         <p class="text-xs mt-1"><span class="font-black text-blue-600">${escHtml(p.uploaderName || 'Developer')}</span>${p.uploaderEmail === DEV_EMAIL ? ' <span class="badge-dev text-white font-black px-2 py-0.5 rounded-full uppercase">Dev</span>' : ''}</p>
       </div>
       <div class="flex flex-col gap-1 flex-shrink-0">
@@ -280,13 +361,10 @@ function buildCard(p, detail) {
         ${isDev() ? iconBtn('deletePost', 'Hapus', '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>', 'hover:bg-red-500/20 text-red-400') : ''}
       </div>
     </div>
-    ${p.description ? (detail
-      ? `<p class="text-sm dark:text-gray-300 text-gray-600 whitespace-pre-line break-words">${escHtml(p.description)}</p>`
-      : `<div>
-          <button onclick="toggleDesc('${p.id}')" class="flex items-center gap-1 text-xs font-bold text-blue-600">Deskripsi <span id="arrow-${p.id}" class="inline-flex transition-transform ${open ? 'rotate-180' : ''}"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></button>
-          <p id="desc-${p.id}" class="${open ? '' : 'hidden'} text-sm dark:text-gray-300 text-gray-600 whitespace-pre-line break-words mt-2">${escHtml(p.description)}</p>
-        </div>`) : ''}
-    <a href="${escHtml(dlUrl(p))}" class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-2xl font-bold text-sm shadow-lg shadow-blue-600/20"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Download APK</a>
+    ${p.description ? fold('desc', 'Deskripsi', `<p class="text-sm dark:text-gray-300 text-gray-600 whitespace-pre-line break-words">${escHtml(p.description)}</p>`, openDescs) : ''}
+    ${dlBtn(key, cur.apkUrl, fileName(p.title, cur.version), meta, 'w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-2xl font-bold text-sm shadow-lg shadow-blue-600/20', 'Download APK')}
+    ${isDev() ? `<div class="flex gap-2"><button onclick="openModal('update','${p.id}')" class="${act}"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg> Update APK</button><button onclick="openModal('edit','${p.id}')" class="${act}"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg> Edit</button></div>` : ''}
+    ${vs.length > 1 ? fold('ver', `Riwayat Versi (${vs.length})`, `<div class="space-y-2">${vs.map((v, i) => verRow(p, v, i)).join('')}</div>`, openVers) : ''}
     <div class="pt-3 border-t dark:border-white/10 border-black/5 flex items-center justify-between">
       <div class="flex items-center">${stars}</div>
       <span class="text-xs dark:text-gray-400 text-gray-500 font-bold">${r.count ? `${r.avg} ${starSvg(true, 'w-3.5 h-3.5 inline text-yellow-400 -mt-0.5')} (${r.count})` : 'Belum ada rating'}</span>
@@ -302,11 +380,11 @@ function renderPosts() {
   renderDetail();
 }
 
-window.toggleDesc = id => {
-  const open = !openDescs.has(id);
-  open ? openDescs.add(id) : openDescs.delete(id);
-  $('desc-' + id)?.classList.toggle('hidden', !open);
-  $('arrow-' + id)?.classList.toggle('rotate-180', open);
+window.toggleFold = (kind, id) => {
+  const set = kind === 'desc' ? openDescs : openVers, open = !set.has(id);
+  open ? set.add(id) : set.delete(id);
+  $(kind + '-' + id)?.classList.toggle('hidden', !open);
+  $('arrow-' + kind + '-' + id)?.classList.toggle('rotate-180', open);
 };
 
 /* ====== SHARE & HALAMAN DETAIL ====== */
@@ -355,8 +433,7 @@ window.deletePost = async id => {
   try {
     await remove(ref(db, `posts/${id}`));
     await remove(ref(db, `ratings/${id}`));
-    if (p.apkPath) sbRemove(p.apkPath);
-    if (p.iconPath) sbRemove(p.iconPath);
+    new Set([p.apkPath, p.iconPath, ...Object.values(p.versions || {}).map(v => v.apkPath)]).forEach(x => x && sbRemove(x));
     showToast("Berhasil dihapus.");
   } catch (e) { showToast("Gagal menghapus: " + e.message); }
 };
@@ -400,55 +477,116 @@ window.pickIcon = () => {
   $('icon-ph').classList.toggle('hidden', !!f);
   if (f) $('icon-preview').src = URL.createObjectURL(f);
 };
-window.openUploadModal = () => {
-  if (!isDev()) { showToast("Hanya developer yang bisa upload."); return; }
-  const m = $('upload-modal');
-  m.style.pointerEvents = 'auto'; m.style.opacity = '1';
-  setTimeout(() => { $('modal-box').classList.remove('translate-y-full'); }, 10);
+let modalMode = 'new', modalPost = null;
+const sheet = (id, show) => {
+  const m = $(id), b = m.querySelector('.modal-box');
+  if (show) { m.style.pointerEvents = 'auto'; m.style.opacity = '1'; setTimeout(() => b.classList.remove('translate-y-full'), 10); }
+  else { b.classList.add('translate-y-full'); setTimeout(() => { m.style.opacity = '0'; m.style.pointerEvents = 'none'; }, 350); }
 };
-window.closeUploadModal = () => {
-  $('modal-box').classList.add('translate-y-full');
-  setTimeout(() => { $('upload-modal').style.opacity = '0'; $('upload-modal').style.pointerEvents = 'none'; }, 350);
+window.closeUploadModal = () => sheet('upload-modal', false);
+function resetForm() {
+  ['up-apk', 'up-icon'].forEach(i => $(i).value = '');
+  ['up-title', 'up-desc', 'up-version', 'up-note'].forEach(i => $(i).value = '');
+  pickFile('up-apk', 'apk-name', 'Pilih file .apk...'); pickIcon();
+  $('progress-wrap').classList.add('hidden');
+}
+window.openModal = (mode, id) => {
+  if (!isDev()) { showToast("Hanya developer yang bisa mengubah."); return; }
+  modalMode = mode; modalPost = allPosts.find(x => x.id === id) || null;
+  resetForm();
+  const show = (ids, on) => ids.forEach(i => $(i).classList.toggle('hidden', !on));
+  show(['f-apk', 'f-version'], mode !== 'edit'); show(['f-icon', 'f-title', 'f-desc'], mode !== 'update'); show(['f-note'], mode === 'update');
+  $('icon-req').classList.toggle('hidden', mode === 'edit');
+  $('modal-title').textContent = { new: 'Upload APK', edit: 'Edit Aplikasi', update: 'Update APK' }[mode];
+  $('modal-sub').textContent = mode === 'update' ? `${modalPost.title} • sekarang v${modalPost.version || '1.0'}` : 'File disimpan di Supabase Storage';
+  $('btn-submit').textContent = { new: 'Publikasikan', edit: 'Simpan Perubahan', update: 'Upload Versi Baru' }[mode];
+  if (mode === 'new') $('up-version').value = '1.0';
+  if (mode === 'edit') {
+    $('up-title').value = modalPost.title; $('up-desc').value = modalPost.description || '';
+    $('icon-preview').src = modalPost.iconUrl; $('icon-preview').classList.remove('hidden'); $('icon-ph').classList.add('hidden');
+    $('icon-name').textContent = 'Ketuk untuk ganti icon (opsional)';
+  }
+  sheet('upload-modal', true);
 };
+window.openUploadModal = () => openModal('new');
 function setProgress(frac, text) {
   $('progress-wrap').classList.remove('hidden');
   $('progress-bar').style.width = Math.round(frac * 100) + '%';
   $('progress-text').textContent = text;
 }
 window.submitUpload = async () => {
-  if (!isDev()) { showToast("Hanya developer yang bisa upload."); return; }
+  if (!isDev()) { showToast("Hanya developer yang bisa mengubah."); return; }
+  const mode = modalMode, p = modalPost;
   const apk = $('up-apk').files[0], icon = $('up-icon').files[0];
   const title = $('up-title').value.trim(), description = $('up-desc').value.trim();
-  if (!apk || !apk.name.toLowerCase().endsWith('.apk')) { showToast("Pilih file berformat .apk"); return; }
-  if (!icon || !icon.type.startsWith('image/')) { showToast("Pilih gambar untuk icon."); return; }
-  if (!title || !description) { showToast("Judul dan deskripsi wajib diisi."); return; }
-  if (!SB_KEY) { showToast("Anon key Supabase belum diisi di kode."); return; }
+  const version = $('up-version').value.trim().replace(/^v/i, ''), note = $('up-note').value.trim();
+  if (mode !== 'edit') {
+    if (!apk || !apk.name.toLowerCase().endsWith('.apk')) { showToast("Pilih file berformat .apk"); return; }
+    if (!version) { showToast("Versi wajib diisi."); return; }
+    if (mode === 'update' && versionsOf(p).some(v => v.version === version)) { showToast(`Versi ${version} sudah ada.`); return; }
+  }
+  if (mode !== 'update') {
+    if (icon && !icon.type.startsWith('image/')) { showToast("Icon harus berupa gambar."); return; }
+    if (mode === 'new' && !icon) { showToast("Pilih gambar untuk icon."); return; }
+    if (!title || !description) { showToast("Judul dan deskripsi wajib diisi."); return; }
+  }
+  if (!SB_KEY) { showToast("Key Supabase belum diisi di kode."); return; }
 
-  const btn = $('btn-submit');
-  btn.disabled = true; btn.textContent = 'Mengupload...';
+  const btn = $('btn-submit'), label = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Menyimpan...';
   const ts = Date.now();
-  const apkPath = `apk/${ts}_${safeName(apk.name)}`, iconPath = `icon/${ts}_${safeName(icon.name)}`;
   try {
-    setProgress(0, 'Mengupload icon...');
-    const iconUrl = await sbUpload(icon, iconPath);
-    const apkUrl = await sbUpload(apk, apkPath, f => setProgress(f, `Mengupload APK... ${Math.round(f * 100)}%`));
-    await push(ref(db, 'posts'), {
-      type: 'apk', title, description,
-      apkUrl, apkPath, apkName: apk.name, apkSize: apk.size,
-      iconUrl, iconPath,
-      userId: currentUser.uid,
-      uploaderName: currentUser.displayName || 'Developer',
-      uploaderEmail: currentUser.email,
-      createdAt: Date.now()
-    });
-    ['up-apk', 'up-icon'].forEach(i => $(i).value = '');
-    $('up-title').value = ''; $('up-desc').value = '';
-    pickFile('up-apk', 'apk-name', 'Pilih file .apk...'); pickIcon();
-    $('progress-wrap').classList.add('hidden');
-    closeUploadModal(); navigate('home'); showToast("APK berhasil dipublikasikan!");
-  } catch (e) { showToast("Gagal upload: " + e.message); }
-  btn.disabled = false; btn.textContent = 'Publikasikan';
+    let iconUrl, iconPath, ver;
+    if (icon) { iconPath = `icon/${ts}_${safeName(icon.name)}`; setProgress(0, 'Mengupload icon...'); iconUrl = await sbUpload(icon, iconPath); }
+    if (apk) {
+      const apkPath = `apk/${ts}_${safeName(apk.name)}`;
+      const apkUrl = await sbUpload(apk, apkPath, f => setProgress(f, `Mengupload APK... ${Math.round(f * 100)}%`));
+      ver = { version, apkUrl, apkPath, apkName: apk.name, apkSize: apk.size, note, createdAt: ts };
+    }
+    if (mode === 'new') {
+      await push(ref(db, 'posts'), {
+        type: 'apk', title, description, iconUrl, iconPath, version,
+        apkUrl: ver.apkUrl, apkPath: ver.apkPath, apkName: ver.apkName, apkSize: ver.apkSize,
+        versions: { ['v' + ts]: ver },
+        userId: currentUser.uid, uploaderName: currentUser.displayName || 'Developer', uploaderEmail: currentUser.email, createdAt: ts
+      });
+    } else if (mode === 'update') {
+      const up = { version, apkUrl: ver.apkUrl, apkPath: ver.apkPath, apkName: ver.apkName, apkSize: ver.apkSize, updatedAt: ts, ['versions/v' + ts]: ver };
+      if (!p.versions) up['versions/main'] = { version: p.version || '1.0', apkUrl: p.apkUrl, apkPath: p.apkPath || '', apkName: p.apkName || '', apkSize: p.apkSize || 0, createdAt: p.createdAt || 0 };
+      await update(ref(db, `posts/${p.id}`), up);
+    } else {
+      const up = { title, description };
+      if (iconUrl) { up.iconUrl = iconUrl; up.iconPath = iconPath; }
+      await update(ref(db, `posts/${p.id}`), up);
+      if (iconUrl && p.iconPath) sbRemove(p.iconPath);
+    }
+    closeUploadModal();
+    if (mode === 'new' && !routeId()) navigate('home');
+    showToast({ new: "APK berhasil dipublikasikan!", edit: "Perubahan disimpan!", update: `Versi ${version} berhasil diupload!` }[mode]);
+  } catch (e) { showToast("Gagal: " + e.message); }
+  btn.disabled = false; btn.textContent = label;
 };
+
+/* ====== RIWAYAT DOWNLOAD (tersimpan di perangkat ini) ====== */
+const HKEY = 'cc_dl_history';
+const getHistory = () => { try { return JSON.parse(localStorage.getItem(HKEY)) || []; } catch { return []; } };
+const setHistory = a => { try { localStorage.setItem(HKEY, JSON.stringify(a.slice(0, 50))); } catch {} };
+function logHistory(meta) { setHistory([{ ...meta, at: Date.now() }, ...getHistory()]); renderHistory(); }
+function renderHistory() {
+  const h = getHistory();
+  $('hist-list').innerHTML = !h.length ? `<p class="text-center py-10 text-sm font-bold dark:text-gray-500 text-gray-400">Belum ada riwayat download</p>`
+    : h.map((m, i) => `<div class="flex items-center gap-3 p-3 rounded-2xl dark:bg-white/5 bg-gray-100">
+        <img src="${escHtml(m.iconUrl)}" class="w-12 h-12 rounded-xl object-cover flex-shrink-0" alt="">
+        <a href="#app/${escHtml(m.postId)}" onclick="closeHistory()" class="flex-1 min-w-0">
+          <p class="text-sm font-bold truncate">${escHtml(m.title)}</p>
+          <p class="text-xs dark:text-gray-400 text-gray-500">v${escHtml(m.version)} • ${fmtDate(m.at)} • ${fmtSize(m.size || 0)}</p>
+        </a>
+        ${dlBtn('h:' + i, m.url, fileName(m.title, m.version), { postId: m.postId, title: m.title, version: m.version, iconUrl: m.iconUrl, url: m.url, size: m.size }, 'px-3 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold', 'Unduh')}
+      </div>`).join('');
+}
+window.openHistory = () => { renderHistory(); sheet('hist-modal', true); };
+window.closeHistory = () => sheet('hist-modal', false);
+window.clearHistory = () => { if (getHistory().length && confirm("Hapus semua riwayat download?")) { setHistory([]); renderHistory(); } };
 
 setTimeout(handleRoute, 0);
 function escHtml(s) { return s ? String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') : ''; }
