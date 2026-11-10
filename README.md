@@ -1,0 +1,1 @@
+CaxaStudio adalah suatu grup developer pemula, dan didalam repo ini hanyalah sebagian kecil project yang dikembangkan oleh CaxaStudios dan project full nya CaxaStudio tidak pernah menyebarkan project nya dan hanya menyebarkan atau mempublish project kecilnya saja atau project isengnya saja.
