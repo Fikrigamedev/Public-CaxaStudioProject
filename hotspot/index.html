@@ -4,61 +4,70 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Fikri Tools Mikrotik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 /* Gaya Android modern (Material 3): datar, tanpa gradasi dan bayangan */
 :root{
-  --bg:#131314; --panel:#1e1f20; --panel-2:#282a2c; --line:#444746;
-  --fg:#e3e3e3; --muted:#c4c7c5; --accent:#a8c7fa; --accent-ink:#062e6f;
-  --sec:#004a77; --sec-ink:#c2e7ff;
+  --bg:#121214; --panel:#1b1b1e; --panel-2:#262629; --line:#47464b;
+  --fg:#e4e2e6; --muted:#c8c6ca; --accent:#c8c6cb; --accent-ink:#2f3033;
+  --sec:#46464a; --sec-ink:#e4e2e6;
   --ok:#6dd58c; --warn:#fdd663; --err:#f2b8b5;
-  --font-ui:Roboto,"Google Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --font-head:Roboto,"Google Sans",system-ui,sans-serif;
+  --font-ui:"Google Sans Flex","Google Sans","Google Sans Text","Product Sans",Roboto,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-head:"Google Sans Flex","Google Sans","Product Sans",Roboto,system-ui,sans-serif;
   --font-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   color-scheme:dark;
 }
 @media (prefers-color-scheme: light){
   :root:not([data-theme="dark"]){
-    --bg:#f8fafd; --panel:#ffffff; --panel-2:#e9eef6; --line:#c4c7c5;
-    --fg:#1f1f1f; --muted:#444746; --accent:#0b57d0; --accent-ink:#ffffff;
-    --sec:#d3e3fd; --sec-ink:#041e49;
+    --bg:#f7f5f8; --panel:#ffffff; --panel-2:#ebe9ed; --line:#c9c7cc;
+    --fg:#1b1b1f; --muted:#47464a; --accent:#5d5c62; --accent-ink:#ffffff;
+    --sec:#e3e1e6; --sec-ink:#1b1b1f;
     --ok:#146c2e; --warn:#8a6100; --err:#b3261e; color-scheme:light;
   }
 }
 :root[data-theme="light"]{
-  --bg:#f8fafd; --panel:#ffffff; --panel-2:#e9eef6; --line:#c4c7c5;
-  --fg:#1f1f1f; --muted:#444746; --accent:#0b57d0; --accent-ink:#ffffff;
-  --sec:#d3e3fd; --sec-ink:#041e49;
+  --bg:#f7f5f8; --panel:#ffffff; --panel-2:#ebe9ed; --line:#c9c7cc;
+  --fg:#1b1b1f; --muted:#47464a; --accent:#5d5c62; --accent-ink:#ffffff;
+  --sec:#e3e1e6; --sec-ink:#1b1b1f;
   --ok:#146c2e; --warn:#8a6100; --err:#b3261e; color-scheme:light;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{
   margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.5;
   padding-bottom:32px;
   padding-left:max(16px,env(safe-area-inset-left,0px));
   padding-right:max(16px,env(safe-area-inset-right,0px));
 }
-.wrap{max-width:1160px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.page{max-width:1320px;margin:0 auto}
 .i{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
 /* bar aplikasi */
 header.appbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:14px;background:var(--bg);
-  padding:calc(14px + env(safe-area-inset-top,0px)) 0 12px;margin:0}
-.mark{width:44px;height:44px;border-radius:14px;background:var(--sec);color:var(--sec-ink);display:grid;place-items:center;flex:none}
+  height:calc(68px + env(safe-area-inset-top,0px));padding-top:env(safe-area-inset-top,0px);margin:0}
+.mark{width:42px;height:42px;border-radius:50%;background:var(--sec);color:var(--sec-ink);display:grid;place-items:center;flex:none}
 .mark svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
-h1{font:500 22px/1.2 var(--font-head);margin:0}
-header p{margin:2px 0 0;color:var(--muted);font-size:13px}
+h1{font:500 20px/1.2 var(--font-head);margin:0}
+header p{margin:1px 0 0;color:var(--muted);font-size:12.5px}
 
-/* kartu */
-.card,.drop,.stage,.editor,.toolbar{background:var(--panel);border-radius:24px}
-.drop{border:2px dashed var(--line);padding:32px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;transition:background .15s,border-color .15s}
-.drop.over{border-color:var(--accent);background:var(--panel-2)}
-.drop>svg{width:40px;height:40px;stroke:var(--accent);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-.drop strong{font:500 17px var(--font-head)}
-.drop span.sub{color:var(--muted);font-size:13px}
-.drop.compact{flex-direction:row;flex-wrap:wrap;justify-content:space-between;text-align:left;padding:12px 20px;border:0}
-.drop.compact>svg,.drop.compact .sub{display:none}
+/* beranda: area unggah */
+.drop{max-width:640px;margin:8vh auto 0;background:var(--panel);border-radius:32px;padding:48px 28px 36px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
+.drop.over{background:var(--panel-2);box-shadow:inset 0 0 0 2px var(--accent)}
+.drop>svg{width:56px;height:56px;padding:14px;border-radius:50%;background:var(--sec);stroke:var(--sec-ink);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.drop strong{font:500 22px var(--font-head)}
+.drop span.sub{color:var(--muted);font-size:14px}
+.hints{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:0;padding:0;list-style:none}
+.hints li{font-size:12.5px;color:var(--muted);padding:5px 12px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--line)}
+/* setelah file dibuka: tombol pindah ke bar aplikasi */
+.drop.compact{position:fixed;z-index:11;top:calc(10px + env(safe-area-inset-top,0px));right:max(16px,calc((100vw - 1320px)/2));
+  max-width:none;margin:0;padding:0;background:transparent;border-radius:0;flex-direction:row;align-items:center;gap:12px;text-align:left}
+.drop.compact>svg,.drop.compact .sub,.drop.compact .hints{display:none}
+.drop.compact strong{font:500 14px var(--font-head);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;color:var(--muted)}
+.drop.compact br{display:none}
 .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 
 /* tombol: tonal (bawaan), filled (.primary), outlined (dialog batal) */
@@ -75,21 +84,30 @@ button.text{background:transparent;color:var(--accent);padding:0 12px}
 input[type=file]{display:none}
 button:disabled{opacity:.38;cursor:not-allowed;filter:none}
 
-/* toolbar */
-.toolbar{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
-.tbrow{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
-.tbrow .grow{flex:1}
-.tabs{display:flex;gap:8px;overflow-x:auto;max-width:100%;padding-bottom:2px;min-width:0}
-.tabs button{white-space:nowrap;font-family:var(--font-mono);font-size:12.5px;padding:0 14px;min-height:34px;border-radius:10px;
-  background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
-.tabs button[aria-selected=true]{background:var(--sec);color:var(--sec-ink);box-shadow:none}
+/* kerangka kerja: panel samping + konten */
+.ws{display:grid;grid-template-columns:272px minmax(0,1fr);gap:20px;align-items:start}
+.rail{position:sticky;top:80px;max-height:calc(100vh - 96px);overflow:auto;background:var(--panel);border-radius:28px;padding:18px 14px;display:flex;flex-direction:column;gap:18px}
+.rsec h2{font:500 12px var(--font-head);letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:0 0 8px 10px}
+.tabs{display:flex;flex-direction:column;gap:2px;min-width:0}
+.tabs button{justify-content:flex-start;width:100%;white-space:nowrap;font-family:var(--font-mono);font-size:13px;padding:0 16px;min-height:42px;border-radius:14px;
+  background:transparent;color:var(--fg);box-shadow:none}
+.tabs button[aria-selected=true]{background:var(--sec);color:var(--sec-ink)}
 .seg{display:inline-flex;border-radius:999px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}
-.seg button{border-radius:0;background:transparent;color:var(--muted);padding:0 16px;min-height:38px;box-shadow:inset -1px 0 0 var(--line)}
+.seg button{border-radius:0;background:transparent;color:var(--muted);padding:0 16px;min-height:40px;box-shadow:inset -1px 0 0 var(--line)}
 .seg button:last-child{box-shadow:none}
 .seg button[aria-pressed=true]{background:var(--sec);color:var(--sec-ink)}
-.opts{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:14px;align-items:center}
-.opts label{display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+.seg.v{display:flex;flex-direction:column;border-radius:18px}
+.seg.v button{justify-content:flex-start;box-shadow:inset 0 -1px 0 var(--line)}
+.opts{display:flex;flex-direction:column;gap:2px;color:var(--fg);font-size:14px}
+.opts label{display:flex;align-items:center;gap:12px;cursor:pointer;min-height:40px;padding:0 10px;border-radius:12px}
+.opts label:hover{background:var(--panel-2)}
 input[type=checkbox]{accent-color:var(--accent);width:18px;height:18px;margin:0}
+.acts{display:flex;flex-direction:column;gap:8px}
+.acts button{width:100%;justify-content:flex-start;padding:0 18px}
+.rail details{background:var(--panel-2);border-radius:18px;padding:10px 14px}
+.content{min-width:0;display:flex;flex-direction:column;gap:16px}
+.chead{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.chead .seg button{gap:8px}
 
 /* panggung preview */
 .stage{padding:16px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:12px}
@@ -186,6 +204,31 @@ dialog h2{font:400 24px/1.3 var(--font-head);margin:0 0 6px}
 .dolbox{background:var(--panel);border-radius:16px;padding:12px 16px;font-size:14px;margin:10px 0}
 .dolbox b{color:var(--accent)}
 
+/* mobile: panel jadi kartu atas, mode jadi navigasi bawah */
+@media (max-width:899px){
+  .ws{display:block}
+  .rail{position:static;max-height:none;overflow:visible;border-radius:24px;padding:14px;gap:14px;margin-bottom:16px}
+  .rsec h2{margin-left:2px}
+  .tabs{flex-direction:row;overflow-x:auto;gap:8px;padding-bottom:2px}
+  .tabs button{width:auto;min-height:36px;border-radius:12px;box-shadow:inset 0 0 0 1px var(--line);padding:0 14px}
+  .tabs button[aria-selected=true]{box-shadow:none}
+  .seg.v{display:inline-flex;flex-direction:row;border-radius:999px}
+  .seg.v button{justify-content:center;box-shadow:inset -1px 0 0 var(--line)}
+  .seg.v button:last-child{box-shadow:none}
+  .opts{flex-direction:row;flex-wrap:wrap;gap:4px 12px}
+  .acts{flex-direction:row}
+  .acts button{width:auto;flex:1;justify-content:center}
+  .chead{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--panel-2);padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px))}
+  .chead .seg{display:flex;width:100%;box-shadow:none;gap:6px;border-radius:0;overflow:visible}
+  .chead .seg button{flex:1;flex-direction:column;gap:2px;min-height:58px;border-radius:18px;font-size:12px;padding:6px 4px;box-shadow:none}
+  body{padding-bottom:96px}
+  .drop{margin-top:3vh;padding:36px 20px 28px;border-radius:28px}
+  .drop.compact{right:12px}
+  .drop.compact strong,.drop.compact .bt{display:none}
+  .drop.compact button{padding:0 14px}
+  header.appbar p{display:none}
+}
+
 /* zoom layar penuh */
 .zoom{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 .zoom[hidden]{display:none}
@@ -200,10 +243,10 @@ dialog h2{font:400 24px/1.3 var(--font-head);margin:0 0 6px}
 </head>
 
 <body>
-<div class="wrap">
+<div class="page">
   <header class="appbar">
     <div class="mark">
-      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" >
+      <svg viewBox="0 0 48 48" aria-hidden="true">
         <path d="M5 18.5a27 27 0 0 1 38 0"/><path d="M11 25a18.5 18.5 0 0 1 26 0"/><path d="M17 31.5a10 10 0 0 1 14 0"/>
         <circle cx="24" cy="38" r="2.6" fill="currentColor" stroke="none"/>
       </svg>
@@ -218,41 +261,51 @@ dialog h2{font:400 24px/1.3 var(--font-head);margin:0 0 6px}
     <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
     <div>
       <strong id="dropTitle">Seret file ZIP atau RAR ke sini</strong><br>
-      <span class="sub">Berisi login.html, style, gambar. Diproses di browser, tidak diunggah ke server.</span>
+      <span class="sub">Berisi login.html, style, dan gambar. Semua diproses di browser, tidak diunggah ke server.</span>
     </div>
     <div class="row">
-      <button class="primary" id="pick" type="button"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Pilih file</button>
-      <button id="newBtn" type="button"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Buat tampilan baru</button>
+      <button class="primary" id="pick" type="button"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="bt">Pilih file</span></button>
+      <button id="newBtn" type="button"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span class="bt">Buat tampilan baru</span></button>
     </div>
+    <ul class="hints"><li>ZIP dan RAR</li><li>Editor langsung</li><li>Unduh JPG</li><li>Hapus tanda $</li></ul>
     <input type="file" id="file" accept=".zip,.rar,application/zip,application/x-rar-compressed">
   </div>
 
   <div id="note"></div>
 
-  <div id="workspace" hidden>
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <div class="toolbar">
-        <div class="tabs" id="tabs" role="tablist" aria-label="Halaman"></div>
-        <div class="tbrow">
-          <div class="seg" id="modes" role="group" aria-label="Mode tampilan">
-            <button type="button" data-m="preview" aria-pressed="true">Preview</button>
-            <button type="button" data-m="editor" aria-pressed="false">Editor</button>
-            <button type="button" data-m="split" aria-pressed="false">Split</button>
-          </div>
-          <div class="seg" id="devices" role="group" aria-label="Perangkat">
-            <button type="button" data-d="mobile" aria-pressed="true">Ponsel</button>
-            <button type="button" data-d="tablet" aria-pressed="false">Tablet</button>
-            <button type="button" data-d="desktop" aria-pressed="false">Desktop</button>
-          </div>
-          <div class="opts">
-            <label for="optChap"><input type="checkbox" id="optChap" checked> Login CHAP</label>
-            <label for="optErr"><input type="checkbox" id="optErr"> Tampilkan error</label>
-          </div>
-          <span class="grow"></span>
-          <div class="row">
-            <button type="button" id="dolBtn"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 5H9l-6 7 6 7h12zM13 9l4 6M17 9l-4 6"/></svg>Hapus $</button>
-            <button type="button" class="primary" id="dlTop"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>Unduh</button>
-          </div>
+  <div id="workspace" class="ws" hidden>
+    <aside class="rail" aria-label="Pengaturan proyek">
+      <section class="rsec"><h2>Halaman</h2><div class="tabs" id="tabs" role="tablist" aria-label="Halaman"></div></section>
+      <section class="rsec"><h2>Perangkat</h2>
+        <div class="seg v" id="devices" role="group" aria-label="Perangkat">
+          <button type="button" data-d="mobile" aria-pressed="true">Ponsel</button>
+          <button type="button" data-d="tablet" aria-pressed="false">Tablet</button>
+          <button type="button" data-d="desktop" aria-pressed="false">Desktop</button>
+        </div>
+      </section>
+      <section class="rsec"><h2>Opsi preview</h2>
+        <div class="opts">
+          <label for="optChap"><input type="checkbox" id="optChap" checked> Login CHAP</label>
+          <label for="optErr"><input type="checkbox" id="optErr"> Tampilkan error</label>
+        </div>
+      </section>
+      <section class="rsec"><h2>Aksi</h2>
+        <div class="acts">
+          <button type="button" id="dolBtn"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 5H9l-6 7 6 7h12zM13 9l4 6M17 9l-4 6"/></svg>Hapus $</button>
+          <button type="button" class="primary" id="dlTop"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>Unduh ZIP / RAR</button>
+        </div>
+      </section>
+      <details>
+        <summary id="fileSummary">Daftar file</summary>
+        <ul class="files" id="fileList"></ul>
+      </details>
+    </aside>
+    <main class="content">
+      <div class="chead">
+        <div class="seg" id="modes" role="group" aria-label="Mode tampilan">
+          <button type="button" data-m="preview" aria-pressed="true"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Preview</button>
+          <button type="button" data-m="editor" aria-pressed="false"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg>Editor</button>
+          <button type="button" data-m="split" aria-pressed="false"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16"/></svg>Split</button>
         </div>
       </div>
       <div class="work" id="work" data-mode="preview">
@@ -292,11 +345,7 @@ dialog h2{font:400 24px/1.3 var(--font-head);margin:0 0 6px}
         <div class="status" id="status" aria-live="polite"></div>
       </div>
       </div>
-      <details>
-        <summary id="fileSummary">Daftar file</summary>
-        <ul class="files" id="fileList"></ul>
-      </details>
-    </div>
+    </main>
   </div>
 </div>
 
@@ -319,7 +368,7 @@ dialog h2{font:400 24px/1.3 var(--font-head);margin:0 0 6px}
       <label class="lbl" for="nTheme">Gaya
         <select id="nTheme"><option value="gelap">Gelap</option><option value="terang">Terang bersih</option><option value="biru">Biru laut</option><option value="hijau">Hijau</option></select>
       </label>
-      <label class="lbl" for="nAccent">Warna aksen<input type="color" id="nAccent" value="#8ab4f8"></label>
+      <label class="lbl" for="nAccent">Warna aksen<input type="color" id="nAccent" value="#c8c6cb"></label>
     </div>
     <fieldset><legend>Halaman</legend>
       <div class="chk" id="nPages">
@@ -1077,8 +1126,8 @@ function blankEntries(){
 }
 var MD5_SRC="/* MD5 untuk login CHAP MikroTik: hexMD5(teks_biner) */\nfunction hexMD5(s){\n  function add(x,y){var l=(x&0xFFFF)+(y&0xFFFF);return (((x>>16)+(y>>16)+(l>>16))<<16)|(l&0xFFFF)}\n  function rol(n,c){return (n<<c)|(n>>>(32-c))}\n  var SH=[7,12,17,22,5,9,14,20,4,11,16,23,6,10,15,21],K=[],i,n=s.length,x=[];\n  for(i=0;i<64;i++)K[i]=Math.floor(Math.abs(Math.sin(i+1))*4294967296)|0;\n  for(i=0;i<n;i++)x[i>>2]|=(s.charCodeAt(i)&255)<<((i%4)*8);\n  x[n>>2]|=0x80<<((n%4)*8);\n  var len=(((n+8)>>>6)+1)*16;\n  x[len-2]=n*8;\n  for(i=0;i<len;i++)x[i]=x[i]|0;\n  var a=1732584193,b=-271733879,c=-1732584194,d=271733878;\n  for(var k=0;k<len;k+=16){\n    var A=a,B=b,C=c,D=d;\n    for(i=0;i<64;i++){\n      var f,g;\n      if(i<16){f=(B&C)|(~B&D);g=i}\n      else if(i<32){f=(D&B)|(~D&C);g=(5*i+1)%16}\n      else if(i<48){f=B^C^D;g=(3*i+5)%16}\n      else{f=C^(B|~D);g=(7*i)%16}\n      var t=D;D=C;C=B;\n      B=add(B,rol(add(add(A,f),add(K[i],x[k+g])),SH[(i>>4)*4+(i%4)]));\n      A=t;\n    }\n    a=add(a,A);b=add(b,B);c=add(c,C);d=add(d,D);\n  }\n  var h=\"0123456789abcdef\",o=\"\",w=[a,b,c,d];\n  for(i=0;i<16;i++)o+=h.charAt((w[i>>2]>>((i%4)*8+4))&15)+h.charAt((w[i>>2]>>((i%4)*8))&15);\n  return o;\n}\n";
 var THEMES={
-  gelap:{a:"#8ab4f8",v:{bg:"#131314",card:"#1e1f20",text:"#e3e3e3",muted:"#c4c7c5",line:"#444746",input:"#282a2c",err:"#f2b8b5",errbg:"#3c2927",blur:"none",shadow:"none"}},
-  terang:{a:"#0b57d0",v:{bg:"#f8fafd",card:"#ffffff",text:"#1f1f1f",muted:"#444746",line:"#c4c7c5",input:"#eef2f8",err:"#b3261e",errbg:"#fce8e6",blur:"none",shadow:"none"}},
+  gelap:{a:"#c8c6cb",v:{bg:"#131314",card:"#1e1f20",text:"#e3e3e3",muted:"#c4c7c5",line:"#444746",input:"#282a2c",err:"#f2b8b5",errbg:"#3c2927",blur:"none",shadow:"none"}},
+  terang:{a:"#5d5c62",v:{bg:"#f8fafd",card:"#ffffff",text:"#1f1f1f",muted:"#444746",line:"#c4c7c5",input:"#eef2f8",err:"#b3261e",errbg:"#fce8e6",blur:"none",shadow:"none"}},
   biru:{a:"#a8c7fa",v:{bg:"#0b2d52",card:"#123e6f",text:"#ffffff",muted:"#c9dcf2",line:"#2f5f94",input:"#0f3560",err:"#ffd9d6",errbg:"#6b2b2b",blur:"none",shadow:"none"}},
   hijau:{a:"#6dd58c",v:{bg:"#0d3326",card:"#14503a",text:"#ffffff",muted:"#cde8d9",line:"#2a6f55",input:"#103f2e",err:"#ffd9d6",errbg:"#6b2b2b",blur:"none",shadow:"none"}}
 };
