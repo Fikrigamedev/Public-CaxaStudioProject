@@ -505,6 +505,29 @@ function drawFiles(){
 function note(t,err){var n=$("#note");n.innerHTML="";if(!t)return;var d=document.createElement("div");d.className="msg"+(err?" err":"");d.textContent=t;n.appendChild(d)}
 
 function refreshPages(){
+  S.pages=[];
+  S.files.forEach(function(f){if(f.name.indexOf("/")<0&&/\.html?$/i.test(f.name))S.pages.push(f.name)});
+  S.pages.sort(function(a,b){
+    var ia=ORDER.indexOf(a.replace(/\.html?$/i,"").toLowerCase()),ib=ORDER.indexOf(b.replace(/\.html?$/i,"").toLowerCase());
+    return (ia<0?99:ia)-(ib<0?99:ib)||a.localeCompare(b);
+  });
+}
+function loadEntries(entries,name,fresh){
+  entries=entries.filter(function(e){
+    return !/(^|\/)(__MACOSX\/|\.DS_Store$|Thumbs\.db$)/i.test(e.path);
+  });
+  var htmls=entries.filter(function(e){return /\.html?$/i.test(e.path)});
+  if(!htmls.length)throw new Error("Tidak ada file .html di dalam arsip.");
+  var depth=function(e){return e.path.split("/").length};
+  var logins=htmls.filter(function(e){return /(^|\/)login\.html?$/i.test(e.path)}).sort(function(a,b){return depth(a)-depth(b)});
+  var root=(logins[0]||htmls.sort(function(a,b){return depth(a)-depth(b)})[0]).path;
+  var base=root.indexOf("/")>=0?root.slice(0,root.lastIndexOf("/")+1):"";
+  S.files=new Map();dcache=new Map();
+  entries.forEach(function(e){
+    if(e.path.indexOf(base)!==0)return;
+    var rel=e.path.slice(base.length);if(!rel)return;
+    S.files.set(rel.toLowerCase(),{name:rel,data:e.data,orig:e.data});
+  });
   refreshPages();
   S.cur=S.pages[0];S.name=name;S.edit=null;S.fresh=!!fresh;
   $("#workspace").hidden=false;
