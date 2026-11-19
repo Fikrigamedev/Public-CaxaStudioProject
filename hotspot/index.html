@@ -453,15 +453,25 @@ async function readZip(buf){
   for(var i=0;i<list.length;i++)out.push({path:list[i].name.replace(/\\/g,"/"),data:await list[i].async("uint8array")});
   return out;
 }
-async function readRar(buf){
-  var base="https://cdn.jsdelivr.net/npm/node-unrar-js@2.0.2/esm/";
-  var mod,wasm;
-  try{
-    mod=await import(base+"index.esm.js");
-    wasm=await (await fetch(base+"js/unrar.wasm")).arrayBuffer();
-  }catch(e){
-    throw new Error("Pembaca RAR tidak bisa dimuat di halaman ini. Ubah file ke ZIP, atau buka versi file HTML lokal.");
+var UNRARIT="https://cdn.jsdelivr.net/npm/unrarit@0.0.6/dist/unrarit.module.min.js";
+var NODEUNRAR="https://cdn.jsdelivr.net/npm/node-unrar-js@2.0.2/esm/";
+async function rarViaUnrarit(buf){
+  var mod=await import(UNRARIT);
+  var res=await mod.unrar(new Uint8Array(buf)),out=[],enc=false;
+  var names=Object.keys(res.entries);
+  for(var i=0;i<names.length;i++){
+    var e=res.entries[names[i]];
+    if(e.isDirectory)continue;
+    if(e.encrypted){enc=true;continue}
+    out.push({path:String(e.name||names[i]).replace(/\\/g,"/"),data:new Uint8Array(await e.arrayBuffer())});
   }
+  try{res.rar&&res.rar.dispose&&res.rar.dispose();mod.cleanup&&mod.cleanup()}catch(x){}
+  if(!out.length&&enc)throw new Error("RAR ini dikunci dengan password. Buka dulu dengan WinRAR lalu simpan ulang tanpa password.");
+  return out;
+}
+async function rarViaNodeUnrar(buf){
+  var mod=await import(NODEUNRAR+"index.esm.js");
+  var wasm=await (await fetch(NODEUNRAR+"js/unrar.wasm")).arrayBuffer();
   var ex=await mod.createExtractorFromData({data:new Uint8Array(buf),wasmBinary:wasm});
   var res=ex.extract(),out=[];
   for(var f of res.files){
@@ -470,11 +480,32 @@ async function readRar(buf){
   }
   return out;
 }
+async function readRar(buf){
+  var err1;
+  try{return await rarViaUnrarit(buf)}
+  catch(e){
+    if(/password|dikunci/i.test(e.message))throw e;
+    err1=e;
+  }
+  try{return await rarViaNodeUnrar(buf)}
+  catch(e2){
+    var m=String((err1&&err1.message)||err1||"")+" "+String(e2&&e2.message||e2||"");
+    if(/wasm|WebAssembly|unsafe-eval|Content Security/i.test(m))
+      throw new Error("Browser atau halaman ini memblokir WebAssembly, jadi RAR tidak bisa dibuka di sini. Pakai versi file HTML lokal, atau ubah ke ZIP.");
+    throw new Error("Gagal membuka RAR ("+(err1&&err1.message||"pustaka tidak termuat")+"). Pastikan perangkat online, atau ubah ke ZIP.");
+  }
+}
+function sniff(buf,name){
+  var b=new Uint8Array(buf.slice(0,8));
+  if(b[0]===0x52&&b[1]===0x61&&b[2]===0x72&&b[3]===0x21)return "rar";
+  if(b[0]===0x50&&b[1]===0x4B)return "zip";
+  return /\.rar$/i.test(name)?"rar":"zip";
+}
 async function handleFile(file){
   note("Membaca "+file.name+"...");
   try{
-    var buf=await file.arrayBuffer(),isRar=/\.rar$/i.test(file.name)||new Uint8Array(buf.slice(0,4))[0]===0x52;
-    var entries=isRar?await readRar(buf):await readZip(buf);
+    var buf=await file.arrayBuffer(),kind=sniff(buf,file.name);
+    var entries=kind==="rar"?await readRar(buf):await readZip(buf);
     loadEntries(entries,file.name);
   }catch(e){note(e.message||String(e),true)}
 }
