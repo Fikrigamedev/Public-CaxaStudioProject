@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hotspot Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+/* Layout: satu kolom; bar atas, area unggah, kontrol, lalu panggung preview berskala */
+:root{
+  --bg:#111113; --panel:#1a1a1e; --panel-2:#222227; --line:#2e2e35;
+  --fg:#e9e9ec; --muted:#8e8e98; --accent:#a4a4b0; --accent-ink:#141416;
+  --ok:#8fb89a; --warn:#d2a86a; --err:#d08585;
+  --font-ui:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-head:"Space Grotesk","Inter",system-ui,sans-serif;
+  --font-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#f1f1f3; --panel:#ffffff; --panel-2:#e8e8ec; --line:#d6d6dc;
+    --fg:#18181b; --muted:#6a6a74; --accent:#4a4a55; --accent-ink:#ffffff;
+    --ok:#3f7a52; --warn:#9a6a1f; --err:#b04848; color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#f1f1f3; --panel:#ffffff; --panel-2:#e8e8ec; --line:#d6d6dc;
+  --fg:#18181b; --muted:#6a6a74; --accent:#4a4a55; --accent-ink:#ffffff;
+  --ok:#3f7a52; --warn:#9a6a1f; --err:#b04848; color-scheme:light;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.5;
+  padding-block:20px 32px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:center;gap:12px}
+.mark{width:38px;height:38px;border-radius:11px;background:var(--panel);border:1px solid var(--line);display:grid;place-items:center;flex:none}
+.mark svg{width:22px;height:22px}
+h1{font:600 19px/1.2 var(--font-head);letter-spacing:.2px;margin:0}
+header p{margin:2px 0 0;color:var(--muted);font-size:12.5px}
+
+.drop{
+  border:1.5px dashed var(--line);border-radius:16px;background:var(--panel);
+  padding:26px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;transition:.15s;
+}
+.drop.over{border-color:var(--accent);background:var(--panel-2)}
+.drop svg{width:30px;height:30px;stroke:var(--muted);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.drop strong{font:500 15px var(--font-head)}
+.drop span.sub{color:var(--muted);font-size:12.5px}
+.drop.compact{flex-direction:row;flex-wrap:wrap;justify-content:space-between;text-align:left;padding:12px 16px;border-style:solid}
+.drop.compact svg,.drop.compact .sub{display:none}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+button,.btn{
+  font:500 13px var(--font-ui);color:var(--fg);background:var(--panel-2);border:1px solid var(--line);
+  border-radius:10px;padding:8px 14px;cursor:pointer;min-height:36px;
+}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=file]{display:none}
+
+.bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.tabs{display:flex;gap:6px;overflow-x:auto;max-width:100%;padding-bottom:2px;min-width:0}
+.tabs button{white-space:nowrap;font-family:var(--font-mono);font-size:12px;padding:6px 11px;min-height:32px}
+.tabs button[aria-selected=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+.seg button{border:0;border-radius:0;background:transparent;padding:6px 13px;min-height:32px}
+.seg button[aria-pressed=true]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--accent)}
+.opts{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:13px}
+.opts label{display:inline-flex;align-items:center;gap:7px;cursor:pointer}
+.opts input{accent-color:var(--accent);width:15px;height:15px}
+
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;min-width:0;
+  display:flex;flex-direction:column;align-items:center;gap:10px}
+.stagebox{width:100%;display:flex;justify-content:center;overflow:hidden}
+.frame{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#000;flex:none}
+.frame.mobile{border-radius:26px;border-width:5px}
+.frame iframe{border:0;display:block;transform-origin:0 0;background:#000}
+.empty{color:var(--muted);text-align:center;padding:60px 16px;font-size:13px}
+.status{align-self:stretch;font-family:var(--font-mono);font-size:12px;color:var(--muted);min-height:18px;word-break:break-all}
+.warn{color:var(--warn)}
+details{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:10px 14px}
+summary{cursor:pointer;color:var(--muted);font-size:13px}
+.files{margin:10px 0 0;padding:0;list-style:none;font-family:var(--font-mono);font-size:12px;max-height:220px;overflow:auto;color:var(--muted)}
+.files li{display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px solid var(--line)}
+.files li span:first-child{word-break:break-all;color:var(--fg)}
+.msg{padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);font-size:13px}
+.msg.err{border-color:var(--err);color:var(--err)}
+@media (max-width:520px){.seg button{padding:6px 10px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark">
+      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
+        <path d="M5 18.5a27 27 0 0 1 38 0"/><path d="M11 25a18.5 18.5 0 0 1 26 0"/><path d="M17 31.5a10 10 0 0 1 14 0"/>
+        <circle cx="24" cy="38" r="2.6" fill="currentColor" stroke="none"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Fikri Hotspot Preview</h1>
+      <p>Pratinjau template login hotspot MikroTik</p>
+    </div>
+  </header>
+
+  <div class="drop" id="drop">
+    <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+    <div>
+      <strong id="dropTitle">Seret file ZIP atau RAR ke sini</strong><br>
+      <span class="sub">Berisi login.html, style, gambar. Diproses di browser, tidak diunggah ke server.</span>
+    </div>
+    <div class="row">
+      <button class="primary" id="pick" type="button">Pilih file</button>
+      <button id="demo" type="button">Muat contoh</button>
+    </div>
+    <input type="file" id="file" accept=".zip,.rar,application/zip,application/x-rar-compressed">
+  </div>
+
+  <div id="note"></div>
+
+  <div id="workspace" hidden>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="bar">
+        <div class="tabs" id="tabs" role="tablist" aria-label="Halaman"></div>
+        <div class="seg" id="devices" role="group" aria-label="Perangkat">
+          <button type="button" data-d="mobile" aria-pressed="true">Ponsel</button>
+          <button type="button" data-d="tablet" aria-pressed="false">Tablet</button>
+          <button type="button" data-d="desktop" aria-pressed="false">Desktop</button>
+        </div>
+      </div>
+      <div class="opts">
+        <label for="optChap"><input type="checkbox" id="optChap" checked> Login CHAP</label>
+        <label for="optErr"><input type="checkbox" id="optErr"> Tampilkan error</label>
+      </div>
+      <div class="stage">
+        <div class="stagebox" id="stagebox">
+          <div class="frame mobile" id="frame"><iframe id="view" title="Preview hotspot" sandbox="allow-scripts allow-forms"></iframe></div>
+        </div>
+        <div class="status" id="status" aria-live="polite"></div>
+      </div>
+      <details>
+        <summary id="fileSummary">Daftar file</summary>
+        <ul class="files" id="fileList"></ul>
+      </details>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var $=function(s){return document.querySelector(s)};
+var S={files:new Map(),pages:[],cur:null,device:"mobile",name:""};
+var SIZES={mobile:[390,780],tablet:[768,1024],desktop:[1280,720]};
+var MIME={png:"image/png",jpg:"image/jpeg",jpeg:"image/jpeg",gif:"image/gif",svg:"image/svg+xml",webp:"image/webp",ico:"image/x-icon",bmp:"image/bmp",avif:"image/avif",woff:"font/woff",woff2:"font/woff2",ttf:"font/ttf",otf:"font/otf",mp4:"video/mp4",webm:"video/webm",mp3:"audio/mpeg",css:"text/css",js:"text/javascript"};
+var ORDER=["login","alogin","status","logout","error","redirect","rlogin","flogout","radvert","fstatus"];
+var missing=new Set();
+
+/* ---------- template engine MikroTik ---------- */
+function renderTpl(tpl,vars){
+  var re=/\$\((if|elif|else|endif)\b([^)]*)\)/g,out="",last=0,m,stack=[],active=true;
+  function cond(e){
+    e=e.trim();
+    var mm=e.match(/^([\w-]+)\s*(==|!=)\s*['"]?(.*?)['"]?$/);
+    if(mm){var v=String(vars[mm[1]]==null?"":vars[mm[1]]);return mm[2]==="=="?v===mm[3]:v!==mm[3]}
+    var x=vars[e];return !!x&&x!=="0"&&x!=="no";
+  }
+  while((m=re.exec(tpl))){
+    if(active)out+=tpl.slice(last,m.index);
+    last=re.lastIndex;
+    var s;
+    if(m[1]==="if"){var c=active&&cond(m[2]);stack.push({parent:active,taken:c});active=c}
+    else if(m[1]==="elif"){s=stack[stack.length-1];if(!s)continue;if(s.taken||!s.parent)active=false;else{var c2=cond(m[2]);s.taken=c2;active=c2}}
+    else if(m[1]==="else"){s=stack[stack.length-1];if(!s)continue;active=s.parent&&!s.taken;s.taken=true}
+    else{s=stack.pop();if(s)active=s.parent}
+  }
+  if(active)out+=tpl.slice(last);
+  return out.replace(/\$\(([\w-]+)\)/g,function(_,k){return vars[k]==null?"":vars[k]});
+}
+window.__renderTpl=renderTpl;
+
+function sampleVars(page){
+  var chap=$("#optChap").checked,errOn=$("#optErr").checked||page==="error.html";
+  return {
+    "username":"Contoh:Fikri","ip":"192.168.88.254","mac":"AA:BB:CC:DD:EE:FF","uptime":"1h23m","session-time-left":"2h36m",
+    "session-timeout":"4h","idle-timeout":"5m","bytes-in-nice":"124.5 MiB","bytes-out-nice":"18.2 MiB",
+    "bytes-in":"130547712","bytes-out":"19084083","remain-bytes-total-nice":"875.5 MiB","limit-bytes-total":"1073741824",
+    "hostname":"Fikri.net","identity":"Fikri.net","server-name":"hotspot1","interface-name":"bridge-hotspot",
+    "link-login":"#to-login","link-login-only":"#to-login","link-status":"#to-status","link-logout":"#to-logout",
+    "link-redirect":"#to-redirect","link-orig":"https://example.com/","link-orig-esc":"https%3A%2F%2Fexample.com%2F",
+    "popup":"false","trial":"","refresh-timeout":"","logged-in":"yes",
+    "error":errOn?(page==="error.html"?"no more sessions are allowed for user fikri":"invalid username or password"):"",
+    "chap-id":chap?"\\134":"","chap-challenge":chap?"\\204\\311\\010\\172\\045\\301\\067\\112":""
+  };
+}
+
+/* ---------- aset ---------- */
+function resolve(ref){
+  if(!ref)return null;
+  ref=String(ref).trim();
+  if(/^(data:|https?:|\/\/|#|mailto:|tel:|javascript:|about:)/i.test(ref))return null;
+  ref=ref.split("#")[0].split("?")[0];
+  try{ref=decodeURIComponent(ref)}catch(e){}
+  var parts=[];ref.replace(/\\/g,"/").split("/").forEach(function(p){
+    if(!p||p===".")return; if(p==="..")parts.pop(); else parts.push(p);
+  });
+  return parts.join("/").toLowerCase();
+}
+function getFile(ref){
+  var k=resolve(ref);if(k==null)return null;
+  var f=S.files.get(k);
+  if(!f&&k){missing.add(ref)}
+  return f||null;
+}
+function mimeOf(n){var e=(n.split(".").pop()||"").toLowerCase();return MIME[e]||"application/octet-stream"}
+function b64(bytes){
+  var s="",i,CH=0x8000;
+  for(i=0;i<bytes.length;i+=CH)s+=String.fromCharCode.apply(null,bytes.subarray(i,i+CH));
+  return btoa(s);
+}
+var dcache=new Map();
+function dataUrl(f){
+  if(dcache.has(f.name))return dcache.get(f.name);
+  var u="data:"+mimeOf(f.name)+";base64,"+b64(f.data);
+  dcache.set(f.name,u);return u;
+}
+function text(f){
+  try{return new TextDecoder("utf-8",{fatal:true}).decode(f.data)}
+  catch(e){return new TextDecoder("windows-1252").decode(f.data)}
+}
+function rewriteCss(css){
+  return css.replace(/url\(\s*(['"]?)([^'")]+)\1\s*\)/g,function(all,q,ref){
+    var f=getFile(ref);return f?'url("'+dataUrl(f)+'")':all;
+  });
+}
+
+var INJECT="(function(){function send(t,x){parent.postMessage({hsPreview:1,type:t,target:x},'*')}"+
+"function route(u){var m=String(u||'').match(/to-([a-z]+)/);return m?m[1]:null}"+
+"document.addEventListener('click',function(e){var a=e.target&&e.target.closest?e.target.closest('a'):null;if(!a)return;e.preventDefault();var h=a.getAttribute('href')||'';send('nav',route(h)||h)},true);"+
+"document.addEventListener('submit',function(e){e.preventDefault();send('submit',route(e.target.getAttribute('action')))},true);"+
+"HTMLFormElement.prototype.submit=function(){send('submit',route(this.getAttribute('action')))};"+
+"window.addEventListener('hashchange',function(){var r=route(location.hash);if(r)send('nav',r)});"+
+"window.open=function(){send('popup','');return null};})();";
+
+function buildDoc(html){
+  var doc=new DOMParser().parseFromString(html,"text/html");
+  doc.querySelectorAll('link[rel~="stylesheet"][href]').forEach(function(l){
+    var f=getFile(l.getAttribute("href"));
+    if(f){var st=doc.createElement("style");st.textContent=rewriteCss(text(f));l.replaceWith(st)}
+  });
+  doc.querySelectorAll('link[rel~="icon"],link[rel~="shortcut"]').forEach(function(l){
+    var f=getFile(l.getAttribute("href"));if(f)l.setAttribute("href",dataUrl(f));
+  });
+  doc.querySelectorAll("script[src]").forEach(function(s){
+    var f=getFile(s.getAttribute("src"));
+    if(f){s.removeAttribute("src");s.textContent=text(f).replace(/<\/script/gi,"<\\/script")}
+  });
+  doc.querySelectorAll("img[src],source[src],video[src],audio[src],input[src],embed[src]").forEach(function(e){
+    var f=getFile(e.getAttribute("src"));if(f)e.setAttribute("src",dataUrl(f));
+  });
+  doc.querySelectorAll("[poster]").forEach(function(e){var f=getFile(e.getAttribute("poster"));if(f)e.setAttribute("poster",dataUrl(f))});
+  doc.querySelectorAll("[background]").forEach(function(e){var f=getFile(e.getAttribute("background"));if(f)e.setAttribute("background",dataUrl(f))});
+  doc.querySelectorAll("style").forEach(function(s){s.textContent=rewriteCss(s.textContent)});
+  doc.querySelectorAll("[style]").forEach(function(e){e.setAttribute("style",rewriteCss(e.getAttribute("style")))});
+  var sc=doc.createElement("script");sc.textContent=INJECT;
+  doc.head.insertBefore(sc,doc.head.firstChild);
+  doc.querySelectorAll("base").forEach(function(b){b.remove()});
+  var bs=doc.createElement("base");bs.setAttribute("href","about:srcdoc");
+  doc.head.insertBefore(bs,doc.head.firstChild);
+  return "<!DOCTYPE html>"+doc.documentElement.outerHTML;
+}
+
+/* ---------- render ---------- */
+function render(){
+  if(!S.cur)return;
+  missing=new Set();
+  var f=S.files.get(S.cur.toLowerCase());
+  if(!f)return;
+  var out;
+  try{out=buildDoc(renderTpl(text(f),sampleVars(S.cur)))}
+  catch(e){setStatus("Gagal merender: "+e.message,true);return}
+  $("#view").srcdoc=out;
+  var m=Array.from(missing);
+  setStatus(m.length?"File tidak ditemukan: "+m.join(", "):"Menampilkan "+S.cur,m.length>0);
+  fit();
+}
+function setStatus(t,warn){var s=$("#status");s.textContent=t;s.className="status"+(warn?" warn":"")}
+function fit(){
+  var d=SIZES[S.device],box=$("#stagebox"),fr=$("#frame"),ifr=$("#view");
+  var bw=S.device==="mobile"?10:2;
+  var avail=box.clientWidth||d[0];
+  var sc=Math.min(1,(avail-bw)/d[0]);
+  fr.className="frame "+(S.device==="mobile"?"mobile":"");
+  ifr.style.width=d[0]+"px";ifr.style.height=d[1]+"px";
+  ifr.style.transform="scale("+sc+")";
+  fr.style.width=(d[0]*sc+bw)+"px";fr.style.height=(d[1]*sc+bw)+"px";
+}
+window.addEventListener("resize",fit);
+if(window.ResizeObserver)new ResizeObserver(fit).observe($("#stagebox"));
+
+function go(page){
+  if(!S.files.has(page.toLowerCase()))return false;
+  S.cur=page;drawTabs();render();return true;
+}
+function pageFor(name){
+  var n=name+".html";
+  var hit=S.pages.filter(function(p){return p.toLowerCase()===n||p.toLowerCase()===name+".htm"})[0];
+  return hit||null;
+}
+window.addEventListener("message",function(e){
+  var d=e.data;
+  if(!d||!d.hsPreview||e.source!==$("#view").contentWindow)return;
+  var t=d.target;
+  if(d.type==="popup"){setStatus("Halaman membuka jendela popup status (dinonaktifkan di preview)");return}
+  if(d.type==="submit"){
+    if(t==="logout"){var lo=pageFor("logout");if(lo){go(lo);setStatus("Form logout dikirim, membuka "+lo);return}}
+    if(t==="login"||!t){
+      var al=pageFor("alogin")||pageFor("status");
+      if(al){go(al);setStatus("Form login dikirim, membuka "+al);return}
+    }
+    setStatus("Form dikirim ke "+(t||"tujuan lain"));return;
+  }
+  if(d.type==="nav"){
+    if(t==="redirect"){setStatus("Redirect ke https://example.com/ (tidak dibuka di preview)");return}
+    var p=t&&pageFor(t);
+    if(p){go(p);return}
+    if(t&&/^(login|status|logout|advert)$/.test(t)){setStatus("Halaman "+t+".html tidak ada di paket",true);return}
+    setStatus("Link keluar: "+t);
+  }
+});
+
+/* ---------- UI ---------- */
+function drawTabs(){
+  var tabs=$("#tabs");tabs.innerHTML="";
+  S.pages.forEach(function(p){
+    var b=document.createElement("button");b.type="button";b.setAttribute("role","tab");
+    b.textContent=p;b.setAttribute("aria-selected",String(p===S.cur));
+    b.addEventListener("click",function(){go(p)});tabs.appendChild(b);
+  });
+}
+function drawFiles(){
+  var ul=$("#fileList");ul.innerHTML="";var n=0,tot=0;
+  S.files.forEach(function(f){
+    n++;tot+=f.data.length;
+    var li=document.createElement("li"),a=document.createElement("span"),b=document.createElement("span");
+    a.textContent=f.name;b.textContent=f.data.length>1024?(f.data.length/1024).toFixed(1)+" KB":f.data.length+" B";
+    li.appendChild(a);li.appendChild(b);ul.appendChild(li);
+  });
+  $("#fileSummary").textContent="Daftar file ("+n+" file, "+(tot/1024).toFixed(0)+" KB)";
+}
+function note(t,err){var n=$("#note");n.innerHTML="";if(!t)return;var d=document.createElement("div");d.className="msg"+(err?" err":"");d.textContent=t;n.appendChild(d)}
+
+function loadEntries(entries,name){
+  entries=entries.filter(function(e){
+    return !/(^|\/)(__MACOSX\/|\.DS_Store$|Thumbs\.db$)/i.test(e.path);
+  });
+  var htmls=entries.filter(function(e){return /\.html?$/i.test(e.path)});
+  if(!htmls.length)throw new Error("Tidak ada file .html di dalam arsip.");
+  var depth=function(e){return e.path.split("/").length};
+  var logins=htmls.filter(function(e){return /(^|\/)login\.html?$/i.test(e.path)}).sort(function(a,b){return depth(a)-depth(b)});
+  var root=(logins[0]||htmls.sort(function(a,b){return depth(a)-depth(b)})[0]).path;
+  var base=root.indexOf("/")>=0?root.slice(0,root.lastIndexOf("/")+1):"";
+  S.files=new Map();dcache=new Map();
+  entries.forEach(function(e){
+    if(e.path.indexOf(base)!==0)return;
+    var rel=e.path.slice(base.length);if(!rel)return;
+    S.files.set(rel.toLowerCase(),{name:rel,data:e.data});
+  });
+  S.pages=[];
+  S.files.forEach(function(f){if(f.name.indexOf("/")<0&&/\.html?$/i.test(f.name))S.pages.push(f.name)});
+  S.pages.sort(function(a,b){
+    var ia=ORDER.indexOf(a.replace(/\.html?$/i,"").toLowerCase()),ib=ORDER.indexOf(b.replace(/\.html?$/i,"").toLowerCase());
+    return (ia<0?99:ia)-(ib<0?99:ib)||a.localeCompare(b);
+  });
+  S.cur=S.pages[0];S.name=name;
+  $("#workspace").hidden=false;
+  $("#drop").classList.add("compact");
+  $("#dropTitle").textContent=name;
+  note(base?("Folder dasar terdeteksi: "+base):"");
+  drawTabs();drawFiles();render();
+}
+
+async function readZip(buf){
+  if(typeof JSZip==="undefined")throw new Error("Pustaka ZIP gagal dimuat. Periksa koneksi lalu muat ulang halaman.");
+  var zip=await JSZip.loadAsync(buf),out=[];
+  var list=Object.keys(zip.files).map(function(k){return zip.files[k]}).filter(function(f){return !f.dir});
+  for(var i=0;i<list.length;i++)out.push({path:list[i].name.replace(/\\/g,"/"),data:await list[i].async("uint8array")});
+  return out;
+}
+async function readRar(buf){
+  var base="https://cdn.jsdelivr.net/npm/node-unrar-js@2.0.2/esm/";
+  var mod,wasm;
+  try{
+    mod=await import(base+"index.esm.js");
+    wasm=await (await fetch(base+"js/unrar.wasm")).arrayBuffer();
+  }catch(e){
+    throw new Error("Pembaca RAR tidak bisa dimuat di halaman ini. Ubah file ke ZIP, atau buka versi file HTML lokal.");
+  }
+  var ex=await mod.createExtractorFromData({data:new Uint8Array(buf),wasmBinary:wasm});
+  var res=ex.extract(),out=[];
+  for(var f of res.files){
+    if(f.fileHeader.flags.directory||!f.extraction)continue;
+    out.push({path:f.fileHeader.name.replace(/\\/g,"/"),data:f.extraction.data});
+  }
+  return out;
+}
+async function handleFile(file){
+  note("Membaca "+file.name+"...");
+  try{
+    var buf=await file.arrayBuffer(),isRar=/\.rar$/i.test(file.name)||new Uint8Array(buf.slice(0,4))[0]===0x52;
+    var entries=isRar?await readRar(buf):await readZip(buf);
+    loadEntries(entries,file.name);
+  }catch(e){note(e.message||String(e),true)}
+}
+
+/* contoh bawaan */
+var enc=new TextEncoder();
+function sampleEntries(){
+  var css="*{margin:0;box-sizing:border-box}body{min-height:100vh;display:grid;place-items:center;padding:20px;font-family:system-ui,sans-serif;color:#eee;background:radial-gradient(circle at 20% 10%,#4a4a52,#141416 70%)}"+
+  ".card{width:100%;max-width:380px;padding:30px 26px;border-radius:22px;background:rgba(60,60,66,.38);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 20px 50px rgba(0,0,0,.5)}"+
+  "h1{font-size:22px;text-align:center;margin-bottom:6px}p{text-align:center;color:#a8a8b0;font-size:13px;margin-bottom:20px}"+
+  "input{width:100%;height:46px;margin-bottom:12px;padding:0 14px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:#fff;font-size:15px}"+
+  "button,a.b{display:block;width:100%;height:46px;line-height:46px;text-align:center;border:0;border-radius:12px;background:#5a5a64;color:#fff;font-size:15px;font-weight:600;text-decoration:none;cursor:pointer}"+
+  ".err{margin-bottom:12px;padding:9px;border-radius:10px;text-align:center;font-size:13px;color:#e29a9a;background:rgba(200,90,90,.12)}"+
+  ".r{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.1);font-size:14px}.r b{font-weight:400;color:#a8a8b0}";
+  var head='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="style.css"><title>Contoh</title></head><body>';
+  var files={
+    "hotspot/style.css":css,
+    "hotspot/login.html":head+'<form class="card" action="$(link-login-only)" method="post"><h1>Contoh WiFi</h1><p>Masuk untuk terhubung</p>$(if error)<div class="err">$(error)</div>$(endif)<input name="username" value="$(username)" placeholder="Username"><input name="password" type="password" placeholder="Password"><button type="submit">Hubungkan</button></form></body></html>',
+    "hotspot/alogin.html":head+'<div class="card"><h1>Berhasil terhubung</h1><p>Mengalihkan ke halaman tujuan</p><a class="b" href="$(link-status)">Lihat status</a></div></body></html>',
+    "hotspot/status.html":head+'<div class="card"><h1>Anda terhubung</h1><p>Status sesi</p><div class="r"><b>Pengguna</b><span>$(username)</span></div><div class="r"><b>IP</b><span>$(ip)</span></div><div class="r"><b>Waktu aktif</b><span>$(uptime)</span></div><div class="r"><b>Diunduh</b><span>$(bytes-in-nice)</span></div><br><form action="$(link-logout)" method="post"><button type="submit">Putuskan koneksi</button></form></div></body></html>',
+    "hotspot/logout.html":head+'<div class="card"><h1>Koneksi diputus</h1><p>Terima kasih</p><a class="b" href="$(link-login)">Masuk kembali</a></div></body></html>',
+    "hotspot/error.html":head+'<div class="card"><h1>Terjadi kesalahan</h1><div class="err">$(error)</div><a class="b" href="$(link-login)">Kembali</a></div></body></html>'
+  };
+  return Object.keys(files).map(function(k){return {path:k,data:enc.encode(files[k])}});
+}
+
+/* events */
+var fileIn=$("#file"),drop=$("#drop");
+$("#pick").addEventListener("click",function(){fileIn.click()});
+fileIn.addEventListener("change",function(){if(fileIn.files[0])handleFile(fileIn.files[0]);fileIn.value=""});
+$("#demo").addEventListener("click",function(){try{loadEntries(sampleEntries(),"Contoh bawaan")}catch(e){note(e.message,true)}});
+["dragenter","dragover"].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault();drop.classList.add("over")})});
+["dragleave","drop"].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault();if(t==="drop"||e.target===document.documentElement)drop.classList.remove("over")})});
+document.addEventListener("drop",function(e){var f=e.dataTransfer&&e.dataTransfer.files[0];if(f)handleFile(f)});
+$("#devices").addEventListener("click",function(e){
+  var b=e.target.closest("button[data-d]");if(!b)return;
+  S.device=b.dataset.d;
+  this.querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});
+  fit();
+});
+$("#optChap").addEventListener("change",render);
+$("#optErr").addEventListener("change",render);
+})();
+</script>
+</body>
+</html>
