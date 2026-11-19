@@ -3,11 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hotspot Preview</title>
+<title>Fikri Tools Mikrotik</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 /* Layout: satu kolom; bar atas, area unggah, kontrol, lalu panggung preview berskala */
 :root{
@@ -122,7 +123,37 @@ select{font:500 12.5px var(--font-mono);color:var(--fg);background:var(--panel-2
 .tag{color:var(--warn)}
 @media (max-width:520px){.seg button{padding:6px 10px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* tombol umum tambahan */
+button:disabled{opacity:.45;cursor:not-allowed}
+button:disabled:hover{border-color:var(--line)}
+.stagetools{align-self:flex-end;display:flex;gap:8px}
+.stagetools button{display:inline-flex;align-items:center;gap:6px}
+.stagetools svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.newfile{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.newfile[hidden]{display:none}
+.txt{font:13px var(--font-mono);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:7px 10px;min-height:36px;min-width:0;flex:1}
+/* dialog buat baru */
+dialog{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:16px;padding:20px;width:calc(100% - 32px);max-width:480px;font-family:var(--font-ui)}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+dialog h2{font:600 17px var(--font-head);margin:0 0 4px}
+.dlgsub{color:var(--muted);font-size:12.5px;margin:4px 0 12px}
+.dlgsub[hidden]{display:none}
+.choices{display:grid;gap:10px;margin:14px 0}
+.choice{text-align:left;display:flex;flex-direction:column;gap:3px;padding:12px 14px;border-radius:12px;height:auto}
+.choice strong{font:600 14px var(--font-head)}
+.choice span{color:var(--muted);font-size:12.5px;font-weight:400}
+.lbl{display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--muted)}
+/* zoom */
+.zoom{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.zoom[hidden]{display:none}
+.zbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px max(14px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line);background:var(--panel)}
+.zbar .grow{flex:1}
+.zpct{font:12px var(--font-mono);color:var(--muted);min-width:42px;text-align:center}
+.zbox{flex:1;min-height:0;overflow:auto;display:flex;padding:24px}
+.zbox .frame{margin:auto}
+.zstatus{padding:6px 16px;border-top:1px solid var(--line);background:var(--panel);font-family:var(--font-mono);font-size:12px;color:var(--muted);min-height:30px;word-break:break-all}
 </style>
+</head>
 
 <body>
 <div class="wrap">
@@ -134,7 +165,7 @@ select{font:500 12.5px var(--font-mono);color:var(--fg);background:var(--panel-2
       </svg>
     </div>
     <div>
-      <h1>Hotspot Preview</h1>
+      <h1>Fikri Tools Mikrotik</h1>
       <p>Pratinjau template login hotspot MikroTik</p>
     </div>
   </header>
@@ -147,7 +178,7 @@ select{font:500 12.5px var(--font-mono);color:var(--fg);background:var(--panel-2
     </div>
     <div class="row">
       <button class="primary" id="pick" type="button">Pilih file</button>
-      <button id="demo" type="button">Muat contoh</button>
+      <button id="newBtn" type="button">Buat tampilan baru</button>
     </div>
     <input type="file" id="file" accept=".zip,.rar,application/zip,application/x-rar-compressed">
   </div>
@@ -172,16 +203,25 @@ select{font:500 12.5px var(--font-mono);color:var(--fg);background:var(--panel-2
       <div class="opts">
         <label for="optChap"><input type="checkbox" id="optChap" checked> Login CHAP</label>
         <label for="optErr"><input type="checkbox" id="optErr"> Tampilkan error</label>
+        <button type="button" class="primary" id="dlTop" style="margin-left:auto">Unduh</button>
       </div>
       <div class="work" id="work" data-mode="preview">
       <section class="editor" id="editor" aria-label="Editor kode">
         <div class="edhead">
           <select id="edFile" aria-label="File yang diedit"></select>
           <div class="row">
+            <button type="button" id="fileNew">File baru</button>
+            <button type="button" id="fileDel" disabled>Hapus</button>
             <button type="button" id="edReset">Reset</button>
             <button type="button" id="edCopy">Salin</button>
-            <button type="button" id="edZip">Unduh ZIP</button>
+            <button type="button" id="edZip">Unduh</button>
           </div>
+        </div>
+        <div class="newfile" id="newFile" hidden>
+          <input class="txt" id="nfName" list="nfList" placeholder="nama-file.html" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Nama file baru">
+          <datalist id="nfList"><option value="login.html"><option value="alogin.html"><option value="status.html"><option value="logout.html"><option value="error.html"><option value="redirect.html"><option value="style.css"><option value="script.js"></datalist>
+          <button type="button" class="primary" id="nfAdd">Tambah</button>
+          <button type="button" id="nfCancel">Batal</button>
         </div>
         <textarea id="edText" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="Isi file"></textarea>
         <div class="imgs">
@@ -195,6 +235,7 @@ select{font:500 12.5px var(--font-mono);color:var(--fg);background:var(--panel-2
         <div class="edfoot" id="edInfo">Perubahan langsung tampil di preview. Tab menyisipkan spasi, Esc lalu Tab untuk keluar.</div>
       </section>
       <div class="stage">
+        <div class="stagetools"><button type="button" id="zoomBtn" aria-label="Perbesar preview"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg>Zoom</button></div>
         <div class="stagebox" id="stagebox">
           <div class="frame mobile" id="frame"><iframe id="view" title="Preview hotspot" sandbox="allow-scripts allow-forms"></iframe></div>
         </div>
@@ -209,11 +250,58 @@ select{font:500 12.5px var(--font-mono);color:var(--fg);background:var(--panel-2
   </div>
 </div>
 
+<dialog id="newDlg" aria-labelledby="newTitle">
+  <h2 id="newTitle">Buat tampilan baru</h2>
+  <p class="dlgsub" id="newWarn" hidden>Proyek yang sedang dibuka akan diganti. Unduh ZIP dulu bila perlu.</p>
+  <label class="lbl" for="newName">Nama proyek
+    <input class="txt" id="newName" type="text" value="Tampilan baru" autocomplete="off">
+  </label>
+  <div class="choices">
+    <button type="button" class="choice" data-t="blank"><strong>Kosong, dari nol</strong><span>Hanya login.html dan style.css yang masih kosong. Tambah halaman lain lewat tombol File baru di editor.</span></button>
+    <button type="button" class="choice" data-t="base"><strong>Template dasar</strong><span>Login, berhasil, status, logout, dan error dengan gaya gelap. Tinggal diubah sesuai selera.</span></button>
+  </div>
+  <div class="row" style="justify-content:flex-end"><button type="button" id="newCancel">Batal</button></div>
+</dialog>
+
+<dialog id="dlDlg" aria-labelledby="dlTitle">
+  <h2 id="dlTitle">Unduh proyek</h2>
+  <p class="dlgsub">Pilih format arsip. Isinya sama, semua file ada di dalam folder hotspot/.</p>
+  <div class="choices">
+    <button type="button" class="choice" data-f="zip"><strong>ZIP</strong><span>Format paling umum, ukuran lebih kecil karena terkompres.</span></button>
+    <button type="button" class="choice" data-f="rar"><strong>RAR</strong><span>Format RAR5 tanpa kompresi, jadi ukurannya lebih besar. Bisa dibuka WinRAR 5 ke atas atau 7-Zip.</span></button>
+  </div>
+  <div class="dlgsub" id="dlMsg" aria-live="polite"></div>
+  <div class="row" id="dlExtra" style="justify-content:flex-start;margin-bottom:12px"></div>
+  <div class="row" style="justify-content:flex-end"><button type="button" id="dlClose">Tutup</button></div>
+</dialog>
+
+<div class="zoom" id="zoom" hidden role="dialog" aria-modal="true" aria-label="Preview diperbesar">
+  <div class="zbar">
+    <select id="zPage" aria-label="Halaman"></select>
+    <div class="seg" id="zDevices" role="group" aria-label="Perangkat">
+      <button type="button" data-d="mobile" aria-pressed="true">Ponsel</button>
+      <button type="button" data-d="tablet" aria-pressed="false">Tablet</button>
+      <button type="button" data-d="desktop" aria-pressed="false">Desktop</button>
+    </div>
+    <div class="seg" role="group" aria-label="Zoom">
+      <button type="button" id="zOut" aria-label="Perkecil">&minus;</button>
+      <button type="button" id="zFit">Pas</button>
+      <button type="button" id="zIn" aria-label="Perbesar">+</button>
+    </div>
+    <span class="zpct" id="zPct">100%</span>
+    <span class="grow"></span>
+    <button type="button" class="primary" id="zJpg">Unduh JPG</button>
+    <button type="button" id="zClose">Tutup</button>
+  </div>
+  <div class="zbox" id="zbox"><div class="frame mobile" id="zframe"><iframe id="zview" title="Preview diperbesar" sandbox="allow-scripts allow-forms"></iframe></div></div>
+  <div class="zstatus" id="zstatus" aria-live="polite"></div>
+</div>
+
 <script>
 (function(){
 "use strict";
 var $=function(s){return document.querySelector(s)};
-var S={files:new Map(),pages:[],cur:null,device:"mobile",name:"",mode:"preview",edit:null};
+var S={files:new Map(),pages:[],cur:null,device:"mobile",name:"",mode:"preview",edit:null,doc:null,fresh:false,zoom:"fit",zsc:1};
 var SIZES={mobile:[390,780],tablet:[768,1024],desktop:[1280,720]};
 var MIME={png:"image/png",jpg:"image/jpeg",jpeg:"image/jpeg",gif:"image/gif",svg:"image/svg+xml",webp:"image/webp",ico:"image/x-icon",bmp:"image/bmp",avif:"image/avif",woff:"font/woff",woff2:"font/woff2",ttf:"font/ttf",otf:"font/otf",mp4:"video/mp4",webm:"video/webm",mp3:"audio/mpeg",css:"text/css",js:"text/javascript"};
 var ORDER=["login","alogin","status","logout","error","redirect","rlogin","flogout","radvert","fstatus"];
@@ -342,12 +430,13 @@ function render(){
   var out;
   try{out=buildDoc(renderTpl(text(f),sampleVars(S.cur)))}
   catch(e){setStatus("Gagal merender: "+e.message,true);return}
-  $("#view").srcdoc=out;
+  S.doc=out;$("#view").srcdoc=out;
+  if(!$("#zoom").hidden){$("#zview").srcdoc=out;syncZoom();fitZoom()}
   var m=Array.from(missing);
   setStatus(m.length?"File tidak ditemukan: "+m.join(", "):"Menampilkan "+S.cur,m.length>0);
   fit();
 }
-function setStatus(t,warn){var s=$("#status");s.textContent=t;s.className="status"+(warn?" warn":"")}
+function setStatus(t,warn){var s=$("#status");s.textContent=t;s.className="status"+(warn?" warn":"");var z=$("#zstatus");z.textContent=t;z.style.color=warn?"var(--warn)":""}
 function fit(){
   var d=SIZES[S.device],box=$("#stagebox"),fr=$("#frame"),ifr=$("#view");
   var bw=S.device==="mobile"?10:2;
@@ -358,7 +447,7 @@ function fit(){
   ifr.style.transform="scale("+sc+")";
   fr.style.width=(d[0]*sc+bw)+"px";fr.style.height=(d[1]*sc+bw)+"px";
 }
-window.addEventListener("resize",fit);
+window.addEventListener("resize",function(){fit();fitZoom()});
 if(window.ResizeObserver)new ResizeObserver(fit).observe($("#stagebox"));
 
 function go(page){
@@ -374,7 +463,7 @@ function pageFor(name){
 }
 window.addEventListener("message",function(e){
   var d=e.data;
-  if(!d||!d.hsPreview||e.source!==$("#view").contentWindow)return;
+  if(!d||!d.hsPreview||(e.source!==$("#view").contentWindow&&e.source!==$("#zview").contentWindow))return;
   var t=d.target;
   if(d.type==="popup"){setStatus("Halaman membuka jendela popup status (dinonaktifkan di preview)");return}
   if(d.type==="submit"){
@@ -415,29 +504,9 @@ function drawFiles(){
 }
 function note(t,err){var n=$("#note");n.innerHTML="";if(!t)return;var d=document.createElement("div");d.className="msg"+(err?" err":"");d.textContent=t;n.appendChild(d)}
 
-function loadEntries(entries,name){
-  entries=entries.filter(function(e){
-    return !/(^|\/)(__MACOSX\/|\.DS_Store$|Thumbs\.db$)/i.test(e.path);
-  });
-  var htmls=entries.filter(function(e){return /\.html?$/i.test(e.path)});
-  if(!htmls.length)throw new Error("Tidak ada file .html di dalam arsip.");
-  var depth=function(e){return e.path.split("/").length};
-  var logins=htmls.filter(function(e){return /(^|\/)login\.html?$/i.test(e.path)}).sort(function(a,b){return depth(a)-depth(b)});
-  var root=(logins[0]||htmls.sort(function(a,b){return depth(a)-depth(b)})[0]).path;
-  var base=root.indexOf("/")>=0?root.slice(0,root.lastIndexOf("/")+1):"";
-  S.files=new Map();dcache=new Map();
-  entries.forEach(function(e){
-    if(e.path.indexOf(base)!==0)return;
-    var rel=e.path.slice(base.length);if(!rel)return;
-    S.files.set(rel.toLowerCase(),{name:rel,data:e.data,orig:e.data});
-  });
-  S.pages=[];
-  S.files.forEach(function(f){if(f.name.indexOf("/")<0&&/\.html?$/i.test(f.name))S.pages.push(f.name)});
-  S.pages.sort(function(a,b){
-    var ia=ORDER.indexOf(a.replace(/\.html?$/i,"").toLowerCase()),ib=ORDER.indexOf(b.replace(/\.html?$/i,"").toLowerCase());
-    return (ia<0?99:ia)-(ib<0?99:ib)||a.localeCompare(b);
-  });
-  S.cur=S.pages[0];S.name=name;S.edit=null;
+function refreshPages(){
+  refreshPages();
+  S.cur=S.pages[0];S.name=name;S.edit=null;S.fresh=!!fresh;
   $("#workspace").hidden=false;
   $("#drop").classList.add("compact");
   $("#dropTitle").textContent=name;
@@ -528,6 +597,7 @@ function openEd(name){
   var f=S.files.get(String(name).toLowerCase());
   if(!f){return}
   S.edit=f.name;
+  $("#fileDel").disabled=!canDel(f);
   $("#edText").value=text(f);
   drawEd();
   var sel=$("#edFile");sel.value=f.name;
@@ -582,29 +652,101 @@ $("#edCopy").addEventListener("click",function(){
   var fail=function(){ta.focus();ta.select();$("#edInfo").textContent="Teks dipilih, salin manual dengan menu salin."};
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(v).then(done,fail);else fail();
 });
-$("#edZip").addEventListener("click",async function(){
-  var info=$("#edInfo");
+/* penulis arsip RAR5 mode simpan (tanpa kompresi) */
+var CRCT=null;
+function crc32(u8){
+  if(!CRCT){CRCT=new Uint32Array(256);for(var n=0;n<256;n++){var c0=n;for(var k=0;k<8;k++)c0=(c0&1)?(0xEDB88320^(c0>>>1)):(c0>>>1);CRCT[n]=c0>>>0}}
+  var c=0xFFFFFFFF;
+  for(var i=0;i<u8.length;i++)c=CRCT[(c^u8[i])&255]^(c>>>8);
+  return (c^0xFFFFFFFF)>>>0;
+}
+function vint(n){var o=[];while(n>=128){o.push((n%128)|128);n=Math.floor(n/128)}o.push(n);return o}
+function u32le(n){return [n&255,(n>>>8)&255,(n>>>16)&255,(n>>>24)&255]}
+function rarBlock(hdr){
+  var sz=vint(hdr.length),body=new Uint8Array(sz.length+hdr.length);
+  body.set(sz,0);body.set(hdr,sz.length);
+  var out=new Uint8Array(4+body.length);
+  out.set(u32le(crc32(body)),0);out.set(body,4);
+  return out;
+}
+function buildRar(files,dir){
+  var parts=[new Uint8Array([0x52,0x61,0x72,0x21,0x1A,0x07,0x01,0x00])];
+  parts.push(rarBlock(new Uint8Array([1,0,0])));
+  var te=new TextEncoder();
+  files.forEach(function(f){
+    var name=te.encode(dir+f.name),data=f.data,h=[];
+    h=h.concat(vint(2),vint(2),vint(data.length));
+    h=h.concat(vint(4),vint(data.length),vint(0),u32le(crc32(data)),vint(0),vint(1),vint(name.length));
+    var hb=new Uint8Array(h.length+name.length);hb.set(h,0);hb.set(name,h.length);
+    parts.push(rarBlock(hb));parts.push(data);
+  });
+  parts.push(rarBlock(new Uint8Array([5,0,0])));
+  return new Blob(parts,{type:"application/vnd.rar"});
+}
+
+async function saveBlob(blob,fname){
+  var dl=null;
+  try{if(window.claude&&window.claude.use)dl=await window.claude.use("downloads")}catch(e){}
+  if(dl){
+    try{await dl.save({filename:fname,data:blob});return "app"}
+    catch(e){if(e&&e.code==="declined")throw e}
+  }
+  var u=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=u;a.download=fname;a.rel="noopener";a.style.display="none";
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){a.remove();URL.revokeObjectURL(u)},60000);
+  return "anchor";
+}
+function safeBase(){return (S.name||"hotspot").replace(/\.(zip|rar)$/i,"").replace(/[^\w\-]+/g,"-").replace(/^-+|-+$/g,"")||"hotspot"}
+async function buildArchive(kind){
+  var dir="hotspot/",list=[];
+  S.files.forEach(function(f){list.push(f)});
+  if(kind==="rar")return buildRar(list,dir);
+  if(typeof JSZip==="undefined")throw new Error("pustaka ZIP belum termuat, periksa koneksi lalu muat ulang halaman");
+  var z=new JSZip();
+  list.forEach(function(f){z.file(dir+f.name,f.data,{binary:true})});
+  return await z.generateAsync({type:"blob",compression:"DEFLATE",mimeType:"application/zip"});
+}
+var dlUrl=null;
+async function doDownload(kind){
+  var dlg=$("#dlDlg"),msg=$("#dlMsg"),ex=$("#dlExtra");
+  var btns=dlg.querySelectorAll(".choice");
+  ex.innerHTML="";
+  if(dlUrl){URL.revokeObjectURL(dlUrl);dlUrl=null}
+  btns.forEach(function(b){b.disabled=true});
   try{
-    if(typeof JSZip==="undefined")throw new Error("pustaka ZIP belum termuat");
-    var z=new JSZip(),dir="hotspot/";
-    S.files.forEach(function(f){z.file(dir+f.name,f.data)});
-    var blob=await z.generateAsync({type:"blob"});
-    var fname=(S.name||"hotspot").replace(/\.(zip|rar)$/i,"")+"-edit.zip";
-    var dl=null;
-    try{if(window.claude&&window.claude.use)dl=await window.claude.use("downloads")}catch(e){}
-    if(dl){
-      try{await dl.save({filename:fname,data:blob});info.textContent="ZIP hasil edit disimpan: "+fname}
-      catch(e){info.textContent=e&&e.code==="declined"?"Unduhan dibatalkan.":"Unduhan gagal ("+(e&&e.code||"error")+"). Pakai Salin per file."}
-      return;
+    msg.textContent="Membuat "+kind.toUpperCase()+"...";
+    var blob=await buildArchive(kind);
+    var fname=safeBase()+(S.fresh?"":"-edit")+"."+kind;
+    var info=fname+" ("+kb(blob.size)+")";
+    try{
+      await saveBlob(blob,fname);
+      msg.textContent="Unduhan dimulai: "+info+". Jika tidak muncul, pakai tombol di bawah.";
+    }catch(e){
+      msg.textContent=e&&e.code==="declined"?"Unduhan dibatalkan.":"Unduhan otomatis gagal ("+((e&&e.message)||"error")+"). Pakai tombol di bawah.";
     }
-    if(location.protocol==="file:"){
-      var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=fname;
-      document.body.appendChild(a);a.click();a.remove();
-      info.textContent="ZIP hasil edit diunduh.";return;
+    dlUrl=URL.createObjectURL(blob);
+    var a=document.createElement("a");a.className="btn";a.href=dlUrl;a.download=fname;a.textContent="Unduh manual";
+    ex.appendChild(a);
+    var file=null;
+    try{file=new File([blob],fname,{type:blob.type})}catch(e){}
+    if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+      var sb=document.createElement("button");sb.type="button";sb.textContent="Bagikan / simpan";
+      sb.addEventListener("click",function(){navigator.share({files:[file],title:fname}).catch(function(){})});
+      ex.appendChild(sb);
     }
-    info.textContent="Unduhan tidak tersedia di tampilan ini. Pakai Salin per file, atau buka versi file HTML lokal.";
-  }catch(e){info.textContent="Gagal membuat ZIP: "+e.message}
-});
+  }catch(e){msg.textContent="Gagal membuat arsip: "+(e&&e.message||e)}
+  finally{btns.forEach(function(b){b.disabled=false})}
+}
+function openDl(){
+  if(!S.files.size)return;
+  $("#dlMsg").textContent="";$("#dlExtra").innerHTML="";
+  $("#dlDlg").showModal();
+}
+$("#edZip").addEventListener("click",openDl);
+$("#dlTop").addEventListener("click",openDl);
+$("#dlClose").addEventListener("click",function(){$("#dlDlg").close()});
+$("#dlDlg").querySelectorAll(".choice").forEach(function(b){b.addEventListener("click",function(){doDownload(b.dataset.f)})});
 
 /* ---------- gambar ---------- */
 var IMGEXT=/\.(png|jpe?g|gif|webp|svg|bmp|avif|ico)$/i;
@@ -695,41 +837,250 @@ $("#imgIn").addEventListener("change",async function(){
   }catch(e){info.textContent="Gagal memproses gambar: "+e.message}
 });
 
-/* contoh bawaan */
+/* tampilan baru: kosong dan template dasar */
 var enc=new TextEncoder();
-function sampleEntries(){
-  var css="*{margin:0;box-sizing:border-box}body{min-height:100vh;display:grid;place-items:center;padding:20px;font-family:system-ui,sans-serif;color:#eee;background:radial-gradient(circle at 20% 10%,#4a4a52,#141416 70%)}"+
-  ".card{width:100%;max-width:380px;padding:30px 26px;border-radius:22px;background:rgba(60,60,66,.38);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 20px 50px rgba(0,0,0,.5)}"+
-  "h1{font-size:22px;text-align:center;margin-bottom:6px}p{text-align:center;color:#a8a8b0;font-size:13px;margin-bottom:20px}"+
-  "input{width:100%;height:46px;margin-bottom:12px;padding:0 14px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:#fff;font-size:15px}"+
-  "button,a.b{display:block;width:100%;height:46px;line-height:46px;text-align:center;border:0;border-radius:12px;background:#5a5a64;color:#fff;font-size:15px;font-weight:600;text-decoration:none;cursor:pointer}"+
-  ".err{margin-bottom:12px;padding:9px;border-radius:10px;text-align:center;font-size:13px;color:#e29a9a;background:rgba(200,90,90,.12)}"+
-  ".r{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.1);font-size:14px}.r b{font-weight:400;color:#a8a8b0}";
-  var head='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="style.css"><title>Contoh</title></head><body>';
+function pageHtml(title,body,css){
+  return ['<!DOCTYPE html>','<html lang="id">','<head>','<meta charset="utf-8">','<meta name="viewport" content="width=device-width,initial-scale=1">','<title>'+title+'</title>',css?'<link rel="stylesheet" href="style.css">':null,'</head>','<body>',body,'</body>','</html>',''].filter(function(x){return x!==null}).join("\n");
+}
+function blankEntries(){
+  return [
+    {path:"login.html",data:enc.encode(pageHtml("Login","<!-- Tulis tampilan login di sini -->",true))},
+    {path:"style.css",data:enc.encode("/* Gaya tampilan */\n")}
+  ];
+}
+function templateEntries(){
+  var css=[
+    "* { margin: 0; box-sizing: border-box; }",
+    "body {",
+    "  min-height: 100vh; display: grid; place-items: center; padding: 20px;",
+    "  font-family: system-ui, sans-serif; color: #eee;",
+    "  background: radial-gradient(circle at 20% 10%, #4a4a52, #141416 70%);",
+    "}",
+    ".card {",
+    "  width: 100%; max-width: 380px; padding: 30px 26px; border-radius: 22px;",
+    "  background: rgba(60,60,66,.38); border: 1px solid rgba(255,255,255,.14);",
+    "  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);",
+    "  box-shadow: 0 20px 50px rgba(0,0,0,.5);",
+    "}",
+    "h1 { font-size: 22px; text-align: center; margin-bottom: 6px; }",
+    "p { text-align: center; color: #a8a8b0; font-size: 13px; margin-bottom: 20px; }",
+    "input {",
+    "  width: 100%; height: 46px; margin-bottom: 12px; padding: 0 14px; border-radius: 12px;",
+    "  border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.07);",
+    "  color: #fff; font-size: 15px;",
+    "}",
+    "button, a.b {",
+    "  display: block; width: 100%; height: 46px; line-height: 46px; text-align: center;",
+    "  border: 0; border-radius: 12px; background: #5a5a64; color: #fff;",
+    "  font-size: 15px; font-weight: 600; text-decoration: none; cursor: pointer;",
+    "}",
+    ".err { margin-bottom: 12px; padding: 9px; border-radius: 10px; text-align: center; font-size: 13px; color: #e29a9a; background: rgba(200,90,90,.12); }",
+    ".r { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.1); font-size: 14px; }",
+    ".r b { font-weight: 400; color: #a8a8b0; }",
+    ""
+  ].join("\n");
   var files={
-    "hotspot/style.css":css,
-    "hotspot/login.html":head+'<form class="card" action="$(link-login-only)" method="post"><h1>Contoh WiFi</h1><p>Masuk untuk terhubung</p>$(if error)<div class="err">$(error)</div>$(endif)<input name="username" value="$(username)" placeholder="Username"><input name="password" type="password" placeholder="Password"><button type="submit">Hubungkan</button></form></body></html>',
-    "hotspot/alogin.html":head+'<div class="card"><h1>Berhasil terhubung</h1><p>Mengalihkan ke halaman tujuan</p><a class="b" href="$(link-status)">Lihat status</a></div></body></html>',
-    "hotspot/status.html":head+'<div class="card"><h1>Anda terhubung</h1><p>Status sesi</p><div class="r"><b>Pengguna</b><span>$(username)</span></div><div class="r"><b>IP</b><span>$(ip)</span></div><div class="r"><b>Waktu aktif</b><span>$(uptime)</span></div><div class="r"><b>Diunduh</b><span>$(bytes-in-nice)</span></div><br><form action="$(link-logout)" method="post"><button type="submit">Putuskan koneksi</button></form></div></body></html>',
-    "hotspot/logout.html":head+'<div class="card"><h1>Koneksi diputus</h1><p>Terima kasih</p><a class="b" href="$(link-login)">Masuk kembali</a></div></body></html>',
-    "hotspot/error.html":head+'<div class="card"><h1>Terjadi kesalahan</h1><div class="err">$(error)</div><a class="b" href="$(link-login)">Kembali</a></div></body></html>'
+    "style.css":css,
+    "login.html":pageHtml("Login",[
+      '<form class="card" action="$(link-login-only)" method="post">',
+      '  <h1>Hotspot WiFi</h1>',
+      '  <p>Masuk untuk terhubung</p>',
+      '  $(if error)<div class="err">$(error)</div>$(endif)',
+      '  <input name="username" value="$(username)" placeholder="Username">',
+      '  <input name="password" type="password" placeholder="Password">',
+      '  <button type="submit">Hubungkan</button>',
+      '</form>'].join("\n"),true),
+    "alogin.html":pageHtml("Berhasil",[
+      '<div class="card">',
+      '  <h1>Berhasil terhubung</h1>',
+      '  <p>Mengalihkan ke halaman tujuan</p>',
+      '  <a class="b" href="$(link-status)">Lihat status</a>',
+      '</div>'].join("\n"),true),
+    "status.html":pageHtml("Status",[
+      '<div class="card">',
+      '  <h1>Anda terhubung</h1>',
+      '  <p>Status sesi</p>',
+      '  <div class="r"><b>Pengguna</b><span>$(username)</span></div>',
+      '  <div class="r"><b>IP</b><span>$(ip)</span></div>',
+      '  <div class="r"><b>Waktu aktif</b><span>$(uptime)</span></div>',
+      '  <div class="r"><b>Diunduh</b><span>$(bytes-in-nice)</span></div>',
+      '  <br>',
+      '  <form action="$(link-logout)" method="post"><button type="submit">Putuskan koneksi</button></form>',
+      '</div>'].join("\n"),true),
+    "logout.html":pageHtml("Logout",[
+      '<div class="card">',
+      '  <h1>Koneksi diputus</h1>',
+      '  <p>Terima kasih</p>',
+      '  <a class="b" href="$(link-login)">Masuk kembali</a>',
+      '</div>'].join("\n"),true),
+    "error.html":pageHtml("Error",[
+      '<div class="card">',
+      '  <h1>Terjadi kesalahan</h1>',
+      '  <div class="err">$(error)</div>',
+      '  <a class="b" href="$(link-login)">Kembali</a>',
+      '</div>'].join("\n"),true)
   };
   return Object.keys(files).map(function(k){return {path:k,data:enc.encode(files[k])}});
 }
+function newProject(type){
+  var nm=($("#newName").value||"").trim()||"Tampilan baru";
+  try{
+    loadEntries(type==="blank"?blankEntries():templateEntries(),nm,true);
+    setMode("split");
+    $("#newDlg").close();
+    $("#edInfo").textContent="Proyek baru dibuat. Ubah kode di editor, hasilnya langsung tampil di preview.";
+  }catch(e){note(e.message,true)}
+}
+
+/* file baru & hapus file di editor */
+function canDel(f){return !!f&&(f.added||S.fresh)}
+function addFile(){
+  var inp=$("#nfName"),info=$("#edInfo");
+  var n=inp.value.trim().replace(/\\/g,"/").replace(/^\/+/,"");
+  if(!n)return;
+  if(!/^[\w.\-\/]+$/.test(n)||/(^|\/)\.\.?(\/|$)/.test(n)){info.textContent="Nama file hanya boleh huruf, angka, titik, minus, garis bawah, dan garis miring.";return}
+  if(!/\.[A-Za-z0-9]+$/.test(n))n+=".html";
+  if(!EDITABLE.test(n)){info.textContent="Jenis file harus html, css, js, txt, svg, atau json.";return}
+  if(S.files.has(n.toLowerCase())){info.textContent=n+" sudah ada.";return}
+  var title=n.replace(/\.html?$/i,"").replace(/^.*\//,"");
+  var content=/\.html?$/i.test(n)?pageHtml(title,"",S.files.has("style.css")):"";
+  var data=enc.encode(content);
+  S.files.set(n.toLowerCase(),{name:n,data:data,orig:data,added:true});
+  inp.value="";$("#newFile").hidden=true;
+  refreshPages();drawFiles();
+  if(S.pages.indexOf(n)>=0){go(n)}
+  else{S.edit=null;openEd(n)}
+  info.textContent=n+" dibuat.";
+}
+function delFile(){
+  var f=S.files.get(String(S.edit||"").toLowerCase()),info=$("#edInfo");
+  if(!canDel(f))return;
+  var isPage=S.pages.indexOf(f.name)>=0;
+  if(isPage&&S.pages.length<=1){info.textContent="Minimal harus ada satu halaman HTML.";return}
+  S.files.delete(f.name.toLowerCase());dcache.delete(f.name);
+  refreshPages();
+  if(!S.cur||!S.files.has(S.cur.toLowerCase()))S.cur=S.pages[0];
+  S.edit=null;drawTabs();drawFiles();drawImgs();
+  openEd(S.cur);render();
+  info.textContent=f.name+" dihapus.";
+}
+$("#fileNew").addEventListener("click",function(){var r=$("#newFile");r.hidden=!r.hidden;if(!r.hidden)$("#nfName").focus()});
+$("#nfAdd").addEventListener("click",addFile);
+$("#nfCancel").addEventListener("click",function(){$("#newFile").hidden=true});
+$("#nfName").addEventListener("keydown",function(e){
+  if(e.key==="Enter"){e.preventDefault();addFile()}
+  else if(e.key==="Escape"){$("#newFile").hidden=true}
+});
+$("#fileDel").addEventListener("click",delFile);
+
+/* zoom & unduh JPG */
+var zoomFrom=null;
+function syncZoom(){
+  var sel=$("#zPage");sel.innerHTML="";
+  S.pages.forEach(function(p){var o=document.createElement("option");o.value=p;o.textContent=p;if(p===S.cur)o.selected=true;sel.appendChild(o)});
+  document.querySelectorAll("button[data-d]").forEach(function(x){x.setAttribute("aria-pressed",String(x.dataset.d===S.device))});
+}
+function fitZoom(){
+  if($("#zoom").hidden)return;
+  var d=SIZES[S.device],box=$("#zbox"),fr=$("#zframe"),ifr=$("#zview");
+  var bw=S.device==="mobile"?10:2;
+  var aw=box.clientWidth-48-bw,ah=box.clientHeight-48-bw;
+  var fitSc=Math.max(0.2,Math.min(3,aw/d[0],ah/d[1]));
+  var sc=S.zoom==="fit"?fitSc:S.zoom;
+  S.zsc=sc;
+  fr.className="frame "+(S.device==="mobile"?"mobile":"");
+  ifr.style.width=d[0]+"px";ifr.style.height=d[1]+"px";
+  ifr.style.transform="scale("+sc+")";
+  fr.style.width=(d[0]*sc+bw)+"px";fr.style.height=(d[1]*sc+bw)+"px";
+  $("#zPct").textContent=Math.round(sc*100)+"%";
+}
+function openZoom(){
+  if(!S.cur||!S.doc)return;
+  zoomFrom=document.activeElement;
+  S.zoom="fit";
+  $("#zoom").hidden=false;document.body.style.overflow="hidden";
+  syncZoom();$("#zview").srcdoc=S.doc;fitZoom();
+  setStatus("Menampilkan "+S.cur);
+  $("#zClose").focus();
+}
+function closeZoom(){
+  $("#zoom").hidden=true;document.body.style.overflow="";
+  $("#zview").removeAttribute("srcdoc");
+  if(zoomFrom&&zoomFrom.focus)zoomFrom.focus();
+}
+function delay(ms){return new Promise(function(r){setTimeout(r,ms)})}
+async function captureJpg(){
+  if(typeof html2canvas==="undefined")throw new Error("pustaka gambar belum termuat, periksa koneksi lalu muat ulang halaman");
+  if(!S.doc)throw new Error("belum ada tampilan");
+  var d=SIZES[S.device],w=d[0],h=d[1];
+  /* iframe sementara tanpa script, agar isinya aman dibaca untuk difoto */
+  var ifr=document.createElement("iframe");
+  ifr.setAttribute("sandbox","allow-same-origin");
+  ifr.setAttribute("aria-hidden","true");
+  ifr.style.cssText="position:fixed;left:-20000px;top:0;border:0;width:"+w+"px;height:"+h+"px";
+  var loaded=new Promise(function(res){ifr.addEventListener("load",res,{once:true})});
+  ifr.srcdoc=S.doc;
+  document.body.appendChild(ifr);
+  try{
+    await Promise.race([loaded,delay(8000)]);
+    var doc=ifr.contentDocument;
+    if(!doc||!doc.documentElement)throw new Error("tampilan tidak bisa dibaca");
+    try{if(doc.fonts&&doc.fonts.ready)await Promise.race([doc.fonts.ready,delay(2000)])}catch(e){}
+    await Promise.all(Array.prototype.map.call(doc.images,function(im){return im.decode?im.decode().catch(function(){}):null}));
+    await delay(200);
+    var base={backgroundColor:"#000000",width:w,height:h,windowWidth:w,windowHeight:h,x:0,y:0,scrollX:0,scrollY:0,scale:2,logging:false,useCORS:true};
+    var cv;
+    try{
+      cv=await html2canvas(doc.documentElement,Object.assign({foreignObjectRendering:true},base));
+      cv.getContext("2d").getImageData(0,0,1,1);
+    }catch(e1){
+      cv=await html2canvas(doc.documentElement,Object.assign({foreignObjectRendering:false},base));
+    }
+    var blob=await new Promise(function(res){cv.toBlob(res,"image/jpeg",0.92)});
+    if(!blob)throw new Error("gagal menyimpan gambar");
+    return blob;
+  }finally{ifr.remove()}
+}
+$("#zoomBtn").addEventListener("click",openZoom);
+$("#zClose").addEventListener("click",closeZoom);
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("#zoom").hidden)closeZoom()});
+$("#zPage").addEventListener("change",function(){go(this.value)});
+$("#zIn").addEventListener("click",function(){S.zoom=Math.min(3,Math.round((S.zsc+0.25)*100)/100);fitZoom()});
+$("#zOut").addEventListener("click",function(){S.zoom=Math.max(0.25,Math.round((S.zsc-0.25)*100)/100);fitZoom()});
+$("#zFit").addEventListener("click",function(){S.zoom="fit";fitZoom()});
+$("#zJpg").addEventListener("click",async function(){
+  var btn=this;btn.disabled=true;
+  try{
+    setStatus("Membuat JPG...");
+    var blob=await captureJpg();
+    var fname=safeBase()+"-"+String(S.cur||"halaman").replace(/\.html?$/i,"")+"-"+S.device+".jpg";
+    try{await saveBlob(blob,fname);setStatus("JPG disimpan: "+fname)}
+    catch(e){setStatus(e&&e.code==="declined"?"Unduhan dibatalkan.":"Unduhan gagal.",true)}
+  }catch(e){setStatus("Gagal membuat JPG: "+(e&&e.message||e),true)}
+  finally{btn.disabled=false}
+});
 
 /* events */
 var fileIn=$("#file"),drop=$("#drop");
 $("#pick").addEventListener("click",function(){fileIn.click()});
 fileIn.addEventListener("change",function(){if(fileIn.files[0])handleFile(fileIn.files[0]);fileIn.value=""});
-$("#demo").addEventListener("click",function(){try{loadEntries(sampleEntries(),"Contoh bawaan")}catch(e){note(e.message,true)}});
+var dlg=$("#newDlg");
+$("#newBtn").addEventListener("click",function(){
+  $("#newWarn").hidden=!S.files.size;
+  dlg.showModal();$("#newName").select();
+});
+$("#newCancel").addEventListener("click",function(){dlg.close()});
+dlg.querySelectorAll(".choice").forEach(function(b){b.addEventListener("click",function(){newProject(b.dataset.t)})});
 ["dragenter","dragover"].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault();drop.classList.add("over")})});
 ["dragleave","drop"].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault();if(t==="drop"||e.target===document.documentElement)drop.classList.remove("over")})});
 document.addEventListener("drop",function(e){var f=e.dataTransfer&&e.dataTransfer.files[0];if(f)handleFile(f)});
-$("#devices").addEventListener("click",function(e){
-  var b=e.target.closest("button[data-d]");if(!b)return;
-  S.device=b.dataset.d;
-  this.querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});
-  fit();
+function setDevice(dv){
+  S.device=dv;
+  document.querySelectorAll("button[data-d]").forEach(function(x){x.setAttribute("aria-pressed",String(x.dataset.d===dv))});
+  fit();fitZoom();
+}
+["#devices","#zDevices"].forEach(function(id){
+  $(id).addEventListener("click",function(e){var b=e.target.closest("button[data-d]");if(b)setDevice(b.dataset.d)});
 });
 $("#optChap").addEventListener("change",render);
 $("#optErr").addEventListener("change",render);
