@@ -1038,14 +1038,14 @@ function genTemplate(o){
   var login=card(loginLines.filter(function(x){return x!==null}),'<form class="card" name="login" action="$(link-login-only)" method="post"'+(useJs?' onsubmit="return doLogin()"':'')+'>','</form>');
   if(useJs){
     login+='\n'+['<form name="sendin" action="$(link-login-only)" method="post">','  <input type="hidden" name="username">','  <input type="hidden" name="password">','  <input type="hidden" name="dst" value="$(link-orig)">','  <input type="hidden" name="popup" value="true">','</form>'].join("\n");
-    if(o.chap)login+='\n<script src="/md5.js"></script>';
+    if(o.chap)login+='\n<script src="/md5.js"><\/script>';
     var js=['function doLogin() {','  var f = document.login;'];
     if(o.voucher)js.push('  f.password.value = f.username.value;');
     if(o.chap)js.push('$(if chap-id)','  document.sendin.username.value = f.username.value;',"  document.sendin.password.value = hexMD5('$(chap-id)' + f.password.value + '$(chap-challenge)');",'  document.sendin.submit();','  return false;','$(endif)');
     js.push('  return true;','}');
-    login+='\n<script>\n'+js.join("\n")+'\n</script>';
+    login+='\n<script>\n'+js.join("\n")+'\n<\/script>';
   }
-  if(o.eye&&!o.voucher)login+="\n<script>\nfunction togglePw(b) {\n  var i = b.previousElementSibling, s = i.type === 'password';\n  i.type = s ? 'text' : 'password';\n  b.textContent = s ? 'Sembunyi' : 'Lihat';\n}\n</script>";
+  if(o.eye&&!o.voucher)login+="\n<script>\nfunction togglePw(b) {\n  var i = b.previousElementSibling, s = i.type === 'password';\n  i.type = s ? 'text' : 'password';\n  b.textContent = s ? 'Sembunyi' : 'Lihat';\n}\n<\/script>";
   var P={
     login:["Login",login],
     alogin:["Berhasil",card(['  <h1>Berhasil terhubung</h1>','  <p>Anda sudah online. Selamat berselancar.</p>','  <a class="b" href="$(link-redirect)">Lanjut ke tujuan</a>','  <a class="b ghost" href="$(link-status)">Lihat status</a>'])],
