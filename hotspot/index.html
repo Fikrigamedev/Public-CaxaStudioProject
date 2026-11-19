@@ -4,173 +4,206 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Fikri Tools Mikrotik</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-/* Layout: satu kolom; bar atas, area unggah, kontrol, lalu panggung preview berskala */
+/* Gaya Android modern (Material 3): datar, tanpa gradasi dan bayangan */
 :root{
-  --bg:#111113; --panel:#1a1a1e; --panel-2:#222227; --line:#2e2e35;
-  --fg:#e9e9ec; --muted:#8e8e98; --accent:#a4a4b0; --accent-ink:#141416;
-  --ok:#8fb89a; --warn:#d2a86a; --err:#d08585;
-  --font-ui:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  --font-head:"Space Grotesk","Inter",system-ui,sans-serif;
+  --bg:#131314; --panel:#1e1f20; --panel-2:#282a2c; --line:#444746;
+  --fg:#e3e3e3; --muted:#c4c7c5; --accent:#a8c7fa; --accent-ink:#062e6f;
+  --sec:#004a77; --sec-ink:#c2e7ff;
+  --ok:#6dd58c; --warn:#fdd663; --err:#f2b8b5;
+  --font-ui:Roboto,"Google Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-head:Roboto,"Google Sans",system-ui,sans-serif;
   --font-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   color-scheme:dark;
 }
 @media (prefers-color-scheme: light){
   :root:not([data-theme="dark"]){
-    --bg:#f1f1f3; --panel:#ffffff; --panel-2:#e8e8ec; --line:#d6d6dc;
-    --fg:#18181b; --muted:#6a6a74; --accent:#4a4a55; --accent-ink:#ffffff;
-    --ok:#3f7a52; --warn:#9a6a1f; --err:#b04848; color-scheme:light;
+    --bg:#f8fafd; --panel:#ffffff; --panel-2:#e9eef6; --line:#c4c7c5;
+    --fg:#1f1f1f; --muted:#444746; --accent:#0b57d0; --accent-ink:#ffffff;
+    --sec:#d3e3fd; --sec-ink:#041e49;
+    --ok:#146c2e; --warn:#8a6100; --err:#b3261e; color-scheme:light;
   }
 }
 :root[data-theme="light"]{
-  --bg:#f1f1f3; --panel:#ffffff; --panel-2:#e8e8ec; --line:#d6d6dc;
-  --fg:#18181b; --muted:#6a6a74; --accent:#4a4a55; --accent-ink:#ffffff;
-  --ok:#3f7a52; --warn:#9a6a1f; --err:#b04848; color-scheme:light;
+  --bg:#f8fafd; --panel:#ffffff; --panel-2:#e9eef6; --line:#c4c7c5;
+  --fg:#1f1f1f; --muted:#444746; --accent:#0b57d0; --accent-ink:#ffffff;
+  --sec:#d3e3fd; --sec-ink:#041e49;
+  --ok:#146c2e; --warn:#8a6100; --err:#b3261e; color-scheme:light;
 }
 *{box-sizing:border-box}
 body{
-  background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.5;
-  padding-block:20px 32px;
+  margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.5;
+  padding-bottom:32px;
   padding-left:max(16px,env(safe-area-inset-left,0px));
   padding-right:max(16px,env(safe-area-inset-right,0px));
 }
-.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
-header{display:flex;align-items:center;gap:12px}
-.mark{width:38px;height:38px;border-radius:11px;background:var(--panel);border:1px solid var(--line);display:grid;place-items:center;flex:none}
-.mark svg{width:22px;height:22px}
-h1{font:600 19px/1.2 var(--font-head);letter-spacing:.2px;margin:0}
-header p{margin:2px 0 0;color:var(--muted);font-size:12.5px}
+.wrap{max-width:1160px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.i{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
-.drop{
-  border:1.5px dashed var(--line);border-radius:16px;background:var(--panel);
-  padding:26px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;transition:.15s;
-}
+/* bar aplikasi */
+header.appbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:14px;background:var(--bg);
+  padding:calc(14px + env(safe-area-inset-top,0px)) 0 12px;margin:0}
+.mark{width:44px;height:44px;border-radius:14px;background:var(--sec);color:var(--sec-ink);display:grid;place-items:center;flex:none}
+.mark svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+h1{font:500 22px/1.2 var(--font-head);margin:0}
+header p{margin:2px 0 0;color:var(--muted);font-size:13px}
+
+/* kartu */
+.card,.drop,.stage,.editor,.toolbar{background:var(--panel);border-radius:24px}
+.drop{border:2px dashed var(--line);padding:32px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;transition:background .15s,border-color .15s}
 .drop.over{border-color:var(--accent);background:var(--panel-2)}
-.drop svg{width:30px;height:30px;stroke:var(--muted);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-.drop strong{font:500 15px var(--font-head)}
-.drop span.sub{color:var(--muted);font-size:12.5px}
-.drop.compact{flex-direction:row;flex-wrap:wrap;justify-content:space-between;text-align:left;padding:12px 16px;border-style:solid}
-.drop.compact svg,.drop.compact .sub{display:none}
+.drop>svg{width:40px;height:40px;stroke:var(--accent);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.drop strong{font:500 17px var(--font-head)}
+.drop span.sub{color:var(--muted);font-size:13px}
+.drop.compact{flex-direction:row;flex-wrap:wrap;justify-content:space-between;text-align:left;padding:12px 20px;border:0}
+.drop.compact>svg,.drop.compact .sub{display:none}
 .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+
+/* tombol: tonal (bawaan), filled (.primary), outlined (dialog batal) */
 button,.btn{
-  font:500 13px var(--font-ui);color:var(--fg);background:var(--panel-2);border:1px solid var(--line);
-  border-radius:10px;padding:8px 14px;cursor:pointer;min-height:36px;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;
+  font:500 14px var(--font-ui);letter-spacing:.1px;color:var(--sec-ink);background:var(--sec);border:0;
+  border-radius:999px;padding:0 20px;cursor:pointer;min-height:40px;transition:filter .12s;
 }
-button:hover{border-color:var(--accent)}
-button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:hover,.btn:hover{filter:brightness(1.08)}
+button:active{filter:brightness(.94)}
+button.primary{background:var(--accent);color:var(--accent-ink)}
+button.text{background:transparent;color:var(--accent);padding:0 12px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 input[type=file]{display:none}
+button:disabled{opacity:.38;cursor:not-allowed;filter:none}
 
-.bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
-.tabs{display:flex;gap:6px;overflow-x:auto;max-width:100%;padding-bottom:2px;min-width:0}
-.tabs button{white-space:nowrap;font-family:var(--font-mono);font-size:12px;padding:6px 11px;min-height:32px}
-.tabs button[aria-selected=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
-.seg button{border:0;border-radius:0;background:transparent;padding:6px 13px;min-height:32px}
-.seg button[aria-pressed=true]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--accent)}
-.opts{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:13px}
-.opts label{display:inline-flex;align-items:center;gap:7px;cursor:pointer}
-.opts input{accent-color:var(--accent);width:15px;height:15px}
+/* toolbar */
+.toolbar{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.tbrow{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.tbrow .grow{flex:1}
+.tabs{display:flex;gap:8px;overflow-x:auto;max-width:100%;padding-bottom:2px;min-width:0}
+.tabs button{white-space:nowrap;font-family:var(--font-mono);font-size:12.5px;padding:0 14px;min-height:34px;border-radius:10px;
+  background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
+.tabs button[aria-selected=true]{background:var(--sec);color:var(--sec-ink);box-shadow:none}
+.seg{display:inline-flex;border-radius:999px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}
+.seg button{border-radius:0;background:transparent;color:var(--muted);padding:0 16px;min-height:38px;box-shadow:inset -1px 0 0 var(--line)}
+.seg button:last-child{box-shadow:none}
+.seg button[aria-pressed=true]{background:var(--sec);color:var(--sec-ink)}
+.opts{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:14px;align-items:center}
+.opts label{display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+input[type=checkbox]{accent-color:var(--accent);width:18px;height:18px;margin:0}
 
-.stage{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;min-width:0;
-  display:flex;flex-direction:column;align-items:center;gap:10px}
+/* panggung preview */
+.stage{padding:16px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:12px}
 .stagebox{width:100%;display:flex;justify-content:center;overflow:hidden}
-.frame{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#000;flex:none}
-.frame.mobile{border-radius:26px;border-width:5px}
+.stagetools{align-self:flex-end;display:flex;gap:8px}
+.frame{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#000;flex:none}
+.frame.mobile{border-radius:30px;border:6px solid #2b2b2b}
 .frame iframe{border:0;display:block;transform-origin:0 0;background:#000}
-.empty{color:var(--muted);text-align:center;padding:60px 16px;font-size:13px}
+.empty{color:var(--muted);text-align:center;padding:60px 16px;font-size:14px}
 .status{align-self:stretch;font-family:var(--font-mono);font-size:12px;color:var(--muted);min-height:18px;word-break:break-all}
 .warn{color:var(--warn)}
-details{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:10px 14px}
-summary{cursor:pointer;color:var(--muted);font-size:13px}
+details{background:var(--panel);border-radius:20px;padding:12px 18px}
+summary{cursor:pointer;color:var(--muted);font-size:14px}
 .files{margin:10px 0 0;padding:0;list-style:none;font-family:var(--font-mono);font-size:12px;max-height:220px;overflow:auto;color:var(--muted)}
-.files li{display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px solid var(--line)}
+.files li{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--line)}
 .files li span:first-child{word-break:break-all;color:var(--fg)}
-.msg{padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);font-size:13px}
-.msg.err{border-color:var(--err);color:var(--err)}
+.msg{padding:12px 16px;border-radius:16px;background:var(--panel);font-size:14px}
+.msg.err{background:var(--panel);color:var(--err);box-shadow:inset 0 0 0 1px var(--err)}
 
-.work{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+/* area kerja */
+.work{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
 .work[data-mode="preview"] .editor{display:none}
 .work[data-mode="editor"] .stage{display:none}
 @media (min-width:900px){.work[data-mode="split"]{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}}
-.editor{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.editor{padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .edhead{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
 .edhead .row{justify-content:flex-end}
-select{font:500 12.5px var(--font-mono);color:var(--fg);background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:7px 10px;min-height:36px;max-width:100%;min-width:0}
+.edhead .row button,.imgs .row button{min-height:36px;padding:0 14px;font-size:13px}
+select{font:500 13px var(--font-mono);color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:0 12px;min-height:40px;max-width:100%;min-width:0}
 #edText{
   width:100%;height:min(62vh,520px);min-height:260px;resize:vertical;
   font:12.5px/1.6 var(--font-mono);color:var(--fg);background:var(--bg);
-  border:1px solid var(--line);border-radius:10px;padding:12px;tab-size:2;white-space:pre;overflow:auto;
+  border:1px solid var(--line);border-radius:16px;padding:14px;tab-size:2;white-space:pre;overflow:auto;
 }
 #edText:focus-visible{outline:2px solid var(--accent);outline-offset:0}
 .edfoot{font-size:12px;color:var(--muted);font-family:var(--font-mono)}
 
-.imgs{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:10px}
-.imgs h2{font:600 14px var(--font-head);margin:0}
-.imggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-.imgcard{border:1px solid var(--line);border-radius:12px;padding:8px;background:var(--bg);display:flex;flex-direction:column;gap:6px;min-width:0}
-.thumb{height:92px;border-radius:8px;overflow:hidden;display:grid;place-items:center;background:repeating-conic-gradient(var(--panel-2) 0 25%,var(--bg) 0 50%) 50%/14px 14px}
+.imgs{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:12px}
+.imgs h2{font:500 16px var(--font-head);margin:0}
+.imggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.imgcard{border-radius:16px;padding:10px;background:var(--bg);display:flex;flex-direction:column;gap:8px;min-width:0}
+.thumb{height:92px;border-radius:12px;overflow:hidden;display:grid;place-items:center;background:var(--panel-2)}
 .thumb img{max-width:100%;max-height:100%;object-fit:contain;display:block}
 .imgname{font:11.5px/1.35 var(--font-mono);word-break:break-all}
 .imgmeta{font:11px var(--font-mono);color:var(--muted)}
 .imgcard .row{justify-content:flex-start;gap:6px}
-.imgcard button{padding:5px 10px;min-height:30px;font-size:12px}
+.imgcard button{padding:0 12px;min-height:32px;font-size:12px}
 .tag{color:var(--warn)}
-@media (max-width:520px){.seg button{padding:6px 10px}}
+@media (max-width:520px){.seg button{padding:0 12px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
-/* tombol umum tambahan */
-button:disabled{opacity:.45;cursor:not-allowed}
-button:disabled:hover{border-color:var(--line)}
-.stagetools{align-self:flex-end;display:flex;gap:8px}
-.stagetools button{display:inline-flex;align-items:center;gap:6px}
-.stagetools svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* input */
 .newfile{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .newfile[hidden]{display:none}
-.txt{font:13px var(--font-mono);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:7px 10px;min-height:36px;min-width:0;flex:1}
-/* dialog buat baru */
-dialog{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:16px;padding:20px;width:calc(100% - 32px);max-width:480px;font-family:var(--font-ui)}
-dialog::backdrop{background:rgba(0,0,0,.55)}
-dialog h2{font:600 17px var(--font-head);margin:0 0 4px}
-.dlgsub{color:var(--muted);font-size:12.5px;margin:4px 0 12px}
+.txt{font:14px var(--font-ui);color:var(--fg);background:transparent;border:1px solid var(--line);border-radius:12px;padding:0 14px;min-height:46px;min-width:0;flex:1}
+.txt:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
+input[type=color]{width:56px;height:46px;padding:4px;border:1px solid var(--line);border-radius:12px;background:transparent;cursor:pointer}
+fieldset{border:1px solid var(--line);border-radius:16px;padding:10px 14px 12px;margin:0;min-width:0}
+legend{font-size:12px;color:var(--muted);padding:0 6px}
+.lbl{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+.chk{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px 12px}
+.chk label{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--fg);cursor:pointer}
+
+/* dialog */
+dialog{background:var(--panel-2);color:var(--fg);border:0;border-radius:28px;padding:24px;width:calc(100% - 32px);max-width:480px;font-family:var(--font-ui)}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+dialog h2{font:400 24px/1.3 var(--font-head);margin:0 0 6px}
+.dlgsub{color:var(--muted);font-size:13px;margin:4px 0 12px}
 .dlgsub[hidden]{display:none}
 .choices{display:grid;gap:10px;margin:14px 0}
-.choice{text-align:left;display:flex;flex-direction:column;gap:3px;padding:12px 14px;border-radius:12px;height:auto}
-.choice strong{font:600 14px var(--font-head)}
-.choice span{color:var(--muted);font-size:12.5px;font-weight:400}
-.lbl{display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--muted)}
-/* zoom */
+.choice{text-align:left;display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:14px 18px;border-radius:20px;height:auto;background:var(--panel);color:var(--fg)}
+.choice strong{font:500 15px var(--font-head)}
+.choice span{color:var(--muted);font-size:13px;font-weight:400}
+#newDlg{max-height:calc(100vh - 32px);overflow:auto}
+.nopts{display:grid;gap:12px}
+.two{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end}
+.newgrid{display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+.newgrid[hidden]{display:none}
+.prevcol{order:-1;position:sticky;top:0;z-index:3;background:var(--panel-2);padding:6px 0 10px}
+.prevhead{font-size:12px;color:var(--muted);margin-bottom:6px}
+.prevbox{margin:0 auto;border-radius:16px;overflow:hidden;background:#000}
+.prevbox iframe{border:0;display:block;transform-origin:0 0;background:#000}
+@media(min-width:820px){#newDlg.wide{max-width:920px}.newgrid{grid-template-columns:minmax(0,1fr) 320px}.prevcol{order:0;align-self:start}}
+.imc{border-radius:16px;padding:12px;display:grid;gap:10px;background:var(--panel);margin-top:10px}
+.imh{display:flex;gap:10px;align-items:center}
+.imh img{width:40px;height:40px;object-fit:cover;border-radius:10px;background:var(--panel-2)}
+.imh b{flex:1;font:400 12px var(--font-mono);word-break:break-all}
+.imh button{min-height:34px;padding:0 14px;font-size:13px}
+.imgs2{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.imgs2 .full{grid-column:1/-1}
+.rg{display:grid;gap:3px;font-size:12px;color:var(--muted)}
+.rg span{display:flex;justify-content:space-between;gap:8px}
+.rg input[type=range]{width:100%;accent-color:var(--accent);height:24px;margin:0}
+.dolbox{background:var(--panel);border-radius:16px;padding:12px 16px;font-size:14px;margin:10px 0}
+.dolbox b{color:var(--accent)}
+
+/* zoom layar penuh */
 .zoom{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 .zoom[hidden]{display:none}
-.zbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px max(14px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line);background:var(--panel)}
+.zbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px max(16px,env(safe-area-inset-left,0px));background:var(--panel)}
 .zbar .grow{flex:1}
-.zpct{font:12px var(--font-mono);color:var(--muted);min-width:42px;text-align:center}
+.zpct{font:13px var(--font-mono);color:var(--muted);min-width:44px;text-align:center}
+.zchk{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);cursor:pointer}
 .zbox{flex:1;min-height:0;overflow:auto;display:flex;padding:24px}
 .zbox .frame{margin:auto}
-.zstatus{padding:6px 16px;border-top:1px solid var(--line);background:var(--panel);font-family:var(--font-mono);font-size:12px;color:var(--muted);min-height:30px;word-break:break-all}
-#newDlg{max-height:calc(100vh - 32px);overflow:auto}
-.nopts{display:grid;gap:10px}
-.two{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}
-input[type=color]{width:56px;height:36px;padding:2px;border:1px solid var(--line);border-radius:10px;background:var(--bg);cursor:pointer}
-fieldset{border:1px solid var(--line);border-radius:12px;padding:8px 12px 10px;margin:0;min-width:0}
-legend{font-size:12px;color:var(--muted);padding:0 6px}
-.chk{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 12px}
-.chk label{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--fg);cursor:pointer}
-.chk input{accent-color:var(--accent);width:15px;height:15px}
-.zchk{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer}
-.zchk input{accent-color:var(--accent)}
+.zstatus{padding:8px 16px;background:var(--panel);font-family:var(--font-mono);font-size:12px;color:var(--muted);min-height:34px;word-break:break-all}
 </style>
 </head>
 
 <body>
 <div class="wrap">
-  <header>
+  <header class="appbar">
     <div class="mark">
-      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
+      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" >
         <path d="M5 18.5a27 27 0 0 1 38 0"/><path d="M11 25a18.5 18.5 0 0 1 26 0"/><path d="M17 31.5a10 10 0 0 1 14 0"/>
         <circle cx="24" cy="38" r="2.6" fill="currentColor" stroke="none"/>
       </svg>
@@ -188,8 +221,8 @@ legend{font-size:12px;color:var(--muted);padding:0 6px}
       <span class="sub">Berisi login.html, style, gambar. Diproses di browser, tidak diunggah ke server.</span>
     </div>
     <div class="row">
-      <button class="primary" id="pick" type="button">Pilih file</button>
-      <button id="newBtn" type="button">Buat tampilan baru</button>
+      <button class="primary" id="pick" type="button"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Pilih file</button>
+      <button id="newBtn" type="button"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Buat tampilan baru</button>
     </div>
     <input type="file" id="file" accept=".zip,.rar,application/zip,application/x-rar-compressed">
   </div>
@@ -198,47 +231,53 @@ legend{font-size:12px;color:var(--muted);padding:0 6px}
 
   <div id="workspace" hidden>
     <div style="display:flex;flex-direction:column;gap:12px">
-      <div class="bar">
+      <div class="toolbar">
         <div class="tabs" id="tabs" role="tablist" aria-label="Halaman"></div>
-        <div class="seg" id="devices" role="group" aria-label="Perangkat">
-          <button type="button" data-d="mobile" aria-pressed="true">Ponsel</button>
-          <button type="button" data-d="tablet" aria-pressed="false">Tablet</button>
-          <button type="button" data-d="desktop" aria-pressed="false">Desktop</button>
+        <div class="tbrow">
+          <div class="seg" id="modes" role="group" aria-label="Mode tampilan">
+            <button type="button" data-m="preview" aria-pressed="true">Preview</button>
+            <button type="button" data-m="editor" aria-pressed="false">Editor</button>
+            <button type="button" data-m="split" aria-pressed="false">Split</button>
+          </div>
+          <div class="seg" id="devices" role="group" aria-label="Perangkat">
+            <button type="button" data-d="mobile" aria-pressed="true">Ponsel</button>
+            <button type="button" data-d="tablet" aria-pressed="false">Tablet</button>
+            <button type="button" data-d="desktop" aria-pressed="false">Desktop</button>
+          </div>
+          <div class="opts">
+            <label for="optChap"><input type="checkbox" id="optChap" checked> Login CHAP</label>
+            <label for="optErr"><input type="checkbox" id="optErr"> Tampilkan error</label>
+          </div>
+          <span class="grow"></span>
+          <div class="row">
+            <button type="button" id="dolBtn"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 5H9l-6 7 6 7h12zM13 9l4 6M17 9l-4 6"/></svg>Hapus $</button>
+            <button type="button" class="primary" id="dlTop"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>Unduh</button>
+          </div>
         </div>
-      </div>
-      <div class="seg" id="modes" role="group" aria-label="Mode tampilan" style="align-self:flex-start">
-        <button type="button" data-m="preview" aria-pressed="true">Preview</button>
-        <button type="button" data-m="editor" aria-pressed="false">Editor</button>
-        <button type="button" data-m="split" aria-pressed="false">Split</button>
-      </div>
-      <div class="opts">
-        <label for="optChap"><input type="checkbox" id="optChap" checked> Login CHAP</label>
-        <label for="optErr"><input type="checkbox" id="optErr"> Tampilkan error</label>
-        <button type="button" class="primary" id="dlTop" style="margin-left:auto">Unduh</button>
       </div>
       <div class="work" id="work" data-mode="preview">
       <section class="editor" id="editor" aria-label="Editor kode">
         <div class="edhead">
           <select id="edFile" aria-label="File yang diedit"></select>
           <div class="row">
-            <button type="button" id="fileNew">File baru</button>
-            <button type="button" id="fileDel" disabled>Hapus</button>
-            <button type="button" id="edReset">Reset</button>
-            <button type="button" id="edCopy">Salin</button>
-            <button type="button" id="edZip">Unduh</button>
+            <button type="button" id="fileNew"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M12 12v6M9 15h6"/></svg>File baru</button>
+            <button type="button" id="fileDel" disabled><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Hapus</button>
+            <button type="button" id="edReset"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h10a5 5 0 0 1 0 10H8M4 9l4-4M4 9l4 4"/></svg>Reset</button>
+            <button type="button" id="edCopy"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></svg>Salin</button>
+            <button type="button" id="edZip"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>Unduh</button>
           </div>
         </div>
         <div class="newfile" id="newFile" hidden>
           <input class="txt" id="nfName" list="nfList" placeholder="nama-file.html" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Nama file baru">
           <datalist id="nfList"><option value="login.html"><option value="alogin.html"><option value="status.html"><option value="logout.html"><option value="error.html"><option value="redirect.html"><option value="style.css"><option value="script.js"></datalist>
-          <button type="button" class="primary" id="nfAdd">Tambah</button>
+          <button type="button" class="primary" id="nfAdd"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Tambah</button>
           <button type="button" id="nfCancel">Batal</button>
         </div>
         <textarea id="edText" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="Isi file"></textarea>
         <div class="imgs">
           <div class="edhead">
             <h2>Gambar</h2>
-            <div class="row"><button type="button" id="imgAdd">Tambah gambar</button></div>
+            <div class="row"><button type="button" id="imgAdd"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 9v6M9 12h6"/></svg>Tambah gambar</button></div>
           </div>
           <div class="imggrid" id="imgGrid"></div>
           <input type="file" id="imgIn" accept="image/*">
@@ -246,7 +285,7 @@ legend{font-size:12px;color:var(--muted);padding:0 6px}
         <div class="edfoot" id="edInfo">Perubahan langsung tampil di preview. Tab menyisipkan spasi, Esc lalu Tab untuk keluar.</div>
       </section>
       <div class="stage">
-        <div class="stagetools"><button type="button" id="zoomBtn" aria-label="Perbesar preview"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg>Zoom</button></div>
+        <div class="stagetools"><button type="button" id="zoomBtn" aria-label="Perbesar preview"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg>Zoom</button></div>
         <div class="stagebox" id="stagebox">
           <div class="frame mobile" id="frame"><iframe id="view" title="Preview hotspot" sandbox="allow-scripts allow-forms"></iframe></div>
         </div>
@@ -272,15 +311,15 @@ legend{font-size:12px;color:var(--muted);padding:0 6px}
     <button type="button" data-t="blank" aria-pressed="false">Kosong, dari nol</button>
   </div>
   <p class="dlgsub" id="blankNote" hidden>Hanya login.html dan style.css yang masih kosong. Tambah halaman lain lewat tombol File baru di editor.</p>
-  <div class="nopts" id="newOpts">
+  <div class="newgrid" id="newOpts"><div class="nopts">
     <label class="lbl" for="nTitle">Judul<input class="txt" id="nTitle" value="Hotspot WiFi" autocomplete="off"></label>
     <label class="lbl" for="nSub">Subjudul<input class="txt" id="nSub" value="Masuk untuk terhubung" autocomplete="off"></label>
     <label class="lbl" for="nFoot">Teks footer (opsional)<input class="txt" id="nFoot" placeholder="mis. Dikelola oleh Fikri.net" autocomplete="off"></label>
     <div class="two">
       <label class="lbl" for="nTheme">Gaya
-        <select id="nTheme"><option value="gelap">Gelap kaca</option><option value="terang">Terang bersih</option><option value="biru">Biru laut</option><option value="hijau">Hijau</option></select>
+        <select id="nTheme"><option value="gelap">Gelap</option><option value="terang">Terang bersih</option><option value="biru">Biru laut</option><option value="hijau">Hijau</option></select>
       </label>
-      <label class="lbl" for="nAccent">Warna aksen<input type="color" id="nAccent" value="#5a5a64"></label>
+      <label class="lbl" for="nAccent">Warna aksen<input type="color" id="nAccent" value="#8ab4f8"></label>
     </div>
     <fieldset><legend>Halaman</legend>
       <div class="chk" id="nPages">
@@ -302,8 +341,28 @@ legend{font-size:12px;color:var(--muted);padding:0 6px}
         <label><input type="checkbox" id="nLogo" checked> Logo (img/logo.svg)</label>
       </div>
     </fieldset>
+    <fieldset><legend>Gambar</legend>
+      <div class="row" style="justify-content:flex-start"><button type="button" id="imAdd"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 9v6M9 12h6"/></svg>Tambah gambar</button><input type="file" id="imFile" accept="image/*" multiple></div>
+      <div class="dlgsub" id="imMsg" style="margin:6px 0 0">Atur tempat, ukuran, posisi, sudut, dan transparansi. Gambar juga bisa digeser langsung di pratinjau.</div>
+      <div id="imList"></div>
+    </fieldset>
   </div>
-  <div class="row" style="justify-content:flex-end;margin-top:14px"><button type="button" id="newCancel">Batal</button><button type="button" class="primary" id="newCreate">Buat</button></div>
+  <div class="prevcol"><div class="prevhead">Pratinjau login (geser gambar langsung di sini)</div><div class="prevbox" id="prevBox"><iframe id="nPrev" title="Pratinjau tampilan baru" sandbox="allow-scripts"></iframe></div></div>
+  </div>
+  <div class="row" style="justify-content:flex-end;margin-top:14px"><button type="button" class="text" id="newCancel">Batal</button><button type="button" class="primary" id="newCreate">Buat</button></div>
+</dialog>
+
+<dialog id="dolDlg" aria-labelledby="dolTitle">
+  <h2 id="dolTitle">Hapus semua tanda $</h2>
+  <p class="dlgsub">Menghapus setiap karakter $ di seluruh file teks (html, css, js, txt, svg, json) pada paket yang sedang dibuka.</p>
+  <div class="dolbox" id="dolInfo"></div>
+  <p class="dlgsub" id="dolWarn">Variabel MikroTik seperti $(username) akan menjadi (username) dan tidak lagi terisi oleh router. Kamu bisa membatalkannya dengan Urungkan.</p>
+  <div class="dlgsub" id="dolMsg" aria-live="polite"></div>
+  <div class="row" style="justify-content:flex-end">
+    <button type="button" class="text" id="dolClose">Tutup</button>
+    <button type="button" id="dolUndo" hidden><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h10a5 5 0 0 1 0 10H8M4 9l4-4M4 9l4 4"/></svg>Urungkan</button>
+    <button type="button" class="primary" id="dolGo"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 5H9l-6 7 6 7h12zM13 9l4 6M17 9l-4 6"/></svg>Hapus semua $</button>
+  </div>
 </dialog>
 
 <dialog id="dlDlg" aria-labelledby="dlTitle">
@@ -315,7 +374,7 @@ legend{font-size:12px;color:var(--muted);padding:0 6px}
   </div>
   <div class="dlgsub" id="dlMsg" aria-live="polite"></div>
   <div class="row" id="dlExtra" style="justify-content:flex-start;margin-bottom:12px"></div>
-  <div class="row" style="justify-content:flex-end"><button type="button" id="dlClose">Tutup</button></div>
+  <div class="row" style="justify-content:flex-end"><button type="button" class="text" id="dlClose">Tutup</button></div>
 </dialog>
 
 <div class="zoom" id="zoom" hidden role="dialog" aria-modal="true" aria-label="Preview diperbesar">
@@ -327,15 +386,15 @@ legend{font-size:12px;color:var(--muted);padding:0 6px}
       <button type="button" data-d="desktop" aria-pressed="false">Desktop</button>
     </div>
     <div class="seg" role="group" aria-label="Zoom">
-      <button type="button" id="zOut" aria-label="Perkecil">&minus;</button>
-      <button type="button" id="zFit">Pas</button>
-      <button type="button" id="zIn" aria-label="Perbesar">+</button>
+      <button type="button" id="zOut" aria-label="Perkecil"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+      <button type="button" id="zFit"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Pas</button>
+      <button type="button" id="zIn" aria-label="Perbesar"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
     </div>
     <span class="zpct" id="zPct">100%</span>
     <span class="grow"></span>
     <label class="zchk"><input type="checkbox" id="zFull" checked> Seluruh halaman</label>
-    <button type="button" class="primary" id="zJpg">Unduh JPG</button>
-    <button type="button" id="zClose">Tutup</button>
+    <button type="button" class="primary" id="zJpg"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M20 16l-5-5-8 8"/></svg>Unduh JPG</button>
+    <button type="button" id="zClose"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Tutup</button>
   </div>
   <div class="zbox" id="zbox"><div class="frame mobile" id="zframe"><iframe id="zview" title="Preview diperbesar" sandbox="allow-scripts allow-forms"></iframe></div></div>
   <div class="zstatus" id="zstatus" aria-live="polite"></div>
@@ -429,13 +488,43 @@ function rewriteCss(css){
   });
 }
 
+function CAPFN(){
+  window.addEventListener("message",function(e){
+    var m=e.data;if(!m||!m.hsCap)return;
+    function toData(src){
+      return Promise.race([
+        fetch(src).then(function(r){return r.blob()}).then(function(b){return new Promise(function(ok){var fr=new FileReader();fr.onload=function(){ok(fr.result)};fr.onerror=function(){ok(null)};fr.readAsDataURL(b)})}).catch(function(){return null}),
+        new Promise(function(ok){setTimeout(function(){ok(null)},4000)})
+      ]);
+    }
+    var live=[].slice.call(document.images);
+    Promise.all(live.map(function(i){return i.src&&!/^(data|blob):/i.test(i.src)?toData(i.src):null})).then(function(urls){
+      try{
+        var c=document.documentElement.cloneNode(true);
+        var ci=c.querySelectorAll("img");
+        live.forEach(function(im,k){if(urls[k]&&ci[k])ci[k].setAttribute("src",urls[k])});
+        var li=document.querySelectorAll("input,textarea"),cc=c.querySelectorAll("input,textarea");
+        [].forEach.call(li,function(x,k){
+          if(!cc[k])return;
+          if(x.type==="checkbox"||x.type==="radio"){if(x.checked)cc[k].setAttribute("checked","checked");else cc[k].removeAttribute("checked")}
+          else if(x.tagName==="TEXTAREA")cc[k].textContent=x.value;
+          else cc[k].setAttribute("value",x.value);
+        });
+        [].forEach.call(c.querySelectorAll("script,base,link[rel~=stylesheet],meta[http-equiv]"),function(n){n.remove()});
+        var xml=new XMLSerializer().serializeToString(c);
+        var de=document.documentElement,bd=document.body;
+        parent.postMessage({hsCapRes:1,id:m.id,xml:xml,h:Math.max(de.scrollHeight,bd?bd.scrollHeight:0)},"*");
+      }catch(err){parent.postMessage({hsCapRes:1,id:m.id,err:String(err)},"*")}
+    });
+  });
+}
 var INJECT="(function(){function send(t,x){parent.postMessage({hsPreview:1,type:t,target:x},'*')}"+
 "function route(u){var m=String(u||'').match(/to-([a-z]+)/);return m?m[1]:null}"+
 "document.addEventListener('click',function(e){var a=e.target&&e.target.closest?e.target.closest('a'):null;if(!a)return;e.preventDefault();var h=a.getAttribute('href')||'';send('nav',route(h)||h)},true);"+
 "document.addEventListener('submit',function(e){e.preventDefault();send('submit',route(e.target.getAttribute('action')))},true);"+
 "HTMLFormElement.prototype.submit=function(){send('submit',route(this.getAttribute('action')))};"+
 "window.addEventListener('hashchange',function(){var r=route(location.hash);if(r)send('nav',r)});"+
-"window.open=function(){send('popup','');return null};})();";
+"window.open=function(){send('popup','');return null};})();"+"("+CAPFN.toString()+")();";
 
 function buildDoc(html){
   var doc=new DOMParser().parseFromString(html,"text/html");
@@ -557,6 +646,7 @@ function refreshPages(){
   });
 }
 function loadEntries(entries,name,fresh){
+  dolSnap=null;
   entries=entries.filter(function(e){
     return !/(^|\/)(__MACOSX\/|\.DS_Store$|Thumbs\.db$)/i.test(e.path);
   });
@@ -987,10 +1077,10 @@ function blankEntries(){
 }
 var MD5_SRC="/* MD5 untuk login CHAP MikroTik: hexMD5(teks_biner) */\nfunction hexMD5(s){\n  function add(x,y){var l=(x&0xFFFF)+(y&0xFFFF);return (((x>>16)+(y>>16)+(l>>16))<<16)|(l&0xFFFF)}\n  function rol(n,c){return (n<<c)|(n>>>(32-c))}\n  var SH=[7,12,17,22,5,9,14,20,4,11,16,23,6,10,15,21],K=[],i,n=s.length,x=[];\n  for(i=0;i<64;i++)K[i]=Math.floor(Math.abs(Math.sin(i+1))*4294967296)|0;\n  for(i=0;i<n;i++)x[i>>2]|=(s.charCodeAt(i)&255)<<((i%4)*8);\n  x[n>>2]|=0x80<<((n%4)*8);\n  var len=(((n+8)>>>6)+1)*16;\n  x[len-2]=n*8;\n  for(i=0;i<len;i++)x[i]=x[i]|0;\n  var a=1732584193,b=-271733879,c=-1732584194,d=271733878;\n  for(var k=0;k<len;k+=16){\n    var A=a,B=b,C=c,D=d;\n    for(i=0;i<64;i++){\n      var f,g;\n      if(i<16){f=(B&C)|(~B&D);g=i}\n      else if(i<32){f=(D&B)|(~D&C);g=(5*i+1)%16}\n      else if(i<48){f=B^C^D;g=(3*i+5)%16}\n      else{f=C^(B|~D);g=(7*i)%16}\n      var t=D;D=C;C=B;\n      B=add(B,rol(add(add(A,f),add(K[i],x[k+g])),SH[(i>>4)*4+(i%4)]));\n      A=t;\n    }\n    a=add(a,A);b=add(b,B);c=add(c,C);d=add(d,D);\n  }\n  var h=\"0123456789abcdef\",o=\"\",w=[a,b,c,d];\n  for(i=0;i<16;i++)o+=h.charAt((w[i>>2]>>((i%4)*8+4))&15)+h.charAt((w[i>>2]>>((i%4)*8))&15);\n  return o;\n}\n";
 var THEMES={
-  gelap:{a:"#5a5a64",v:{bg:"radial-gradient(circle at 20% 10%, #4a4a52, #141416 70%)",card:"rgba(60,60,66,.38)",text:"#eeeeee",muted:"#a8a8b0",line:"rgba(255,255,255,.14)",input:"rgba(255,255,255,.07)",err:"#e29a9a",errbg:"rgba(200,90,90,.12)",blur:"blur(20px)",shadow:"0 20px 50px rgba(0,0,0,.5)"}},
-  terang:{a:"#3b5bdb",v:{bg:"#eef0f4",card:"#ffffff",text:"#1d1d22",muted:"#6b6b76",line:"#d9dce3",input:"#f4f5f8",err:"#b03a2e",errbg:"#fdecea",blur:"none",shadow:"0 12px 36px rgba(0,0,0,.12)"}},
-  biru:{a:"#1fa2ff",v:{bg:"linear-gradient(160deg, #0b2a4a, #0e6ba8)",card:"rgba(255,255,255,.12)",text:"#ffffff",muted:"#cfe3f5",line:"rgba(255,255,255,.25)",input:"rgba(255,255,255,.12)",err:"#ffd0cc",errbg:"rgba(255,80,70,.22)",blur:"blur(18px)",shadow:"0 20px 50px rgba(0,0,0,.35)"}},
-  hijau:{a:"#2ecc71",v:{bg:"linear-gradient(160deg, #0b3d2e, #1b7f5c)",card:"rgba(255,255,255,.12)",text:"#ffffff",muted:"#d3efe3",line:"rgba(255,255,255,.25)",input:"rgba(255,255,255,.12)",err:"#ffd0cc",errbg:"rgba(255,80,70,.22)",blur:"blur(18px)",shadow:"0 20px 50px rgba(0,0,0,.35)"}}
+  gelap:{a:"#8ab4f8",v:{bg:"#131314",card:"#1e1f20",text:"#e3e3e3",muted:"#c4c7c5",line:"#444746",input:"#282a2c",err:"#f2b8b5",errbg:"#3c2927",blur:"none",shadow:"none"}},
+  terang:{a:"#0b57d0",v:{bg:"#f8fafd",card:"#ffffff",text:"#1f1f1f",muted:"#444746",line:"#c4c7c5",input:"#eef2f8",err:"#b3261e",errbg:"#fce8e6",blur:"none",shadow:"none"}},
+  biru:{a:"#a8c7fa",v:{bg:"#0b2d52",card:"#123e6f",text:"#ffffff",muted:"#c9dcf2",line:"#2f5f94",input:"#0f3560",err:"#ffd9d6",errbg:"#6b2b2b",blur:"none",shadow:"none"}},
+  hijau:{a:"#6dd58c",v:{bg:"#0d3326",card:"#14503a",text:"#ffffff",muted:"#cde8d9",line:"#2a6f55",input:"#103f2e",err:"#ffd9d6",errbg:"#6b2b2b",blur:"none",shadow:"none"}}
 };
 function esc(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function accentInk(h){var n=parseInt(String(h).slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255;return (.299*r+.587*g+.114*b)>150?"#111111":"#ffffff"}
@@ -1000,7 +1090,7 @@ function genCss(o){
     "/* Warna utama: ubah di sini */",":root {","  --bg: "+v.bg+";","  --card: "+v.card+";","  --text: "+v.text+";","  --muted: "+v.muted+";","  --line: "+v.line+";","  --input: "+v.input+";","  --err: "+v.err+";","  --errbg: "+v.errbg+";","  --blur: "+v.blur+";","  --shadow: "+v.shadow+";","  --accent: "+acc+";","  --accent-text: "+accentInk(acc)+";","}","",
     "* { margin: 0; box-sizing: border-box; }",
     "body { min-height: 100vh; display: grid; place-items: center; padding: 20px; font-family: system-ui, sans-serif; color: var(--text); background: var(--bg); }",
-    ".card { width: 100%; max-width: 380px; padding: 30px 26px; border-radius: 22px; background: var(--card); border: 1px solid var(--line); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); box-shadow: var(--shadow); }",
+    ".card { position: relative; z-index: 1; width: 100%; max-width: 380px; padding: 30px 26px; border-radius: 22px; background: var(--card); border: 1px solid var(--line); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); box-shadow: var(--shadow); }",
     ".logo { display: block; width: 56px; height: 56px; margin: 0 auto 14px; }",
     "h1 { font-size: 22px; text-align: center; margin-bottom: 6px; }",
     "p { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 20px; }",
@@ -1018,7 +1108,17 @@ function genCss(o){
 }
 function genTemplate(o){
   var T=THEMES[o.theme]||THEMES.gelap,acc=o.accent||T.a,t=esc(o.title),logo=o.logo?'  <img class="logo" src="img/logo.svg" alt="">':null,foot=o.foot?'  <div class="foot">'+esc(o.foot)+'</div>':null;
-  function card(lines,open,close){return [open||'<div class="card">'].concat(logo?[logo]:[],lines,foot?[foot]:[],[close||'</div>']).join("\n")}
+  var imgs=o.imgs||[],topI=[],botI=[],pre=[],imgCss=[];
+  function imEl(im){var d=o.preview?' data-i="'+im.id+'"':'';return im.place==="bg"?'<div class="im'+im.id+'"'+d+'></div>':'<img class="im'+im.id+'" src="img/'+im.file+'" alt=""'+d+'>'}
+  imgs.forEach(function(im){
+    var f="img/"+im.file,op=im.op<100?" opacity: "+(im.op/100)+";":"",rd=im.r?" border-radius: "+im.r+"%;":"",p;
+    if(im.place==="bg")p="position: fixed; inset: 0; z-index: 0; background: url(\""+f+"\") "+im.bx+"% "+im.by+"% / "+im.fit+" no-repeat;"+op;
+    else if(im.place==="free")p="position: fixed; left: "+im.fx+"%; top: "+im.fy+"%; width: "+im.w+"px; max-width: 80vw; height: auto; transform: translate(-50%, -50%); z-index: "+(im.depth==="back"?0:5)+"; pointer-events: none;"+rd+op;
+    else{var ml=im.align==="left"?"0":"auto",mr=im.align==="right"?"0":"auto",tp=im.place==="top";p="display: block; position: relative; left: "+im.ox+"px; top: "+im.oy+"px; width: "+im.w+"px; max-width: 100%; height: auto; margin: "+(tp?"0":"14px")+" "+mr+" "+(tp?"14px":"0")+" "+ml+";"+rd+op}
+    imgCss.push(".im"+im.id+" { "+p+" }");
+    if(im.place==="top")topI.push("  "+imEl(im));else if(im.place==="bottom")botI.push("  "+imEl(im));else pre.push(imEl(im));
+  });
+  function card(lines,open,close){return [open||'<div class="card">'].concat(logo?[logo]:[],topI,lines,botI,foot?[foot]:[],[close||'</div>']).join("\n")}
   var useJs=o.chap||o.voucher;
   var loginLines=[
     '  <h1>'+t+'</h1>',
@@ -1056,32 +1156,217 @@ function genTemplate(o){
     rlogin:["Login diperlukan",card(['  <h1>Login diperlukan</h1>','  <p>Silakan masuk dulu untuk membuka halaman ini.</p>','  <a class="b" href="$(link-login)">Masuk</a>'])],
     radvert:["Iklan",card(['  <h1>Sebentar ya</h1>','  <p>Anda akan diarahkan ke halaman tujuan.</p>','  <a class="b" href="$(link-redirect)">Lanjutkan</a>'])]
   };
-  var out=[{path:"style.css",data:enc.encode(genCss(o))}];
+  var out=[{path:"style.css",data:enc.encode(genCss(o)+(imgCss.length?"\n/* Gambar */\n"+imgCss.join("\n")+"\n":""))}];
+  imgs.forEach(function(im){out.push({path:"img/"+im.file,data:im.bytes})});
   if(o.chap&&useJs)out.push({path:"md5.js",data:enc.encode(MD5_SRC)});
   if(o.logo)out.push({path:"img/logo.svg",data:enc.encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke="'+acc+'" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18.5a27 27 0 0 1 38 0"/><path d="M11 25a18.5 18.5 0 0 1 26 0"/><path d="M17 31.5a10 10 0 0 1 14 0"/><circle cx="24" cy="38" r="2.6" fill="'+acc+'" stroke="none"/></svg>')});
   Object.keys(P).forEach(function(k){
     if(k!=="login"&&!o.pages[k])return;
-    var p=P[k];out.push({path:k+".html",data:enc.encode(pageHtml(p[0]==="Login"?"Login":esc(p[0])+" - "+t,p[1],true,p[2]))});
+    var p=P[k];out.push({path:k+".html",data:enc.encode(pageHtml(p[0]==="Login"?"Login":esc(p[0])+" - "+t,(pre.length?pre.join("\n")+"\n":"")+p[1],true,p[2]))});
   });
   return out;
+}
+function readOpts(preview){
+  var o={theme:$("#nTheme").value,accent:$("#nAccent").value,title:$("#nTitle").value.trim()||"Hotspot WiFi",sub:$("#nSub").value.trim(),foot:$("#nFoot").value.trim(),chap:$("#nChap").checked,voucher:$("#nVoucher").checked,eye:$("#nEye").checked,logo:$("#nLogo").checked,pages:{},imgs:IM,preview:!!preview};
+  document.querySelectorAll("#nPages input").forEach(function(i){o.pages[i.dataset.p]=i.checked});
+  return o;
 }
 function newProject(){
   var nm=($("#newName").value||"").trim()||"Tampilan baru";
   var blank=$("#newType button[aria-pressed=true]").dataset.t==="blank";
   try{
-    var entries;
-    if(blank)entries=blankEntries();
-    else{
-      var o={theme:$("#nTheme").value,accent:$("#nAccent").value,title:$("#nTitle").value.trim()||"Hotspot WiFi",sub:$("#nSub").value.trim(),foot:$("#nFoot").value.trim(),chap:$("#nChap").checked,voucher:$("#nVoucher").checked,eye:$("#nEye").checked,logo:$("#nLogo").checked,pages:{}};
-      document.querySelectorAll("#nPages input").forEach(function(i){o.pages[i.dataset.p]=i.checked});
-      entries=genTemplate(o);
-    }
-    loadEntries(entries,nm,true);
+    loadEntries(blank?blankEntries():genTemplate(readOpts(false)),nm,true);
     setMode("split");
     $("#newDlg").close();
+    IM=[];drawIm();
     $("#edInfo").textContent="Proyek baru dibuat. Ubah kode di editor, hasilnya langsung tampil di preview.";
   }catch(e){note(e.message,true)}
 }
+
+/* gambar di dialog tampilan baru */
+var IM=[],imSeq=0,prevT=null;
+function clampN(v,a,b){return Math.max(a,Math.min(b,v))}
+var PLACES=[["bg","Latar belakang halaman"],["top","Di atas judul (dalam kartu)"],["bottom","Di bawah form (dalam kartu)"],["free","Bebas (geser di pratinjau)"]];
+async function addImages(files){
+  for(var i=0;i<files.length;i++){
+    var file=files[i];
+    try{
+      var ext=(file.name.split(".").pop()||"png").toLowerCase();
+      if(ext==="jpeg")ext="jpg";
+      if(["png","jpg","gif","webp","svg"].indexOf(ext)<0)ext="png";
+      var data=await encodeImg(file,ext);
+      var base=file.name.replace(/[^\w.\-]+/g,"_");if(!/\.\w+$/.test(base))base+="."+ext;
+      var nm=base,k=1;
+      while(nm==="logo.svg"||IM.some(function(x){return x.file===nm}))nm=base.replace(/(\.[^.]+)$/,"-"+(k++)+"$1");
+      IM.push({id:++imSeq,file:nm,bytes:data,place:"top",w:120,align:"center",ox:0,oy:0,fx:50,fy:20,bx:50,by:50,fit:"cover",r:0,op:100,depth:"front"});
+      $("#imMsg").textContent="Gambar ditambahkan. Atur di bawah atau geser langsung di pratinjau.";
+    }catch(e){$("#imMsg").textContent="Gagal memuat "+file.name+": "+(e&&e.message||e)}
+  }
+  drawIm();schedPrev();
+}
+function drawIm(){
+  var L=$("#imList");L.innerHTML="";
+  IM.forEach(function(im){
+    var c=document.createElement("div");c.className="imc";
+    var h=document.createElement("div");h.className="imh";
+    var th=document.createElement("img");th.alt="";th.src="data:"+mimeOf(im.file)+";base64,"+b64(im.bytes);
+    var nm=document.createElement("b");nm.textContent=im.file+" ("+kb(im.bytes.length)+")";
+    var del=document.createElement("button");del.type="button";del.textContent="Hapus";
+    del.addEventListener("click",function(){IM=IM.filter(function(x){return x!==im});drawIm();schedPrev()});
+    h.appendChild(th);h.appendChild(nm);h.appendChild(del);c.appendChild(h);
+    var g=document.createElement("div");g.className="imgs2";c.appendChild(g);
+    function on(pl){return (" "+pl+" ").indexOf(" "+im.place+" ")>=0}
+    function sel(key,label,opts,pl,full,after){
+      if(!on(pl))return;
+      var l=document.createElement("label");l.className="rg"+(full?" full":"");
+      var sp=document.createElement("span");sp.textContent=label;
+      var s2=document.createElement("select");
+      opts.forEach(function(o){var op=document.createElement("option");op.value=o[0];op.textContent=o[1];s2.appendChild(op)});
+      s2.value=im[key];
+      s2.addEventListener("change",function(){im[key]=s2.value;if(after)drawIm();schedPrev()});
+      l.appendChild(sp);l.appendChild(s2);g.appendChild(l);
+    }
+    function rg(key,label,min,max,step,unit,pl){
+      if(!on(pl))return;
+      var l=document.createElement("label");l.className="rg";
+      var sp=document.createElement("span"),t1=document.createElement("span"),v=document.createElement("span");
+      t1.textContent=label;v.textContent=im[key]+unit;sp.appendChild(t1);sp.appendChild(v);
+      var inp=document.createElement("input");inp.type="range";inp.min=min;inp.max=max;inp.step=step;inp.value=im[key];
+      inp.addEventListener("input",function(){im[key]=Number(inp.value);v.textContent=im[key]+unit;schedPrev()});
+      l.appendChild(sp);l.appendChild(inp);g.appendChild(l);
+    }
+    sel("place","Tempat gambar",PLACES,"bg top bottom free",true,true);
+    rg("w","Lebar",20,400,2,"px","top bottom free");
+    sel("align","Rata",[["left","Kiri"],["center","Tengah"],["right","Kanan"]],"top bottom");
+    rg("ox","Geser X",-150,150,1,"px","top bottom");
+    rg("oy","Geser Y",-150,150,1,"px","top bottom");
+    rg("fx","Posisi X",0,100,0.5,"%","free");
+    rg("fy","Posisi Y",0,100,0.5,"%","free");
+    sel("depth","Lapisan",[["front","Depan kartu"],["back","Belakang kartu"]],"free");
+    rg("bx","Posisi X",0,100,0.5,"%","bg");
+    rg("by","Posisi Y",0,100,0.5,"%","bg");
+    sel("fit","Ukuran",[["cover","Penuh (cover)"],["contain","Muat (contain)"]],"bg");
+    rg("r","Sudut bulat",0,50,1,"%","top bottom free");
+    rg("op","Transparansi",10,100,1,"%","top bottom free bg");
+    L.appendChild(c);
+  });
+}
+var PREV_CSS="[data-i]{pointer-events:auto!important;cursor:grab;touch-action:none}body{-webkit-user-select:none;user-select:none}";
+function DRAGFN(){
+  var d=null;
+  document.addEventListener("pointerdown",function(e){
+    var t=e.target&&e.target.closest?e.target.closest("[data-i]"):null;if(!t)return;
+    e.preventDefault();d={el:t,i:t.getAttribute("data-i"),x:e.clientX,y:e.clientY,dx:0,dy:0};
+    try{t.setPointerCapture(e.pointerId)}catch(x){}
+  });
+  document.addEventListener("pointermove",function(e){if(!d)return;d.dx=e.clientX-d.x;d.dy=e.clientY-d.y;d.el.style.translate=d.dx+"px "+d.dy+"px"});
+  function end(){
+    if(!d)return;var m=d;d=null;
+    if(m.dx||m.dy)parent.postMessage({imgDrag:1,i:m.i,dx:m.dx,dy:m.dy,W:window.innerWidth,H:window.innerHeight},"*");
+    else m.el.style.translate="";
+  }
+  document.addEventListener("pointerup",end);document.addEventListener("pointercancel",end);
+  document.addEventListener("click",function(e){e.preventDefault()},true);
+  document.addEventListener("submit",function(e){e.preventDefault()},true);
+}
+function schedPrev(){clearTimeout(prevT);prevT=setTimeout(drawPrev,120)}
+function fitPrev(){
+  var box=$("#prevBox"),ifr=$("#nPrev"),W=390,H=560;
+  var avail=box.parentNode.clientWidth||W,maxH=window.innerWidth<820?Math.round(window.innerHeight*0.36):600;
+  var sc=Math.max(0.3,Math.min(1,avail/W,maxH/H));
+  ifr.style.width=W+"px";ifr.style.height=H+"px";ifr.style.transform="scale("+sc+")";
+  box.style.width=Math.round(W*sc)+"px";box.style.height=Math.round(H*sc)+"px";
+}
+function drawPrev(){
+  if(!$("#newDlg").open||$("#newOpts").hidden)return;
+  var ents,D=new TextDecoder(),map={};
+  try{ents=genTemplate(readOpts(true))}catch(e){return}
+  ents.forEach(function(e){map[e.path]=e.data});
+  var css=D.decode(map["style.css"]),html=D.decode(map["login.html"]);
+  ents.forEach(function(e){
+    if(e.path.indexOf("img/")!==0)return;
+    var u="data:"+mimeOf(e.path)+";base64,"+b64(e.data);
+    css=css.split(e.path).join(u);html=html.split(e.path).join(u);
+  });
+  html=html.replace('<link rel="stylesheet" href="style.css">',function(){return "<style>"+css+PREV_CSS+"</style>"});
+  html=html.replace(/<script src="\/md5\.js"><\/script>/,"");
+  try{html=renderTpl(html,sampleVars("login.html"))}catch(e){}
+  html=html.replace("</body>",function(){return "<script>("+DRAGFN.toString()+")();<\/script></body>"});
+  $("#nPrev").srcdoc=html;fitPrev();
+}
+window.addEventListener("message",function(e){
+  var d=e.data;if(!d||!d.imgDrag||e.source!==$("#nPrev").contentWindow)return;
+  var im=IM.filter(function(x){return String(x.id)===String(d.i)})[0];if(!im||!d.W||!d.H)return;
+  var r1=function(v){return Math.round(v*10)/10};
+  if(im.place==="free"){im.fx=clampN(r1(im.fx+d.dx/d.W*100),0,100);im.fy=clampN(r1(im.fy+d.dy/d.H*100),0,100)}
+  else if(im.place==="bg"){im.bx=clampN(r1(im.bx-d.dx/d.W*100),0,100);im.by=clampN(r1(im.by-d.dy/d.H*100),0,100)}
+  else{im.ox=clampN(Math.round(im.ox+d.dx),-150,150);im.oy=clampN(Math.round(im.oy+d.dy),-150,150)}
+  drawIm();schedPrev();
+});
+window.addEventListener("resize",function(){if($("#newDlg").open)fitPrev()});
+$("#imAdd").addEventListener("click",function(){$("#imFile").click()});
+$("#imFile").addEventListener("change",async function(){var fl=Array.prototype.slice.call(this.files);this.value="";await addImages(fl)});
+$("#newDlg").addEventListener("input",schedPrev);
+$("#newDlg").addEventListener("change",schedPrev);
+
+/* hapus semua $ pada file paket */
+var dolSnap=null;
+function dolCount(){
+  var files=0,total=0;
+  S.files.forEach(function(f){
+    if(!EDITABLE.test(f.name))return;
+    var n=(text(f).match(/\$/g)||[]).length;
+    if(n){files++;total+=n}
+  });
+  return {files:files,total:total};
+}
+function dolShow(){
+  var c=dolCount();
+  $("#dolInfo").innerHTML="";
+  var b=document.createElement("b");b.textContent=c.total+" tanda $";
+  $("#dolInfo").appendChild(b);
+  $("#dolInfo").appendChild(document.createTextNode(" ditemukan di "+c.files+" file."));
+  $("#dolGo").disabled=!c.total;
+}
+function openDol(){
+  if(!S.files.size)return;
+  $("#dolMsg").textContent="";$("#dolUndo").hidden=!dolSnap;
+  dolShow();$("#dolDlg").showModal();
+}
+function dolApply(){
+  var snap=[],files=0,total=0,enc2=new TextEncoder();
+  S.files.forEach(function(f){
+    if(!EDITABLE.test(f.name))return;
+    var t=text(f),n=(t.match(/\$/g)||[]).length;
+    if(!n)return;
+    snap.push({name:f.name,data:f.data});
+    f.data=enc2.encode(t.replace(/\$/g,""));dcache.delete(f.name);
+    files++;total+=n;
+  });
+  if(!total){$("#dolMsg").textContent="Tidak ada tanda $ untuk dihapus.";return}
+  dolSnap=snap;
+  drawEd();drawFiles();
+  if(S.edit)openEd(S.edit);
+  render();
+  $("#dolMsg").textContent="Selesai: "+total+" tanda $ dihapus dari "+files+" file.";
+  $("#dolUndo").hidden=false;dolShow();
+}
+function dolUndo(){
+  if(!dolSnap)return;
+  dolSnap.forEach(function(x){
+    var f=S.files.get(x.name.toLowerCase());
+    if(f){f.data=x.data;dcache.delete(f.name)}
+  });
+  dolSnap=null;
+  drawEd();drawFiles();
+  if(S.edit)openEd(S.edit);
+  render();
+  $("#dolUndo").hidden=true;$("#dolMsg").textContent="Dikembalikan seperti semula.";dolShow();
+}
+$("#dolBtn").addEventListener("click",openDol);
+$("#dolGo").addEventListener("click",dolApply);
+$("#dolUndo").addEventListener("click",dolUndo);
+$("#dolClose").addEventListener("click",function(){$("#dolDlg").close()});
 
 /* file baru & hapus file di editor */
 function canDel(f){return !!f&&(f.added||S.fresh)}
@@ -1160,7 +1445,7 @@ function closeZoom(){
   if(zoomFrom&&zoomFrom.focus)zoomFrom.focus();
 }
 function delay(ms){return new Promise(function(r){setTimeout(r,ms)})}
-async function captureJpg(){
+async function captureViaH2C(){
   if(typeof html2canvas==="undefined")throw new Error("pustaka gambar belum termuat, periksa koneksi lalu muat ulang halaman");
   if(!S.doc)throw new Error("belum ada tampilan");
   var d=SIZES[S.device],w=d[0],h=d[1];
@@ -1200,6 +1485,36 @@ async function captureJpg(){
     return blob;
   }finally{ifr.remove()}
 }
+var capSeq=0,capWait={};
+window.addEventListener("message",function(e){var d=e.data;if(d&&d.hsCapRes&&capWait[d.id]){var fn=capWait[d.id];delete capWait[d.id];fn(d)}});
+function askCapture(){
+  return new Promise(function(res,rej){
+    var w=$("#zview").contentWindow,id=++capSeq;
+    if(!w){rej(new Error("preview belum siap"));return}
+    var t=setTimeout(function(){delete capWait[id];rej(new Error("preview tidak merespons"))},15000);
+    capWait[id]=function(d){clearTimeout(t);if(d.err)rej(new Error(d.err));else res(d)};
+    w.postMessage({hsCap:1,id:id},"*");
+  });
+}
+async function captureJpg(){
+  var d0=SIZES[S.device],w=d0[0],h=d0[1];
+  try{
+    var cap=await askCapture(),zf=$("#zFull");
+    var H=(!zf||zf.checked)?Math.min(12000,Math.max(h,cap.h|0)):h;
+    var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+H+'"><foreignObject x="0" y="0" width="'+w+'" height="'+H+'">'+cap.xml+'</foreignObject></svg>';
+    var img=new Image();
+    await new Promise(function(ok,no){img.onload=ok;img.onerror=function(){no(new Error("render SVG gagal"))};img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg)});
+    var sc=Math.max(1,Math.min(2,16000/H)),cv=document.createElement("canvas");
+    cv.width=Math.round(w*sc);cv.height=Math.round(H*sc);
+    var cx=cv.getContext("2d");cx.fillStyle="#000";cx.fillRect(0,0,cv.width,cv.height);cx.scale(sc,sc);cx.drawImage(img,0,0,w,H);
+    var blob=await new Promise(function(r){cv.toBlob(r,"image/jpeg",0.93)});
+    if(!blob)throw new Error("canvas kosong");
+    return blob;
+  }catch(e){
+    setStatus("Cara utama gagal ("+(e&&e.message||e)+"), memakai cara cadangan...");
+    return await captureViaH2C();
+  }
+}
 $("#zoomBtn").addEventListener("click",openZoom);
 $("#zClose").addEventListener("click",closeZoom);
 document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("#zoom").hidden)closeZoom()});
@@ -1226,14 +1541,14 @@ fileIn.addEventListener("change",function(){if(fileIn.files[0])handleFile(fileIn
 var dlg=$("#newDlg");
 $("#newBtn").addEventListener("click",function(){
   $("#newWarn").hidden=!S.files.size;
-  dlg.showModal();$("#newName").select();
+  dlg.showModal();$("#newDlg").classList.toggle("wide",!$("#newOpts").hidden);schedPrev();$("#newName").select();
 });
 $("#newCancel").addEventListener("click",function(){dlg.close()});
 $("#newType").addEventListener("click",function(e){
   var b=e.target.closest("button[data-t]");if(!b)return;
   this.querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});
   var blank=b.dataset.t==="blank";
-  $("#newOpts").hidden=blank;$("#blankNote").hidden=!blank;
+  $("#newOpts").hidden=blank;$("#blankNote").hidden=!blank;$("#newDlg").classList.toggle("wide",!blank);if(!blank)schedPrev();
 });
 $("#nTheme").addEventListener("change",function(){$("#nAccent").value=THEMES[this.value].a});
 $("#newCreate").addEventListener("click",newProject);
