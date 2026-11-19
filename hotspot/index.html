@@ -152,6 +152,17 @@ dialog h2{font:600 17px var(--font-head);margin:0 0 4px}
 .zbox{flex:1;min-height:0;overflow:auto;display:flex;padding:24px}
 .zbox .frame{margin:auto}
 .zstatus{padding:6px 16px;border-top:1px solid var(--line);background:var(--panel);font-family:var(--font-mono);font-size:12px;color:var(--muted);min-height:30px;word-break:break-all}
+#newDlg{max-height:calc(100vh - 32px);overflow:auto}
+.nopts{display:grid;gap:10px}
+.two{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}
+input[type=color]{width:56px;height:36px;padding:2px;border:1px solid var(--line);border-radius:10px;background:var(--bg);cursor:pointer}
+fieldset{border:1px solid var(--line);border-radius:12px;padding:8px 12px 10px;margin:0;min-width:0}
+legend{font-size:12px;color:var(--muted);padding:0 6px}
+.chk{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 12px}
+.chk label{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--fg);cursor:pointer}
+.chk input{accent-color:var(--accent);width:15px;height:15px}
+.zchk{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer}
+.zchk input{accent-color:var(--accent)}
 </style>
 </head>
 
@@ -252,15 +263,47 @@ dialog h2{font:600 17px var(--font-head);margin:0 0 4px}
 
 <dialog id="newDlg" aria-labelledby="newTitle">
   <h2 id="newTitle">Buat tampilan baru</h2>
-  <p class="dlgsub" id="newWarn" hidden>Proyek yang sedang dibuka akan diganti. Unduh ZIP dulu bila perlu.</p>
+  <p class="dlgsub" id="newWarn" hidden>Proyek yang sedang dibuka akan diganti. Unduh dulu bila perlu.</p>
   <label class="lbl" for="newName">Nama proyek
     <input class="txt" id="newName" type="text" value="Tampilan baru" autocomplete="off">
   </label>
-  <div class="choices">
-    <button type="button" class="choice" data-t="blank"><strong>Kosong, dari nol</strong><span>Hanya login.html dan style.css yang masih kosong. Tambah halaman lain lewat tombol File baru di editor.</span></button>
-    <button type="button" class="choice" data-t="base"><strong>Template dasar</strong><span>Login, berhasil, status, logout, dan error dengan gaya gelap. Tinggal diubah sesuai selera.</span></button>
+  <div class="seg" id="newType" role="group" aria-label="Jenis proyek" style="margin:12px 0">
+    <button type="button" data-t="base" aria-pressed="true">Template lengkap</button>
+    <button type="button" data-t="blank" aria-pressed="false">Kosong, dari nol</button>
   </div>
-  <div class="row" style="justify-content:flex-end"><button type="button" id="newCancel">Batal</button></div>
+  <p class="dlgsub" id="blankNote" hidden>Hanya login.html dan style.css yang masih kosong. Tambah halaman lain lewat tombol File baru di editor.</p>
+  <div class="nopts" id="newOpts">
+    <label class="lbl" for="nTitle">Judul<input class="txt" id="nTitle" value="Hotspot WiFi" autocomplete="off"></label>
+    <label class="lbl" for="nSub">Subjudul<input class="txt" id="nSub" value="Masuk untuk terhubung" autocomplete="off"></label>
+    <label class="lbl" for="nFoot">Teks footer (opsional)<input class="txt" id="nFoot" placeholder="mis. Dikelola oleh Fikri.net" autocomplete="off"></label>
+    <div class="two">
+      <label class="lbl" for="nTheme">Gaya
+        <select id="nTheme"><option value="gelap">Gelap kaca</option><option value="terang">Terang bersih</option><option value="biru">Biru laut</option><option value="hijau">Hijau</option></select>
+      </label>
+      <label class="lbl" for="nAccent">Warna aksen<input type="color" id="nAccent" value="#5a5a64"></label>
+    </div>
+    <fieldset><legend>Halaman</legend>
+      <div class="chk" id="nPages">
+        <label><input type="checkbox" data-p="login" checked disabled> login</label>
+        <label><input type="checkbox" data-p="alogin" checked> alogin (berhasil)</label>
+        <label><input type="checkbox" data-p="status" checked> status</label>
+        <label><input type="checkbox" data-p="logout" checked> logout</label>
+        <label><input type="checkbox" data-p="error" checked> error</label>
+        <label><input type="checkbox" data-p="redirect"> redirect</label>
+        <label><input type="checkbox" data-p="rlogin"> rlogin</label>
+        <label><input type="checkbox" data-p="radvert"> radvert</label>
+      </div>
+    </fieldset>
+    <fieldset><legend>Fitur</legend>
+      <div class="chk">
+        <label><input type="checkbox" id="nChap" checked> Login CHAP (md5.js)</label>
+        <label><input type="checkbox" id="nVoucher"> Mode voucher (1 kolom)</label>
+        <label><input type="checkbox" id="nEye" checked> Tombol lihat password</label>
+        <label><input type="checkbox" id="nLogo" checked> Logo (img/logo.svg)</label>
+      </div>
+    </fieldset>
+  </div>
+  <div class="row" style="justify-content:flex-end;margin-top:14px"><button type="button" id="newCancel">Batal</button><button type="button" class="primary" id="newCreate">Buat</button></div>
 </dialog>
 
 <dialog id="dlDlg" aria-labelledby="dlTitle">
@@ -290,6 +333,7 @@ dialog h2{font:600 17px var(--font-head);margin:0 0 4px}
     </div>
     <span class="zpct" id="zPct">100%</span>
     <span class="grow"></span>
+    <label class="zchk"><input type="checkbox" id="zFull" checked> Seluruh halaman</label>
     <button type="button" class="primary" id="zJpg">Unduh JPG</button>
     <button type="button" id="zClose">Tutup</button>
   </div>
@@ -545,25 +589,91 @@ async function readZip(buf){
   for(var i=0;i<list.length;i++)out.push({path:list[i].name.replace(/\\/g,"/"),data:await list[i].async("uint8array")});
   return out;
 }
-var UNRARIT="https://cdn.jsdelivr.net/npm/unrarit@0.0.6/dist/unrarit.module.min.js";
-var NODEUNRAR="https://cdn.jsdelivr.net/npm/node-unrar-js@2.0.2/esm/";
+/* ---- pembaca RAR bawaan (mode simpan/tanpa kompresi, RAR4 dan RAR5) ---- */
+function rarNative(u){
+  var p=0,out=[],dec=new TextDecoder("utf-8");
+  function rv(){var v=0,m=1,x;do{x=u[p++];v+=(x&127)*m;m*=128}while(x&128&&p<u.length);return v}
+  function r32(q){return (u[q]|(u[q+1]<<8)|(u[q+2]<<16)|(u[q+3]<<24))>>>0}
+  function fail(k,msg){var e=new Error(msg);e[k]=true;throw e}
+  var v5=u[6]===1&&u[7]===0,v4=u[6]===0;
+  if(u[0]!==0x52||u[1]!==0x61||u[2]!==0x72||u[3]!==0x21)throw new Error("bukan file RAR");
+  if(v5){
+    p=8;
+    while(p+8<u.length){
+      p+=4;var hs=rv(),end=p+hs,type=rv(),fl=rv(),ds=0;
+      if(fl&1)rv();
+      if(fl&2)ds=rv();
+      if(type===4)fail("enc","terenkripsi");
+      if(type===5)break;
+      if(type===2){
+        var ff=rv();var us=rv();rv();
+        if(ff&2)p+=4;
+        if(ff&4)p+=4;
+        var ci=rv();rv();var nl=rv();
+        var name=dec.decode(u.subarray(p,p+nl));
+        if(((ci>>7)&7)!==0)fail("compressed","terkompresi");
+        if(!(ff&1))out.push({path:name.replace(/\\/g,"/"),data:u.slice(end,end+ds)});
+      }
+      p=end+ds;
+    }
+    return out;
+  }
+  if(v4){
+    p=7;
+    while(p+7<=u.length){
+      var flags=u[p+3]|(u[p+4]<<8),size=u[p+5]|(u[p+6]<<8),type4=u[p+2],q=p+7,add=0;
+      if(flags&0x8000){add=r32(q);q+=4}
+      if(type4===0x74){
+        if(flags&0x04)fail("enc","terenkripsi");
+        var pack=r32(p+7),method=u[p+7+14],nsz=u[p+7+15]|(u[p+7+16]<<8),np=p+7+25;
+        if(flags&0x100)np+=8;
+        if(method!==0x30)fail("compressed","terkompresi");
+        var nb=u.subarray(np,np+nsz),z=nb.indexOf(0);if(z>=0)nb=nb.subarray(0,z);
+        var nm=dec.decode(nb);
+        if((flags&0xE0)!==0xE0)out.push({path:nm.replace(/\\/g,"/"),data:u.slice(p+size,p+size+pack)});
+        p+=size+pack;
+      }else if(type4===0x7B){break}
+      else p+=size+add;
+    }
+    return out;
+  }
+  throw new Error("versi RAR tidak dikenal");
+}
+/* ---- pustaka cadangan (RAR terkompresi), dicoba dari beberapa CDN ---- */
+var UNRARIT_URLS=[
+  "https://cdn.jsdelivr.net/npm/unrarit@0.0.6/dist/unrarit.module.min.js",
+  "https://unpkg.com/unrarit@0.0.6/dist/unrarit.module.min.js",
+  "https://esm.sh/unrarit@0.0.6"
+];
+var NODEUNRAR_BASES=[
+  "https://cdn.jsdelivr.net/npm/node-unrar-js@2.0.2/esm/",
+  "https://unpkg.com/node-unrar-js@2.0.2/esm/"
+];
 async function rarViaUnrarit(buf){
-  var mod=await import(UNRARIT);
+  var mod=null,last;
+  for(var i=0;i<UNRARIT_URLS.length&&!mod;i++){try{mod=await import(UNRARIT_URLS[i])}catch(e){last=e}}
+  if(!mod)throw new Error("pustaka unrarit tidak termuat ("+((last&&last.message)||"gagal")+")");
   var res=await mod.unrar(new Uint8Array(buf)),out=[],enc=false;
   var names=Object.keys(res.entries);
-  for(var i=0;i<names.length;i++){
-    var e=res.entries[names[i]];
+  for(var j=0;j<names.length;j++){
+    var e=res.entries[names[j]];
     if(e.isDirectory)continue;
     if(e.encrypted){enc=true;continue}
-    out.push({path:String(e.name||names[i]).replace(/\\/g,"/"),data:new Uint8Array(await e.arrayBuffer())});
+    out.push({path:String(e.name||names[j]).replace(/\\/g,"/"),data:new Uint8Array(await e.arrayBuffer())});
   }
   try{res.rar&&res.rar.dispose&&res.rar.dispose();mod.cleanup&&mod.cleanup()}catch(x){}
-  if(!out.length&&enc)throw new Error("RAR ini dikunci dengan password. Buka dulu dengan WinRAR lalu simpan ulang tanpa password.");
+  if(!out.length&&enc)throw new Error("RAR ini dikunci dengan password");
   return out;
 }
 async function rarViaNodeUnrar(buf){
-  var mod=await import(NODEUNRAR+"index.esm.js");
-  var wasm=await (await fetch(NODEUNRAR+"js/unrar.wasm")).arrayBuffer();
+  var mod=null,wasm=null,last;
+  for(var i=0;i<NODEUNRAR_BASES.length&&!(mod&&wasm);i++){
+    try{
+      mod=await import(NODEUNRAR_BASES[i]+"index.esm.js");
+      wasm=await (await fetch(NODEUNRAR_BASES[i]+"js/unrar.wasm")).arrayBuffer();
+    }catch(e){last=e;mod=null;wasm=null}
+  }
+  if(!mod||!wasm)throw new Error("pustaka node-unrar-js tidak termuat ("+((last&&last.message)||"gagal")+")");
   var ex=await mod.createExtractorFromData({data:new Uint8Array(buf),wasmBinary:wasm});
   var res=ex.extract(),out=[];
   for(var f of res.files){
@@ -573,19 +683,23 @@ async function rarViaNodeUnrar(buf){
   return out;
 }
 async function readRar(buf){
-  var err1;
+  var u=new Uint8Array(buf),errs=[],compressed=false,m;
+  try{return rarNative(u)}
+  catch(e){
+    if(e.enc)throw new Error("RAR ini dikunci dengan password. Buka dulu dengan WinRAR lalu simpan ulang tanpa password.");
+    if(e.compressed)compressed=true;else errs.push("bawaan: "+e.message);
+  }
   try{return await rarViaUnrarit(buf)}
   catch(e){
     if(/password|dikunci/i.test(e.message))throw e;
-    err1=e;
+    errs.push("unrarit: "+(e&&e.message||e));
   }
   try{return await rarViaNodeUnrar(buf)}
-  catch(e2){
-    var m=String((err1&&err1.message)||err1||"")+" "+String(e2&&e2.message||e2||"");
-    if(/wasm|WebAssembly|unsafe-eval|Content Security/i.test(m))
-      throw new Error("Browser atau halaman ini memblokir WebAssembly, jadi RAR tidak bisa dibuka di sini. Pakai versi file HTML lokal, atau ubah ke ZIP.");
-    throw new Error("Gagal membuka RAR ("+(err1&&err1.message||"pustaka tidak termuat")+"). Pastikan perangkat online, atau ubah ke ZIP.");
-  }
+  catch(e){errs.push("node-unrar: "+(e&&e.message||e))}
+  m=errs.join(" | ");
+  if(/wasm|WebAssembly|unsafe-eval|Content Security/i.test(m))
+    throw new Error("Browser atau halaman ini memblokir WebAssembly, jadi RAR terkompresi tidak bisa dibuka. Ubah ke ZIP, atau buka file HTML ini langsung dari komputer.");
+  throw new Error("Gagal membuka RAR"+(compressed?" terkompresi":"")+". Pustaka pembuka RAR tidak bisa dimuat dari internet. Pastikan online, atau ubah ke ZIP. Detail: "+m);
 }
 function sniff(buf,name){
   var b=new Uint8Array(buf.slice(0,8));
@@ -862,8 +976,8 @@ $("#imgIn").addEventListener("change",async function(){
 
 /* tampilan baru: kosong dan template dasar */
 var enc=new TextEncoder();
-function pageHtml(title,body,css){
-  return ['<!DOCTYPE html>','<html lang="id">','<head>','<meta charset="utf-8">','<meta name="viewport" content="width=device-width,initial-scale=1">','<title>'+title+'</title>',css?'<link rel="stylesheet" href="style.css">':null,'</head>','<body>',body,'</body>','</html>',''].filter(function(x){return x!==null}).join("\n");
+function pageHtml(title,body,css,head){
+  return ['<!DOCTYPE html>','<html lang="id">','<head>','<meta charset="utf-8">','<meta name="viewport" content="width=device-width,initial-scale=1">',head||null,'<title>'+title+'</title>',css?'<link rel="stylesheet" href="style.css">':null,'</head>','<body>',body,'</body>','</html>',''].filter(function(x){return x!==null}).join("\n");
 }
 function blankEntries(){
   return [
@@ -871,84 +985,98 @@ function blankEntries(){
     {path:"style.css",data:enc.encode("/* Gaya tampilan */\n")}
   ];
 }
-function templateEntries(){
-  var css=[
+var MD5_SRC="/* MD5 untuk login CHAP MikroTik: hexMD5(teks_biner) */\nfunction hexMD5(s){\n  function add(x,y){var l=(x&0xFFFF)+(y&0xFFFF);return (((x>>16)+(y>>16)+(l>>16))<<16)|(l&0xFFFF)}\n  function rol(n,c){return (n<<c)|(n>>>(32-c))}\n  var SH=[7,12,17,22,5,9,14,20,4,11,16,23,6,10,15,21],K=[],i,n=s.length,x=[];\n  for(i=0;i<64;i++)K[i]=Math.floor(Math.abs(Math.sin(i+1))*4294967296)|0;\n  for(i=0;i<n;i++)x[i>>2]|=(s.charCodeAt(i)&255)<<((i%4)*8);\n  x[n>>2]|=0x80<<((n%4)*8);\n  var len=(((n+8)>>>6)+1)*16;\n  x[len-2]=n*8;\n  for(i=0;i<len;i++)x[i]=x[i]|0;\n  var a=1732584193,b=-271733879,c=-1732584194,d=271733878;\n  for(var k=0;k<len;k+=16){\n    var A=a,B=b,C=c,D=d;\n    for(i=0;i<64;i++){\n      var f,g;\n      if(i<16){f=(B&C)|(~B&D);g=i}\n      else if(i<32){f=(D&B)|(~D&C);g=(5*i+1)%16}\n      else if(i<48){f=B^C^D;g=(3*i+5)%16}\n      else{f=C^(B|~D);g=(7*i)%16}\n      var t=D;D=C;C=B;\n      B=add(B,rol(add(add(A,f),add(K[i],x[k+g])),SH[(i>>4)*4+(i%4)]));\n      A=t;\n    }\n    a=add(a,A);b=add(b,B);c=add(c,C);d=add(d,D);\n  }\n  var h=\"0123456789abcdef\",o=\"\",w=[a,b,c,d];\n  for(i=0;i<16;i++)o+=h.charAt((w[i>>2]>>((i%4)*8+4))&15)+h.charAt((w[i>>2]>>((i%4)*8))&15);\n  return o;\n}\n";
+var THEMES={
+  gelap:{a:"#5a5a64",v:{bg:"radial-gradient(circle at 20% 10%, #4a4a52, #141416 70%)",card:"rgba(60,60,66,.38)",text:"#eeeeee",muted:"#a8a8b0",line:"rgba(255,255,255,.14)",input:"rgba(255,255,255,.07)",err:"#e29a9a",errbg:"rgba(200,90,90,.12)",blur:"blur(20px)",shadow:"0 20px 50px rgba(0,0,0,.5)"}},
+  terang:{a:"#3b5bdb",v:{bg:"#eef0f4",card:"#ffffff",text:"#1d1d22",muted:"#6b6b76",line:"#d9dce3",input:"#f4f5f8",err:"#b03a2e",errbg:"#fdecea",blur:"none",shadow:"0 12px 36px rgba(0,0,0,.12)"}},
+  biru:{a:"#1fa2ff",v:{bg:"linear-gradient(160deg, #0b2a4a, #0e6ba8)",card:"rgba(255,255,255,.12)",text:"#ffffff",muted:"#cfe3f5",line:"rgba(255,255,255,.25)",input:"rgba(255,255,255,.12)",err:"#ffd0cc",errbg:"rgba(255,80,70,.22)",blur:"blur(18px)",shadow:"0 20px 50px rgba(0,0,0,.35)"}},
+  hijau:{a:"#2ecc71",v:{bg:"linear-gradient(160deg, #0b3d2e, #1b7f5c)",card:"rgba(255,255,255,.12)",text:"#ffffff",muted:"#d3efe3",line:"rgba(255,255,255,.25)",input:"rgba(255,255,255,.12)",err:"#ffd0cc",errbg:"rgba(255,80,70,.22)",blur:"blur(18px)",shadow:"0 20px 50px rgba(0,0,0,.35)"}}
+};
+function esc(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function accentInk(h){var n=parseInt(String(h).slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255;return (.299*r+.587*g+.114*b)>150?"#111111":"#ffffff"}
+function genCss(o){
+  var T=THEMES[o.theme]||THEMES.gelap,v=T.v,acc=o.accent||T.a;
+  return [
+    "/* Warna utama: ubah di sini */",":root {","  --bg: "+v.bg+";","  --card: "+v.card+";","  --text: "+v.text+";","  --muted: "+v.muted+";","  --line: "+v.line+";","  --input: "+v.input+";","  --err: "+v.err+";","  --errbg: "+v.errbg+";","  --blur: "+v.blur+";","  --shadow: "+v.shadow+";","  --accent: "+acc+";","  --accent-text: "+accentInk(acc)+";","}","",
     "* { margin: 0; box-sizing: border-box; }",
-    "body {",
-    "  min-height: 100vh; display: grid; place-items: center; padding: 20px;",
-    "  font-family: system-ui, sans-serif; color: #eee;",
-    "  background: radial-gradient(circle at 20% 10%, #4a4a52, #141416 70%);",
-    "}",
-    ".card {",
-    "  width: 100%; max-width: 380px; padding: 30px 26px; border-radius: 22px;",
-    "  background: rgba(60,60,66,.38); border: 1px solid rgba(255,255,255,.14);",
-    "  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);",
-    "  box-shadow: 0 20px 50px rgba(0,0,0,.5);",
-    "}",
+    "body { min-height: 100vh; display: grid; place-items: center; padding: 20px; font-family: system-ui, sans-serif; color: var(--text); background: var(--bg); }",
+    ".card { width: 100%; max-width: 380px; padding: 30px 26px; border-radius: 22px; background: var(--card); border: 1px solid var(--line); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); box-shadow: var(--shadow); }",
+    ".logo { display: block; width: 56px; height: 56px; margin: 0 auto 14px; }",
     "h1 { font-size: 22px; text-align: center; margin-bottom: 6px; }",
-    "p { text-align: center; color: #a8a8b0; font-size: 13px; margin-bottom: 20px; }",
-    "input {",
-    "  width: 100%; height: 46px; margin-bottom: 12px; padding: 0 14px; border-radius: 12px;",
-    "  border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.07);",
-    "  color: #fff; font-size: 15px;",
-    "}",
-    "button, a.b {",
-    "  display: block; width: 100%; height: 46px; line-height: 46px; text-align: center;",
-    "  border: 0; border-radius: 12px; background: #5a5a64; color: #fff;",
-    "  font-size: 15px; font-weight: 600; text-decoration: none; cursor: pointer;",
-    "}",
-    ".err { margin-bottom: 12px; padding: 9px; border-radius: 10px; text-align: center; font-size: 13px; color: #e29a9a; background: rgba(200,90,90,.12); }",
-    ".r { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.1); font-size: 14px; }",
-    ".r b { font-weight: 400; color: #a8a8b0; }",
-    ""
+    "p { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 20px; }",
+    "input { width: 100%; height: 46px; margin-bottom: 12px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--input); color: var(--text); font-size: 15px; }",
+    ".pw { position: relative; }",".pw input { padding-right: 92px; }",
+    ".eye { position: absolute; right: 6px; top: 6px; height: 34px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--line); background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; }",
+    "button[type=submit], a.b { display: block; width: 100%; height: 46px; line-height: 46px; text-align: center; border: 0; border-radius: 12px; background: var(--accent); color: var(--accent-text); font-size: 15px; font-weight: 600; text-decoration: none; cursor: pointer; }",
+    "a.b + a.b { margin-top: 10px; }",
+    "a.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); line-height: 44px; }",
+    ".err { margin-bottom: 12px; padding: 9px; border-radius: 10px; text-align: center; font-size: 13px; color: var(--err); background: var(--errbg); }",
+    ".r { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; }",
+    ".r b { font-weight: 400; color: var(--muted); }",
+    ".foot { margin-top: 18px; text-align: center; font-size: 12px; color: var(--muted); }",""
   ].join("\n");
-  var files={
-    "style.css":css,
-    "login.html":pageHtml("Login",[
-      '<form class="card" action="$(link-login-only)" method="post">',
-      '  <h1>Hotspot WiFi</h1>',
-      '  <p>Masuk untuk terhubung</p>',
-      '  $(if error)<div class="err">$(error)</div>$(endif)',
-      '  <input name="username" value="$(username)" placeholder="Username">',
-      '  <input name="password" type="password" placeholder="Password">',
-      '  <button type="submit">Hubungkan</button>',
-      '</form>'].join("\n"),true),
-    "alogin.html":pageHtml("Berhasil",[
-      '<div class="card">',
-      '  <h1>Berhasil terhubung</h1>',
-      '  <p>Mengalihkan ke halaman tujuan</p>',
-      '  <a class="b" href="$(link-status)">Lihat status</a>',
-      '</div>'].join("\n"),true),
-    "status.html":pageHtml("Status",[
-      '<div class="card">',
-      '  <h1>Anda terhubung</h1>',
-      '  <p>Status sesi</p>',
-      '  <div class="r"><b>Pengguna</b><span>$(username)</span></div>',
-      '  <div class="r"><b>IP</b><span>$(ip)</span></div>',
-      '  <div class="r"><b>Waktu aktif</b><span>$(uptime)</span></div>',
-      '  <div class="r"><b>Diunduh</b><span>$(bytes-in-nice)</span></div>',
-      '  <br>',
-      '  <form action="$(link-logout)" method="post"><button type="submit">Putuskan koneksi</button></form>',
-      '</div>'].join("\n"),true),
-    "logout.html":pageHtml("Logout",[
-      '<div class="card">',
-      '  <h1>Koneksi diputus</h1>',
-      '  <p>Terima kasih</p>',
-      '  <a class="b" href="$(link-login)">Masuk kembali</a>',
-      '</div>'].join("\n"),true),
-    "error.html":pageHtml("Error",[
-      '<div class="card">',
-      '  <h1>Terjadi kesalahan</h1>',
-      '  <div class="err">$(error)</div>',
-      '  <a class="b" href="$(link-login)">Kembali</a>',
-      '</div>'].join("\n"),true)
-  };
-  return Object.keys(files).map(function(k){return {path:k,data:enc.encode(files[k])}});
 }
-function newProject(type){
+function genTemplate(o){
+  var T=THEMES[o.theme]||THEMES.gelap,acc=o.accent||T.a,t=esc(o.title),logo=o.logo?'  <img class="logo" src="img/logo.svg" alt="">':null,foot=o.foot?'  <div class="foot">'+esc(o.foot)+'</div>':null;
+  function card(lines,open,close){return [open||'<div class="card">'].concat(logo?[logo]:[],lines,foot?[foot]:[],[close||'</div>']).join("\n")}
+  var useJs=o.chap||o.voucher;
+  var loginLines=[
+    '  <h1>'+t+'</h1>',
+    o.sub?'  <p>'+esc(o.sub)+'</p>':null,
+    '  $(if error)<div class="err">$(error)</div>$(endif)',
+    '  <input type="hidden" name="dst" value="$(link-orig)">',
+    '  <input type="hidden" name="popup" value="true">'
+  ];
+  if(o.voucher){
+    loginLines.push('  <input name="username" value="$(username)" placeholder="Kode voucher" autocomplete="off">','  <input type="hidden" name="password" value="">');
+  }else{
+    loginLines.push('  <input name="username" value="$(username)" placeholder="Username" autocomplete="username">');
+    if(o.eye)loginLines.push('  <div class="pw"><input name="password" type="password" placeholder="Password" autocomplete="current-password"><button type="button" class="eye" onclick="togglePw(this)">Lihat</button></div>');
+    else loginLines.push('  <input name="password" type="password" placeholder="Password" autocomplete="current-password">');
+  }
+  loginLines.push('  <button type="submit">Hubungkan</button>');
+  var login=card(loginLines.filter(function(x){return x!==null}),'<form class="card" name="login" action="$(link-login-only)" method="post"'+(useJs?' onsubmit="return doLogin()"':'')+'>','</form>');
+  if(useJs){
+    login+='\n'+['<form name="sendin" action="$(link-login-only)" method="post">','  <input type="hidden" name="username">','  <input type="hidden" name="password">','  <input type="hidden" name="dst" value="$(link-orig)">','  <input type="hidden" name="popup" value="true">','</form>'].join("\n");
+    if(o.chap)login+='\n<script src="/md5.js"></script>';
+    var js=['function doLogin() {','  var f = document.login;'];
+    if(o.voucher)js.push('  f.password.value = f.username.value;');
+    if(o.chap)js.push('$(if chap-id)','  document.sendin.username.value = f.username.value;',"  document.sendin.password.value = hexMD5('$(chap-id)' + f.password.value + '$(chap-challenge)');",'  document.sendin.submit();','  return false;','$(endif)');
+    js.push('  return true;','}');
+    login+='\n<script>\n'+js.join("\n")+'\n</script>';
+  }
+  if(o.eye&&!o.voucher)login+="\n<script>\nfunction togglePw(b) {\n  var i = b.previousElementSibling, s = i.type === 'password';\n  i.type = s ? 'text' : 'password';\n  b.textContent = s ? 'Sembunyi' : 'Lihat';\n}\n</script>";
+  var P={
+    login:["Login",login],
+    alogin:["Berhasil",card(['  <h1>Berhasil terhubung</h1>','  <p>Anda sudah online. Selamat berselancar.</p>','  <a class="b" href="$(link-redirect)">Lanjut ke tujuan</a>','  <a class="b ghost" href="$(link-status)">Lihat status</a>'])],
+    status:["Status",card(['  <h1>Anda terhubung</h1>','  <p>Status sesi</p>','  <div class="r"><b>Pengguna</b><span>$(username)</span></div>','  <div class="r"><b>IP</b><span>$(ip)</span></div>','  <div class="r"><b>MAC</b><span>$(mac)</span></div>','  <div class="r"><b>Waktu aktif</b><span>$(uptime)</span></div>','  $(if session-time-left)<div class="r"><b>Sisa waktu</b><span>$(session-time-left)</span></div>$(endif)','  <div class="r"><b>Diunduh</b><span>$(bytes-in-nice)</span></div>','  <div class="r"><b>Diunggah</b><span>$(bytes-out-nice)</span></div>','  $(if remain-bytes-total-nice)<div class="r"><b>Sisa kuota</b><span>$(remain-bytes-total-nice)</span></div>$(endif)','  <br>','  <form action="$(link-logout)" method="post"><button type="submit">Putuskan koneksi</button></form>'])],
+    logout:["Logout",card(['  <h1>Koneksi diputus</h1>','  <p>Terima kasih sudah memakai WiFi ini.</p>','  <div class="r"><b>Pengguna</b><span>$(username)</span></div>','  <div class="r"><b>Waktu aktif</b><span>$(uptime)</span></div>','  <div class="r"><b>Diunduh</b><span>$(bytes-in-nice)</span></div>','  <br>','  <a class="b" href="$(link-login)">Masuk kembali</a>'])],
+    error:["Error",card(['  <h1>Terjadi kesalahan</h1>','  <div class="err">$(error)</div>','  <a class="b" href="$(link-login)">Kembali</a>'])],
+    redirect:["Mengalihkan",card(['  <h1>Mengalihkan...</h1>','  <p>Jika tidak berpindah otomatis, ketuk tombol di bawah.</p>','  <a class="b" href="$(link-redirect)">Lanjutkan</a>']),'<meta http-equiv="refresh" content="3; url=$(link-redirect)">'],
+    rlogin:["Login diperlukan",card(['  <h1>Login diperlukan</h1>','  <p>Silakan masuk dulu untuk membuka halaman ini.</p>','  <a class="b" href="$(link-login)">Masuk</a>'])],
+    radvert:["Iklan",card(['  <h1>Sebentar ya</h1>','  <p>Anda akan diarahkan ke halaman tujuan.</p>','  <a class="b" href="$(link-redirect)">Lanjutkan</a>'])]
+  };
+  var out=[{path:"style.css",data:enc.encode(genCss(o))}];
+  if(o.chap&&useJs)out.push({path:"md5.js",data:enc.encode(MD5_SRC)});
+  if(o.logo)out.push({path:"img/logo.svg",data:enc.encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke="'+acc+'" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18.5a27 27 0 0 1 38 0"/><path d="M11 25a18.5 18.5 0 0 1 26 0"/><path d="M17 31.5a10 10 0 0 1 14 0"/><circle cx="24" cy="38" r="2.6" fill="'+acc+'" stroke="none"/></svg>')});
+  Object.keys(P).forEach(function(k){
+    if(k!=="login"&&!o.pages[k])return;
+    var p=P[k];out.push({path:k+".html",data:enc.encode(pageHtml(p[0]==="Login"?"Login":esc(p[0])+" - "+t,p[1],true,p[2]))});
+  });
+  return out;
+}
+function newProject(){
   var nm=($("#newName").value||"").trim()||"Tampilan baru";
+  var blank=$("#newType button[aria-pressed=true]").dataset.t==="blank";
   try{
-    loadEntries(type==="blank"?blankEntries():templateEntries(),nm,true);
+    var entries;
+    if(blank)entries=blankEntries();
+    else{
+      var o={theme:$("#nTheme").value,accent:$("#nAccent").value,title:$("#nTitle").value.trim()||"Hotspot WiFi",sub:$("#nSub").value.trim(),foot:$("#nFoot").value.trim(),chap:$("#nChap").checked,voucher:$("#nVoucher").checked,eye:$("#nEye").checked,logo:$("#nLogo").checked,pages:{}};
+      document.querySelectorAll("#nPages input").forEach(function(i){o.pages[i.dataset.p]=i.checked});
+      entries=genTemplate(o);
+    }
+    loadEntries(entries,nm,true);
     setMode("split");
     $("#newDlg").close();
     $("#edInfo").textContent="Proyek baru dibuat. Ubah kode di editor, hasilnya langsung tampil di preview.";
@@ -1051,7 +1179,15 @@ async function captureJpg(){
     try{if(doc.fonts&&doc.fonts.ready)await Promise.race([doc.fonts.ready,delay(2000)])}catch(e){}
     await Promise.all(Array.prototype.map.call(doc.images,function(im){return im.decode?im.decode().catch(function(){}):null}));
     await delay(200);
-    var base={backgroundColor:"#000000",width:w,height:h,windowWidth:w,windowHeight:h,x:0,y:0,scrollX:0,scrollY:0,scale:2,logging:false,useCORS:true};
+    var H=h,zf=$("#zFull");
+    if(!zf||zf.checked){
+      var de=doc.documentElement,bd=doc.body;
+      var meas=function(){return Math.min(12000,Math.max(h,de.scrollHeight,bd?bd.scrollHeight:0))};
+      H=meas();
+      if(H>h){ifr.style.height=H+"px";await delay(300);H=meas();ifr.style.height=H+"px";await delay(100)}
+    }
+    var sc=Math.max(1,Math.min(2,16000/H));
+    var base={backgroundColor:"#000000",width:w,height:H,windowWidth:w,windowHeight:H,x:0,y:0,scrollX:0,scrollY:0,scale:sc,logging:false,useCORS:true};
     var cv;
     try{
       cv=await html2canvas(doc.documentElement,Object.assign({foreignObjectRendering:true},base));
@@ -1093,7 +1229,14 @@ $("#newBtn").addEventListener("click",function(){
   dlg.showModal();$("#newName").select();
 });
 $("#newCancel").addEventListener("click",function(){dlg.close()});
-dlg.querySelectorAll(".choice").forEach(function(b){b.addEventListener("click",function(){newProject(b.dataset.t)})});
+$("#newType").addEventListener("click",function(e){
+  var b=e.target.closest("button[data-t]");if(!b)return;
+  this.querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});
+  var blank=b.dataset.t==="blank";
+  $("#newOpts").hidden=blank;$("#blankNote").hidden=!blank;
+});
+$("#nTheme").addEventListener("change",function(){$("#nAccent").value=THEMES[this.value].a});
+$("#newCreate").addEventListener("click",newProject);
 ["dragenter","dragover"].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault();drop.classList.add("over")})});
 ["dragleave","drop"].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault();if(t==="drop"||e.target===document.documentElement)drop.classList.remove("over")})});
 document.addEventListener("drop",function(e){var f=e.dataTransfer&&e.dataTransfer.files[0];if(f)handleFile(f)});
